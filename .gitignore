@@ -1,0 +1,51 @@
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Backend - Symfony
+backend/vendor/
+backend/var/
+backend/.env.local
+backend/public/uploads/
+
+# Frontend - React
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# OS
+Thumbs.db
+*.log
+*.bak
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+temp/
+.cache/
+
+# Database
+*.sql
+!database/seeds/*.sql
+!database/migrations/*.sql

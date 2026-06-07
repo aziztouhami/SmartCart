@@ -1,0 +1,51 @@
+security:
+  # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+  providers:
+    # Load users from database
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    
+    # Login firewall - for generating JWT tokens
+    login:
+      pattern: ^/api/auth/login$
+      stateless: true
+      user_checker: security.user_checker
+      json_login:
+        check_path: /api/auth/login
+        username_path: email
+        password_path: password
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+    # Main API firewall - requires JWT token
+    api:
+      pattern: ^/api/
+      stateless: true
+      provider: app_user_provider
+      jwt: ~
+      entry_point: jwt
+
+  # Easy way to control access for large sections of your site
+  # Note: Only the *first* access control that matches will be used
+  access_control:
+    # Allow login without authentication
+    - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
+    - { path: ^/api/auth/register$, roles: PUBLIC_ACCESS }
+    
+    # Protect all other API routes with JWT
+    - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
+
+  # Password hashers configuration
+  password_hashers:
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+  # Role hierarchy (optional)
+  role_hierarchy:
+    ROLE_ADMIN: ROLE_USER

@@ -1,0 +1,9 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  App\Service\AuthenticationService:
+    arguments:
+      $tokenTtl: '%env(resolve:JWT_EXPIRATION)%'

@@ -1,0 +1,63 @@
+{
+    "name": "smartcart/backend",
+    "description": "SmartCart - E-commerce platform with AI recommendations",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "doctrine/dbal": "^3.0",
+        "doctrine/doctrine-bundle": "^2.6",
+        "doctrine/doctrine-migrations-bundle": "^3.2",
+        "doctrine/orm": "^2.12",
+        "lexik/jwt-authentication-bundle": "^2.17",
+        "nelmio/api-doc-bundle": "*",
+        "symfony/console": "^6.0",
+        "symfony/dotenv": "^6.0",
+        "symfony/form": "^6.0",
+        "symfony/framework-bundle": "^6.0",
+        "symfony/http-foundation": "^6.0",
+        "symfony/http-kernel": "^6.0",
+        "symfony/maker-bundle": "^1.46",
+        "symfony/orm-pack": "^2.0",
+        "symfony/routing": "^6.0",
+        "symfony/security-bundle": "^6.0",
+        "symfony/security-core": "^6.0",
+        "symfony/serializer-pack": "^1.0",
+        "symfony/validator": "^6.0"
+    },
+    "require-dev": {
+        "symfony/debug-bundle": "^6.0",
+        "symfony/test-pack": "^1.0",
+        "phpunit/phpunit": "^9.5"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "doctrine:migrations:migrate": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
+    }
+}

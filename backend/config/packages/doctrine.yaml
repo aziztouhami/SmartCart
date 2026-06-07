@@ -1,0 +1,75 @@
+doctrine:
+  dbal:
+    url: '%env(resolve:DATABASE_URL)%'
+    
+    # Server version for PostgreSQL
+    server_version: '15'
+    
+    # Character set
+    charset: utf8
+    
+    # Logging and debugging
+    logging: '%kernel.debug%'
+    profiling: '%kernel.debug%'
+    
+    # Connection parameters
+    mapping_types:
+      enum: string
+  
+  orm:
+    auto_generate_proxy_classes: '%kernel.debug%'
+    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+    quote_strategy: doctrine.orm.quote_strategy.quoted
+
+    # Entity managers
+    entity_managers:
+      default:
+        # Mapping configuration
+        mappings:
+          App:
+            is_bundle: false
+            dir: '%kernel.project_dir%/src/Entity'
+            prefix: 'App\Entity'
+            alias: App
+
+        # Additional ORM options
+        dql:
+          datetime_functions:
+            DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
+            YEAR: DoctrineExtensions\Query\Mysql\Year
+            MONTH: DoctrineExtensions\Query\Mysql\Month
+            DAY: DoctrineExtensions\Query\Mysql\Day
+
+        # Query cache
+        query_cache_driver:
+          type: pool
+          pool: doctrine.system_cache_pool
+
+        # Result cache
+        result_cache_driver:
+          type: pool
+          pool: doctrine.system_cache_pool
+
+        # Hydration cache
+        hydration_cache_driver:
+          type: pool
+          pool: doctrine.system_cache_pool
+
+        # Metadata cache
+        metadata_cache_driver:
+          type: pool
+          pool: doctrine.system_cache_pool
+
+    # Repository classes
+    repository_factory: doctrine.orm.default_repository_factory
+
+# Cache configuration for Doctrine
+framework:
+  cache:
+    pools:
+      doctrine.system_cache_pool:
+        adapter: cache.app
+        default_lifetime: 0
+      doctrine.result_cache_pool:
+        adapter: cache.app
+        default_lifetime: 3600

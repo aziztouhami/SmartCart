@@ -1,0 +1,29 @@
+# Symfony
+/bin/console
+/bin/phpunit
+.env.local
+.env.*.local
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+# Doctrine
+.doctrine_ids.map.php
+/migrations/
+
+# PHP
+*.phar
+.DS_Store
+.phpunit.result.cache
+
+# JWT Keys (security sensitive)
+config/jwt/private.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

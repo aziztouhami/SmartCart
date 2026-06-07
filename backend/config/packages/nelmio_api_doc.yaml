@@ -1,0 +1,62 @@
+nelmio_api_doc:
+  title: SmartCart API Documentation
+  description: Complete API documentation for SmartCart E-commerce Platform
+  version: 1.0.0
+  
+  # API Information
+  info:
+    title: SmartCart API
+    version: 1.0.0
+    description: SmartCart - Intelligent E-Commerce Platform with JWT Authentication
+    contact:
+      name: API Support
+      email: api@smartcart.local
+    license:
+      name: MIT
+  
+  # Servers configuration
+  servers:
+    - url: http://localhost:8000
+      description: Development Server
+      variables:
+        protocol:
+          default: http
+        host:
+          default: localhost
+        port:
+          default: '8000'
+    - url: https://api.smartcart.local
+      description: Production Server
+
+  # Security schemes
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Token Authentication
+
+  # Paths configuration
+  areas:
+    default:
+      path_patterns:
+        - ^/api(?!/.*(admin|internal))
+      
+  # Use attributes for documentation
+  use_validation_groups: true
+  
+  # Models configuration
+  models:
+    use_jms: false
+    names:
+      - { alias: LoginRequest, type: 'App\DTO\Auth\LoginRequest' }
+      - { alias: LoginResponse, type: 'App\DTO\Auth\LoginResponse' }
+      - { alias: RegisterRequest, type: 'App\DTO\Auth\RegisterRequest' }
+
+  # Swagger/OpenAPI UI configuration
+  ui:
+    use_react: false
+    title: SmartCart API Documentation
+    syntaxHighlight: 
+      activate: true
+      theme: monokai

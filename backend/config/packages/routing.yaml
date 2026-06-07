@@ -1,0 +1,7 @@
+parameters:
+  app.api_version: '%env(resolve:API_VERSION)%'
+
+when@prod:
+  framework:
+    router:
+      strict_requirements: null
