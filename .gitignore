@@ -16,6 +16,8 @@ backend/vendor/
 backend/var/
 backend/.env.local
 backend/public/uploads/
+backend/config/jwt/private.pem
+backend/config/jwt/public.pem
 
 # Frontend - React
 frontend/node_modules/
@@ -49,3 +51,6 @@ temp/
 *.sql
 !database/seeds/*.sql
 !database/migrations/*.sql
+
+
+Question.txt
