@@ -5,7 +5,7 @@
  * This script generates RSA key pairs for JWT authentication
  */
 
-$jwtDir = __DIR__ . '/config/jwt';
+$jwtDir = dirname(__DIR__) . '/config/jwt';
 
 // Create directory if it doesn't exist
 if (!is_dir($jwtDir)) {
@@ -43,11 +43,11 @@ try {
     $privateKeyPath = $jwtDir . '/private.pem';
     $publicKeyPath = $jwtDir . '/public.pem';
     
-    if (!file_put_contents($privateKeyPath, $privKey)) {
+    if (file_put_contents($privateKeyPath, $privKey) === false) {
         throw new Exception("Failed to write private key to $privateKeyPath");
     }
-    
-    if (!file_put_contents($publicKeyPath, $pubKey)) {
+
+    if (file_put_contents($publicKeyPath, $pubKey) === false) {
         throw new Exception("Failed to write public key to $publicKeyPath");
     }
     

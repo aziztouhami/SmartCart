@@ -25,6 +25,7 @@ class AuthController extends AbstractController
 {
     #[Route('/login', name: 'api_login', methods: ['POST'])]
     #[OA\Post(
+        path: '/api/auth/login',
         operationId: 'login',
         summary: 'User Login',
         description: 'Authenticate user with email and password to receive JWT token',
@@ -117,6 +118,7 @@ class AuthController extends AbstractController
 
     #[Route('/register', name: 'api_register', methods: ['POST'])]
     #[OA\Post(
+        path: '/api/auth/register',
         operationId: 'register',
         summary: 'User Registration',
         description: 'Register a new user account and receive JWT token',
@@ -216,6 +218,7 @@ class AuthController extends AbstractController
 
     #[Route('/me', name: 'api_me', methods: ['GET'])]
     #[OA\Get(
+        path: '/api/auth/me',
         operationId: 'getCurrentUser',
         summary: 'Get Current User',
         description: 'Retrieve information about the currently authenticated user',
@@ -260,6 +263,7 @@ class AuthController extends AbstractController
 
     #[Route('/logout', name: 'api_logout', methods: ['POST'])]
     #[OA\Post(
+        path: '/api/auth/logout',
         operationId: 'logout',
         summary: 'User Logout',
         description: 'Logout the current user. JWT tokens are stateless, so this is a client-side operation.',

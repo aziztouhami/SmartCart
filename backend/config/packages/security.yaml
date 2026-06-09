@@ -12,18 +12,6 @@ security:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
     
-    # Login firewall - for generating JWT tokens
-    login:
-      pattern: ^/api/auth/login$
-      stateless: true
-      user_checker: security.user_checker
-      json_login:
-        check_path: /api/auth/login
-        username_path: email
-        password_path: password
-        success_handler: lexik_jwt_authentication.handler.authentication_success
-        failure_handler: lexik_jwt_authentication.handler.authentication_failure
-
     # Main API firewall - requires JWT token
     api:
       pattern: ^/api/
@@ -38,6 +26,7 @@ security:
     # Allow login without authentication
     - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
     - { path: ^/api/auth/register$, roles: PUBLIC_ACCESS }
+    - { path: ^/api/docs, roles: PUBLIC_ACCESS }
     
     # Protect all other API routes with JWT
     - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }

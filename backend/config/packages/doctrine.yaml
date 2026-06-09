@@ -18,27 +18,20 @@ doctrine:
   
   orm:
     auto_generate_proxy_classes: '%kernel.debug%'
-    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-    quote_strategy: doctrine.orm.quote_strategy.quoted
 
     # Entity managers
     entity_managers:
       default:
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+
         # Mapping configuration
         mappings:
           App:
             is_bundle: false
+            type: attribute
             dir: '%kernel.project_dir%/src/Entity'
             prefix: 'App\Entity'
             alias: App
-
-        # Additional ORM options
-        dql:
-          datetime_functions:
-            DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
-            YEAR: DoctrineExtensions\Query\Mysql\Year
-            MONTH: DoctrineExtensions\Query\Mysql\Month
-            DAY: DoctrineExtensions\Query\Mysql\Day
 
         # Query cache
         query_cache_driver:
@@ -50,19 +43,10 @@ doctrine:
           type: pool
           pool: doctrine.system_cache_pool
 
-        # Hydration cache
-        hydration_cache_driver:
-          type: pool
-          pool: doctrine.system_cache_pool
-
         # Metadata cache
         metadata_cache_driver:
           type: pool
           pool: doctrine.system_cache_pool
-
-    # Repository classes
-    repository_factory: doctrine.orm.default_repository_factory
-
 # Cache configuration for Doctrine
 framework:
   cache:

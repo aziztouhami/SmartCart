@@ -4,6 +4,17 @@ services:
     autoconfigure: true
     public: false
 
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/Kernel.php'
+
+  App\Controller\:
+    resource: '../src/Controller/'
+    tags: ['controller.service_arguments']
+
   App\Service\AuthenticationService:
     arguments:
-      $tokenTtl: '%env(resolve:JWT_EXPIRATION)%'
+      $tokenTtl: '%env(int:JWT_EXPIRATION)%'
