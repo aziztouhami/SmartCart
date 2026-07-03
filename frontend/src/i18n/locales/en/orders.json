@@ -1,0 +1,72 @@
+{
+  "title": "My Orders",
+  "subtitle": "Track and manage your orders",
+  "continueShopping": "Continue Shopping",
+  "loading": "Loading orders…",
+  "empty": {
+    "title": "No orders yet",
+    "message": "Start shopping to see your orders here.",
+    "shopNow": "Shop Now"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "timeline": {
+    "pending": "Placed",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered"
+  },
+  "card": {
+    "orderNumber": "Order #{{id}}",
+    "cancelOrder": "Cancel Order",
+    "cancelledNotice": "This order was cancelled.",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "hideDetails": "Hide Details",
+    "viewDetails": "View Details"
+  },
+  "detail": {
+    "loading": "Loading…",
+    "reviewed": "Reviewed",
+    "rate": "Rate",
+    "deliveredTo": "Delivered to"
+  },
+  "review": {
+    "title": "Rate this product",
+    "commentLabel": "Your review (optional)",
+    "commentPlaceholder": "Share your experience with this product…",
+    "cancel": "Cancel",
+    "submit": "Submit Review",
+    "submitting": "Submitting…",
+    "ratingLabels": {
+      "poor": "Poor",
+      "average": "Average",
+      "good": "Good",
+      "excellent": "Excellent"
+    },
+    "errors": {
+      "submitFailed": "Failed to submit review."
+    }
+  },
+  "cancelModal": {
+    "title": "Cancel order #{{id}}?",
+    "warning": "This cannot be undone once confirmed.",
+    "keepOrder": "Keep Order",
+    "cancelOrder": "Cancel Order",
+    "cancelling": "Cancelling…"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
+  "errors": {
+    "loadFailed": "Failed to load orders.",
+    "cancelFailed": "Failed to cancel order."
+  }
+}

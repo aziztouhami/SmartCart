@@ -16,10 +16,20 @@ services:
     networks:
       - smartcart_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-scu}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-scu} -d ${DB_NAME:-scdb}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Mailpit — local dev SMTP server + web inbox (no real provider needed)
+  mailer:
+    image: axllent/mailpit
+    container_name: smartcart_mailer
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - smartcart_network
 
   # Symfony Backend API
   backend:
@@ -34,6 +44,13 @@ services:
       APP_SECRET: ${APP_SECRET:-change_this_to_a_random_string_in_production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
       CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-574596476297-no8lmjr18bf2jgsmnf7b6gv9nfsmuo44.apps.googleusercontent.com}
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailer:1025}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@smartcart.local}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      APP_NAME: ${APP_NAME:-SmartCart}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
     ports:
       - "8000:8000"
     volumes:
@@ -45,6 +62,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mailer:
+        condition: service_started
     command: >
       sh -c "composer install --no-interaction &&
              if [ ! -f config/jwt/private.pem ]; then
@@ -54,7 +73,7 @@ services:
              fi &&
              php bin/console doctrine:database:create --if-not-exists &&
              php bin/console doctrine:migrations:migrate --no-interaction &&
-             php -S 0.0.0.0:8000 -t public public/index.php"
+             PHP_CLI_SERVER_WORKERS=8 php -S 0.0.0.0:8000 -t public public/index.php"
 
   # React Frontend
   frontend:

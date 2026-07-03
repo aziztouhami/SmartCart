@@ -1,0 +1,70 @@
+{
+  "stock": {
+    "out": "Out of Stock",
+    "low": "Low Stock — only {{count}} left",
+    "ok": "In Stock"
+  },
+  "notFound": {
+    "title": "Product not found",
+    "backButton": "← Back to Store"
+  },
+  "nav": {
+    "back": "Back"
+  },
+  "breadcrumb": {
+    "home": "Home"
+  },
+  "badges": {
+    "promotion": "Promotion",
+    "new": "New"
+  },
+  "favorite": {
+    "remove": "Remove from favorites",
+    "add": "Add to favorites",
+    "saved": "Saved",
+    "save": "Save"
+  },
+  "promo": {
+    "off": "-{{percentage}}% off",
+    "ends": "Ends {{date}}",
+    "limitedTime": "Limited time offer"
+  },
+  "rating": {
+    "reviewCount_one": "({{count}} review)",
+    "reviewCount_other": "({{count}} reviews)"
+  },
+  "activity": {
+    "viewingNow_one": "{{count}} person viewing this now",
+    "viewingNow_other": "{{count}} people viewing this now",
+    "inCarts_one": "In {{count}} cart right now",
+    "inCarts_other": "In {{count}} carts right now"
+  },
+  "actions": {
+    "quantity": "Quantity",
+    "addedToCart": "Added to Cart!",
+    "addToCart": "Add to Cart"
+  },
+  "meta": {
+    "brand": "Brand",
+    "category": "Category",
+    "availability": "Availability",
+    "unitsAvailable": "{{count}} units",
+    "unavailable": "Unavailable"
+  },
+  "specs": {
+    "title": "Technical Specifications"
+  },
+  "relatedProducts": {
+    "frequentlyBoughtTogether": "Frequently Bought Together",
+    "youMayAlsoLike": "You May Also Like"
+  },
+  "reviews": {
+    "title": "Customer Reviews",
+    "count_one": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "empty": "No reviews yet. Be the first to review this product after receiving your order.",
+    "previous": "← Previous",
+    "next": "Next →",
+    "pageInfo": "{{current}} / {{total}}"
+  }
+}

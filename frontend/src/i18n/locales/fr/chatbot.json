@@ -1,0 +1,13 @@
+{
+  "openButtonTitle": "Discuter avec nous",
+  "title": "Assistant boutique",
+  "subtitle": "Posez vos questions sur nos produits",
+  "closeTitle": "Fermer",
+  "greeting": "Bonjour ! Demandez-moi tout sur nos produits — prix, stock, caractéristiques, et plus encore.",
+  "inputPlaceholder": "Écrivez votre message...",
+  "send": "Envoyer",
+  "thinking": "En train d'écrire…",
+  "errorGeneric": "Une erreur est survenue. Merci de réessayer.",
+  "errorRateLimited": "Vous envoyez des messages trop vite — merci de patienter un instant.",
+  "errorSessionMissing": "Impossible de démarrer une session de discussion. Merci de rafraîchir la page."
+}

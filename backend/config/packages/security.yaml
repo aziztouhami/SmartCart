@@ -11,23 +11,44 @@ security:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
-    
+
+    # Public endpoints — completely bypass JWT checks
+    # NOTE: only the genuinely public auth routes belong here. /api/auth/me
+    # and /api/auth/logout must NOT match this pattern, otherwise JWT is never
+    # processed for them and they can never authenticate the caller.
+    public_auth:
+      pattern: ^/api/(auth/(login|register|verify-email|resend-verification|google-login)$|docs)
+      security: false
+
     # Main API firewall - requires JWT token
     api:
       pattern: ^/api/
       stateless: true
       provider: app_user_provider
       jwt: ~
-      entry_point: jwt
 
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    # Allow login without authentication
+    # Auth endpoints — always public
     - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
     - { path: ^/api/auth/register$, roles: PUBLIC_ACCESS }
     - { path: ^/api/docs, roles: PUBLIC_ACCESS }
-    
+
+    # Admin routes — require ROLE_ADMIN
+    - { path: ^/api/admin/, roles: ROLE_ADMIN }
+
+    # Catalogue — read-only endpoints are public
+    - { path: ^/api/products, roles: PUBLIC_ACCESS, methods: [GET] }
+    - { path: ^/api/categories, roles: PUBLIC_ACCESS, methods: [GET] }
+    - { path: ^/api/brands, roles: PUBLIC_ACCESS, methods: [GET] }
+
+    # Session-based recommendations — open to guests; still picks up the
+    # JWT (if any) so logged-in users get history-based personalization too
+    - { path: ^/api/recommendations, roles: PUBLIC_ACCESS, methods: [GET] }
+    - { path: ^/api/guest/events, roles: PUBLIC_ACCESS, methods: [POST] }
+    - { path: ^/api/chatbot, roles: PUBLIC_ACCESS, methods: [POST] }
+
     # Protect all other API routes with JWT
     - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
 

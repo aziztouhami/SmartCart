@@ -1,0 +1,15 @@
+{
+  "title": "Mes favoris",
+  "savedCount_one": "{{count}} produit enregistré",
+  "savedCount_other": "{{count}} produits enregistrés",
+  "empty": {
+    "title": "Aucun favori pour le moment",
+    "message": "Cliquez sur l'icône en forme de cœur sur un produit pour l'enregistrer ici.",
+    "browseProducts": "Découvrir les produits"
+  },
+  "removeFromFavorites": "Retirer des favoris",
+  "inStock": "En stock",
+  "outOfStock": "Rupture de stock",
+  "addToCart": "Ajouter au panier",
+  "unavailable": "Indisponible"
+}

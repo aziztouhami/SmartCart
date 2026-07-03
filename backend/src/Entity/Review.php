@@ -50,8 +50,8 @@ class Review
 
     public function setRating(int $rating): self
     {
-        if ($rating < 1 || $rating > 5) {
-            throw new \InvalidArgumentException('Rating must be between 1 and 5');
+        if ($rating < 1 || $rating > 100) {
+            throw new \InvalidArgumentException('Rating must be between 1 and 100');
         }
         $this->rating = $rating;
         return $this;

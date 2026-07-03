@@ -1,0 +1,70 @@
+{
+  "stock": {
+    "out": "Rupture de stock",
+    "low": "Stock faible — il n'en reste que {{count}}",
+    "ok": "En stock"
+  },
+  "notFound": {
+    "title": "Produit introuvable",
+    "backButton": "← Retour à la boutique"
+  },
+  "nav": {
+    "back": "Retour"
+  },
+  "breadcrumb": {
+    "home": "Accueil"
+  },
+  "badges": {
+    "promotion": "Promotion",
+    "new": "Nouveau"
+  },
+  "favorite": {
+    "remove": "Retirer des favoris",
+    "add": "Ajouter aux favoris",
+    "saved": "Enregistré",
+    "save": "Enregistrer"
+  },
+  "promo": {
+    "off": "-{{percentage}}%",
+    "ends": "Se termine le {{date}}",
+    "limitedTime": "Offre à durée limitée"
+  },
+  "rating": {
+    "reviewCount_one": "({{count}} avis)",
+    "reviewCount_other": "({{count}} avis)"
+  },
+  "activity": {
+    "viewingNow_one": "{{count}} personne consulte cette page actuellement",
+    "viewingNow_other": "{{count}} personnes consultent cette page actuellement",
+    "inCarts_one": "Dans {{count}} panier actuellement",
+    "inCarts_other": "Dans {{count}} paniers actuellement"
+  },
+  "actions": {
+    "quantity": "Quantité",
+    "addedToCart": "Ajouté au panier !",
+    "addToCart": "Ajouter au panier"
+  },
+  "meta": {
+    "brand": "Marque",
+    "category": "Catégorie",
+    "availability": "Disponibilité",
+    "unitsAvailable": "{{count}} unités",
+    "unavailable": "Indisponible"
+  },
+  "specs": {
+    "title": "Caractéristiques techniques"
+  },
+  "relatedProducts": {
+    "frequentlyBoughtTogether": "Fréquemment achetés ensemble",
+    "youMayAlsoLike": "Vous pourriez aussi aimer"
+  },
+  "reviews": {
+    "title": "Avis clients",
+    "count_one": "{{count}} avis",
+    "count_other": "{{count}} avis",
+    "empty": "Aucun avis pour le moment. Soyez le premier à évaluer ce produit après réception de votre commande.",
+    "previous": "← Précédent",
+    "next": "Suivant →",
+    "pageInfo": "{{current}} / {{total}}"
+  }
+}

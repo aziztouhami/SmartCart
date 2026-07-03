@@ -1,0 +1,63 @@
+/* ═══════════════════════════════════════════════════════════
+   Badge — pill chip for categories, brands, tags, status (ui- prefix)
+═══════════════════════════════════════════════════════════ */
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-pill);
+  font-weight: 650;
+  font-family: var(--font-family);
+  letter-spacing: 0.2px;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+/* ── Sizes ───────────────────────────────────────────────── */
+.ui-badge--sm { padding: 3px 10px; font-size: 0.68rem; }
+.ui-badge--md { padding: 5px 13px; font-size: 0.78rem; }
+
+/* ── Primary ─────────────────────────────────────────────── */
+.ui-badge--primary-soft {
+  background: var(--color-card-bg);
+  color: var(--color-primary);
+  border: 1px solid #c5ddf5;
+}
+.ui-badge--primary-solid { background: var(--color-primary); color: white; }
+.ui-badge--primary-outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); }
+
+/* ── Neutral ─────────────────────────────────────────────── */
+.ui-badge--neutral-soft {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid var(--color-border);
+}
+.ui-badge--neutral-solid { background: #475569; color: white; }
+.ui-badge--neutral-outline { background: transparent; color: #475569; border: 1px solid var(--color-border); }
+
+/* ── Danger ──────────────────────────────────────────────── */
+.ui-badge--danger-soft {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.ui-badge--danger-solid { background: #dc2626; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.ui-badge--danger-outline { background: transparent; color: #dc2626; border: 1px solid #fecaca; }
+
+/* ── Success ─────────────────────────────────────────────── */
+.ui-badge--success-soft {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+.ui-badge--success-solid { background: #059669; color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.ui-badge--success-outline { background: transparent; color: #16a34a; border: 1px solid #bbf7d0; }
+
+/* ── Warning ─────────────────────────────────────────────── */
+.ui-badge--warning-soft {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.ui-badge--warning-solid { background: #d97706; color: white; }

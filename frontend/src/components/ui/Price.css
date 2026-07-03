@@ -1,0 +1,42 @@
+/* ═══════════════════════════════════════════════════════════
+   Price — single price or promo (new + old + % off chip)
+═══════════════════════════════════════════════════════════ */
+
+.ui-price-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.ui-price {
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.ui-price--discounted { color: #dc2626; }
+
+.ui-price-currency {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.ui-price-old {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.ui-pct-chip {
+  padding: 1px 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-pill);
+  font-size: 0.66rem;
+  font-weight: 700;
+}

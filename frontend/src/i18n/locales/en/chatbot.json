@@ -1,0 +1,13 @@
+{
+  "openButtonTitle": "Chat with us",
+  "title": "Shop Assistant",
+  "subtitle": "Ask about any product",
+  "closeTitle": "Close",
+  "greeting": "Hi! Ask me about any product — prices, stock, features, anything in our catalogue.",
+  "inputPlaceholder": "Type your message...",
+  "send": "Send",
+  "thinking": "Typing…",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorRateLimited": "You're sending messages too fast — please wait a moment.",
+  "errorSessionMissing": "Could not start a chat session. Please refresh the page."
+}

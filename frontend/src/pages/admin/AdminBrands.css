@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════════════════════════
+   Admin Brands — prefix br- (table only; the add/edit form and
+   delete confirm now reuse the shared adm- design system)
+═══════════════════════════════════════════════════════════ */
+
+/* ── Table ─────────────────────────────────────────────── */
+.br-table-wrap {
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.br-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.br-table th {
+  background: #f1f5f9;
+  padding: 13px 16px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #475569;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.br-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.br-row:last-child td { border-bottom: none; }
+
+.br-row:hover td { background: #fafcff; }
+
+/* Brand cell */
+.br-brand-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.br-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.br-logo-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--color-primary), #7c3aed);
+  color: white;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.br-brand-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Description */
+.br-desc {
+  max-width: 220px;
+  color: #475569;
+  font-size: 0.825rem;
+}
+
+/* Date */
+.br-date {
+  white-space: nowrap;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+/* Stat badge */
+.br-stat-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #f1f5f9;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* Revenue */
+.br-revenue {
+  font-weight: 700;
+  color: var(--color-sidebar);
+  white-space: nowrap;
+}
+
+/* Rating */
+.br-rating {
+  color: #d97706;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.br-no-rating {
+  color: var(--color-text-muted);
+}
+
+/* Alignment */
+.br-center { text-align: center; }
+
+/* Muted text */
+.br-muted { color: var(--color-text-muted); }

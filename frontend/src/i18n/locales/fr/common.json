@@ -1,0 +1,17 @@
+{
+  "siteName": "SmartCart",
+  "currency": "TND",
+  "loading": "Chargement…",
+  "save": "Enregistrer",
+  "cancel": "Annuler",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "close": "Fermer",
+  "viewAll": "Voir tout",
+  "addToCart": "Ajouter au panier",
+  "added": "Ajouté",
+  "outOfStock": "Rupture de stock",
+  "language": "Langue",
+  "languageEnglish": "Anglais",
+  "languageFrench": "Français"
+}

@@ -1,0 +1,118 @@
+{
+  "nav": {
+    "back": "Retour",
+    "logout": "Se déconnecter"
+  },
+  "header": {
+    "admin": "Admin"
+  },
+  "personalInfo": {
+    "title": "Informations personnelles",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Prénom",
+    "lastName": "Nom",
+    "lastNamePlaceholder": "Nom",
+    "email": "Adresse e-mail",
+    "emailPlaceholder": "votre@email.com",
+    "phone": "Téléphone",
+    "phonePlaceholder": "+216 XX XXX XXX",
+    "save": "Enregistrer les modifications",
+    "saveSuccess": "Profil mis à jour avec succès."
+  },
+  "password": {
+    "title": "Changer le mot de passe",
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "newPlaceholder": "8 caractères minimum",
+    "confirm": "Confirmer le nouveau mot de passe",
+    "update": "Mettre à jour le mot de passe",
+    "updateSuccess": "Mot de passe modifié avec succès.",
+    "errors": {
+      "currentRequired": "Veuillez saisir votre mot de passe actuel.",
+      "tooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "marketingOptIn": "M'envoyer des promotions et offres spéciales par e-mail",
+    "optInSuccess": "Vous recevrez désormais nos e-mails promotionnels.",
+    "optOutSuccess": "E-mails promotionnels désactivés.",
+    "updateError": "Échec de la mise à jour des préférences de notification."
+  },
+  "dangerZone": {
+    "title": "Zone de danger",
+    "text": "La suppression de votre compte programme sa suppression définitive dans 30 jours. Si vous vous reconnectez avant cette échéance, la suppression est automatiquement annulée.",
+    "deleteButton": "Supprimer mon compte",
+    "deleteError": "Échec de la programmation de la suppression du compte.",
+    "confirmModal": {
+      "title": "Supprimer votre compte ?",
+      "textBefore": "Votre compte sera programmé pour une suppression définitive dans",
+      "textBold": "30 jours",
+      "textAfter": "Si vous vous reconnectez avant cette échéance, la suppression est automatiquement annulée et votre compte est restauré.",
+      "cancel": "Annuler",
+      "confirmButton": "Oui, supprimer mon compte",
+      "scheduling": "Programmation…"
+    }
+  },
+  "preferences": {
+    "title": "Préférences d'achat",
+    "hint": "Choisissez les catégories et marques que vous aimez — nous les utiliserons pour vous recommander des produits jusqu'à ce que nous en sachions plus sur ce que vous parcourez et achetez réellement.",
+    "updateError": "Échec de la mise à jour des préférences."
+  },
+  "addresses": {
+    "title": "Adresses de livraison",
+    "addButton": "Ajouter une adresse",
+    "loading": "Chargement des adresses…",
+    "empty": "Aucune adresse enregistrée pour le moment.",
+    "addFirstButton": "Ajouter votre première adresse",
+    "default": "Par défaut",
+    "setDefaultButton": "Définir par défaut",
+    "editButton": "Modifier",
+    "deleteButton": "Supprimer",
+    "loadError": "Impossible de charger les adresses.",
+    "addSuccess": "Adresse ajoutée.",
+    "updateSuccess": "Adresse mise à jour.",
+    "saveError": "Échec de l'enregistrement de l'adresse.",
+    "setDefaultSuccess": "Adresse par défaut mise à jour.",
+    "setDefaultError": "Échec de la mise à jour de l'adresse par défaut.",
+    "removeSuccess": "Adresse supprimée.",
+    "removeError": "Échec de la suppression de l'adresse."
+  },
+  "addressModal": {
+    "editTitle": "Modifier l'adresse",
+    "addTitle": "Ajouter une nouvelle adresse",
+    "mapHintSelected": "Emplacement sélectionné — faites glisser le repère ou cliquez pour le modifier",
+    "mapHintEmpty": "Cliquez sur la carte pour épingler votre adresse",
+    "detectButton": "Détecter ma position",
+    "detecting": "Détection…",
+    "geocoding": "Recherche de l'adresse…",
+    "label": "Type d'adresse",
+    "labels": {
+      "home": "Domicile",
+      "work": "Travail",
+      "other": "Autre"
+    },
+    "street": "Adresse *",
+    "streetPlaceholder": "ex. 12 Rue de la Liberté",
+    "city": "Ville *",
+    "cityPlaceholder": "ex. Tunis",
+    "postalCode": "Code postal",
+    "postalCodePlaceholder": "ex. 1002",
+    "country": "Pays *",
+    "countryPlaceholder": "ex. Tunisie",
+    "setDefault": "Définir comme adresse de livraison par défaut",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les modifications",
+    "addAddress": "Ajouter l'adresse",
+    "loadingMap": "Chargement de la carte…",
+    "errors": {
+      "streetRequired": "L'adresse est requise.",
+      "cityRequired": "La ville est requise.",
+      "countryRequired": "Le pays est requis.",
+      "geolocationUnsupported": "La géolocalisation n'est pas prise en charge par votre navigateur.",
+      "permissionDenied": "Accès à la position refusé. Veuillez autoriser l'accès dans les paramètres de votre navigateur.",
+      "detectFailed": "Impossible de détecter votre position. Veuillez réessayer."
+    }
+  }
+}

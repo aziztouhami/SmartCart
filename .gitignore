@@ -1,6 +1,7 @@
-# IDEs
+# IDEs & tools
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
@@ -46,11 +47,14 @@ build/
 *.tmp
 temp/
 .cache/
+backend/.phpunit.result.cache
 
 # Database
 *.sql
 !database/seeds/*.sql
 !database/migrations/*.sql
 
-
-Question.txt
+# Internal/generated docs — not part of the shipped project
+docs/
+PROJECT_TRACKING.md
+ARCHITECTURE.md

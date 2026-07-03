@@ -1,0 +1,11 @@
+{
+  "title": "Toutes les marques",
+  "subtitle": "Parcourez les produits par marque",
+  "brandCount_one": "{{count}} marque",
+  "brandCount_other": "{{count}} marques",
+  "productCount_one": "{{count}} produit",
+  "productCount_other": "{{count}} produits",
+  "empty": {
+    "title": "Aucune marque trouvée"
+  }
+}

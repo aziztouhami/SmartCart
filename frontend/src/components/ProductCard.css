@@ -1,0 +1,148 @@
+/* ═══════════════════════════════════════════════════════════
+   ProductCard — shared across Home, Promotions, Brands-filtered views
+   all classes prefixed pc- to avoid conflicts. Badges/Button/Price/
+   Skeleton primitives live in ./ui — this file only covers card
+   layout, the image area and positioning that's specific to the card.
+═══════════════════════════════════════════════════════════ */
+
+.pc-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eef2f7;
+}
+
+.pc-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-elevated);
+  border-color: #dbe7f5;
+}
+
+/* ── Image ───────────────────────────────────────────────── */
+.pc-image {
+  position: relative;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Real product photos get a soft off-white stage + breathing room,
+   instead of full-bleed crop — reads cleaner for catalog photography. */
+.pc-image--photo {
+  background: #f6f9fc;
+  padding: 16px;
+}
+
+.pc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.pc-card:hover .pc-img {
+  transform: scale(1.06);
+}
+
+.pc-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.pc-emoji {
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.pc-card:hover .pc-emoji {
+  transform: scale(1.1);
+}
+
+/* ── Favorite button (positioned instance of ui-icon-btn) ──── */
+.pc-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+/* ── Tags (Promotion / New badges) ──────────────────────────── */
+.pc-tags {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.pc-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.pc-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pc-brand-logo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: white;
+}
+
+.pc-name {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: #1a2b40;
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.55em;
+}
+
+.pc-end-date {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: -4px;
+}
+
+/* ── Add to cart — full width rounded action, not a full pill ──
+   margin-top: auto pins it to the bottom of .pc-body (a flex column
+   that fills the card's full stretched height), so it lands on the
+   same line in every card of a row regardless of how much text sits
+   above it (wrapped badges, a promo's old-price/end-date, etc.). ── */
+.pc-add-btn {
+  border-radius: var(--radius-md) !important;
+  margin-top: auto !important;
+}
+
+/* ── Card sizing inside scroll rows / grids ──────────────── */
+.h-scroll .pc-card {
+  flex: 0 0 230px;
+  scroll-snap-align: start;
+}

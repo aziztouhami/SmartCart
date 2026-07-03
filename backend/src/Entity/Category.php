@@ -24,6 +24,16 @@ class Category
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+    /**
+     * Calendar months (1-12) this category should get a recommendation
+     * boost in — e.g. [11, 12] for "Christmas gifts", [6, 7, 8] for
+     * "summer/outdoor". Null/empty means no seasonal boost.
+     *
+     * @var int[]|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $seasonalMonths = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -81,6 +91,23 @@ class Category
     public function setImage(?string $image): self
     {
         $this->image = $image;
+        return $this;
+    }
+
+    /**
+     * @return int[]|null
+     */
+    public function getSeasonalMonths(): ?array
+    {
+        return $this->seasonalMonths;
+    }
+
+    /**
+     * @param int[]|null $seasonalMonths
+     */
+    public function setSeasonalMonths(?array $seasonalMonths): self
+    {
+        $this->seasonalMonths = $seasonalMonths;
         return $this;
     }
 

@@ -1,0 +1,21 @@
+{
+  "searchPlaceholder": "Rechercher des produits, marques, catégories...",
+  "searchTitle": "Rechercher",
+  "otherNameMatches": "Autres résultats par nom",
+  "byBrand": "Par marque",
+  "byCategory": "Par catégorie",
+  "outOfStock": "Rupture de stock",
+  "seeAllResultsFor": "Voir tous les résultats pour",
+  "brandsTitle": "Marques",
+  "favoritesTitle": "Favoris",
+  "cartTitle": "Panier",
+  "signIn": "Connexion",
+  "createAccount": "Créer un compte",
+  "promotions": "Promotions",
+  "myProfile": "Mon profil",
+  "myFavorites": "Mes favoris",
+  "myOrders": "Mes commandes",
+  "adminPanel": "Panneau d'administration",
+  "logOut": "Déconnexion",
+  "account": "Compte"
+}

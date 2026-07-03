@@ -1,0 +1,10 @@
+{
+  "title": "Promotions",
+  "subtitle": "Bons plans et réductions, tous au même endroit",
+  "promotedCount_one": "{{count}} produit en promotion",
+  "promotedCount_other": "{{count}} produits en promotion",
+  "empty": {
+    "title": "Aucune promotion active",
+    "subtitle": "Revenez bientôt — les offres spéciales apparaîtront ici."
+  }
+}

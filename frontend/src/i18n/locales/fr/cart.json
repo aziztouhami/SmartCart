@@ -1,0 +1,73 @@
+{
+  "title": "Panier",
+  "itemCount_one": "{{count}} article",
+  "itemCount_other": "{{count}} articles",
+  "clearCart": "Vider le panier",
+  "continueShopping": "Continuer mes achats",
+  "empty": {
+    "title": "Votre panier est vide",
+    "message": "Ajoutez des produits pour commencer.",
+    "browseProducts": "Découvrir les produits"
+  },
+  "item": {
+    "pricePerUnit": "{{price}} TND / unité",
+    "lowStock": "Plus que {{count}} en stock !",
+    "remove": "Retirer"
+  },
+  "summary": {
+    "title": "Récapitulatif de la commande",
+    "items": "Articles ({{count}})",
+    "shipping": "Livraison",
+    "free": "Gratuite",
+    "total": "Total",
+    "proceedToCheckout": "Passer la commande",
+    "signInToCheckout": "Se connecter pour commander",
+    "signIn": "Se connecter",
+    "toPlaceOrder": "pour passer votre commande"
+  },
+  "checkout": {
+    "shippingAddress": "Adresse de livraison",
+    "loadingAddresses": "Chargement des adresses enregistrées…",
+    "savedAddresses": "Adresses enregistrées",
+    "default": "Par défaut",
+    "enterNewAddress": "Saisir une nouvelle adresse",
+    "pickOnMap": "Choisir sur la carte",
+    "myAddress": "Mon adresse",
+    "contactPhone": "Téléphone de contact",
+    "cancel": "Annuler",
+    "placeOrder": "Passer la commande",
+    "placingOrder": "Commande en cours…",
+    "fields": {
+      "street": "Rue",
+      "streetPlaceholder": "123 Rue Principale",
+      "city": "Ville",
+      "cityPlaceholder": "Tunis",
+      "postalCode": "Code postal",
+      "postalCodePlaceholder": "1000",
+      "country": "Pays",
+      "countryPlaceholder": "Tunisie",
+      "phonePlaceholder": "+216 XX XXX XXX"
+    },
+    "errors": {
+      "phoneRequired": "Le numéro de téléphone est requis.",
+      "phoneInvalid": "Veuillez saisir un numéro de téléphone tunisien valide (ex. +216 XX XXX XXX).",
+      "addressRequired": "La rue, la ville et le pays sont requis.",
+      "placeOrderFailed": "Impossible de passer la commande. Veuillez réessayer."
+    }
+  },
+  "confirm": {
+    "title": "Confirmez votre commande",
+    "items": "Articles",
+    "shippingTo": "Livré à",
+    "back": "Retour",
+    "confirmOrder": "Confirmer la commande"
+  },
+  "success": {
+    "title": "Commande passée !",
+    "orderReceivedPrefix": "La commande",
+    "orderReceivedSuffix": "a bien été reçue.",
+    "notifyNote": "Nous vous informerons dès qu'elle sera confirmée.",
+    "continueShopping": "Continuer mes achats",
+    "trackOrder": "Suivre ma commande"
+  }
+}

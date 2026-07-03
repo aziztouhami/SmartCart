@@ -1,0 +1,87 @@
+/* ── Types-specific styles ───────────────── */
+
+.aty-name-cell {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.aty-slug {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.aty-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.aty-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: #eff6ff;
+  color: var(--color-primary);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.aty-chip--required::after {
+  content: '*';
+  color: #dc2626;
+}
+
+.aty-empty-chip {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+/* ── Edit modal: existing features list ───────────── */
+.aty-existing-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aty-existing-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+}
+
+.aty-existing-feature-name {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+.aty-existing-feature-meta {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  flex: 1;
+}
+
+.aty-existing-feature-remove {
+  border: none;
+  background: none;
+  color: var(--color-error);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+}
+
+.aty-existing-feature-remove:hover { text-decoration: underline; }
+
+.aty-no-features {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}

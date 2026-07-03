@@ -1,0 +1,48 @@
+{
+  "filters": {
+    "title": "Filtres",
+    "reset": "Réinitialiser ({{count}})",
+    "sortBy": "Trier par",
+    "loading": "Chargement des filtres…",
+    "brand": "Marque",
+    "allBrands": "Toutes les marques",
+    "type": "Type",
+    "allTypes": "Tous les types",
+    "price": "Prix (TND)",
+    "priceMin": "Min ({{value}})",
+    "priceMax": "Max ({{value}})",
+    "inStockOnly": "En stock uniquement",
+    "any": "Indifférent"
+  },
+  "sort": {
+    "newest": "Plus récents",
+    "priceAsc": "Prix : croissant",
+    "priceDesc": "Prix : décroissant",
+    "nameAsc": "Nom : A à Z",
+    "ratingDesc": "Mieux notés",
+    "popularityDesc": "Plus populaires"
+  },
+  "sections": {
+    "recommended": { "title": "Recommandé pour vous", "subtitle": "Des choix qui devraient vous plaire" },
+    "bestSellers": { "title": "Meilleures ventes", "subtitle": "Nos produits les plus populaires" },
+    "newest": { "title": "Nouveautés", "subtitle": "Tout juste ajoutés au catalogue" },
+    "promotions": { "title": "Promotions", "subtitle": "Offres spéciales et réductions" }
+  },
+  "viewAll": "Voir tout",
+  "filterRow": {
+    "search": "Recherche :",
+    "category": "Catégorie :",
+    "filtersActive_one": "{{count}} filtre actif",
+    "filtersActive_other": "{{count}} filtres actifs",
+    "productsFound_one": "{{count}} produit trouvé",
+    "productsFound_other": "{{count}} produits trouvés",
+    "clear": "Effacer"
+  },
+  "empty": {
+    "title": "Aucun produit trouvé",
+    "subtitle": "Essayez d'autres filtres ou termes de recherche.",
+    "viewAllProducts": "Voir tous les produits"
+  },
+  "loadMore": "Charger plus ({{count}} restants)",
+  "loading": "Chargement…"
+}

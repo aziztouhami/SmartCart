@@ -1,0 +1,208 @@
+/* ══════════════════════════════════════════════
+   Address Map Modal — all classes prefixed amm-
+══════════════════════════════════════════════ */
+
+.amm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(4, 44, 83, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: amm-fade 0.18s ease;
+}
+@keyframes amm-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.amm-modal {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(4,44,83,0.35);
+  animation: amm-slide 0.22s ease;
+}
+@keyframes amm-slide {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ─────────────────────────────────── */
+.amm-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.amm-head h2 { font-size: 1.1rem; font-weight: 750; color: #0f172a; margin: 0; }
+.amm-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid #e2e8f0; background: #f8fafc;
+  color: #64748b; font-size: 0.9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.amm-close:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+
+/* ── Body: two columns ──────────────────────── */
+.amm-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Map section ────────────────────────────── */
+.amm-map-section {
+  display: flex; flex-direction: column;
+  border-right: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+.amm-map-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.amm-map-hint {
+  margin: 0; font-size: 0.8rem; color: #64748b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.amm-btn-detect {
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #0f3460, #16498e);
+  border: none; border-radius: 8px;
+  color: white; font-size: 0.8rem; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.amm-btn-detect:hover:not(:disabled) { opacity: 0.88; }
+.amm-btn-detect:disabled { opacity: 0.6; cursor: default; }
+
+.amm-geo-error {
+  padding: 8px 16px;
+  background: #fff5f5; color: #b91c1c;
+  font-size: 0.78rem; border-bottom: 1px solid #fecaca;
+  flex-shrink: 0;
+}
+
+.amm-map-container {
+  flex: 1; position: relative; min-height: 280px;
+}
+/* Override leaflet z-index so it stays below our modal overlay */
+.amm-map-container .leaflet-container {
+  height: 100% !important;
+  font-family: inherit;
+}
+.amm-map-container .leaflet-control-attribution {
+  font-size: 0.65rem;
+}
+
+.amm-geocoding {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(15,52,96,0.88); color: white;
+  padding: 7px 16px; border-radius: 20px;
+  font-size: 0.78rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+}
+
+/* ── Form section ───────────────────────────── */
+.amm-form-section {
+  padding: 20px 22px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.amm-field { display: flex; flex-direction: column; gap: 5px; }
+.amm-field label {
+  font-size: 0.78rem; font-weight: 600; color: #475569;
+}
+.amm-field input {
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e1; border-radius: 8px;
+  font-size: 0.875rem; font-family: inherit; color: #1a2b40;
+  background: #f8fafc; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.amm-field input:focus {
+  border-color: #185fa5;
+  box-shadow: 0 0 0 3px rgba(24,95,165,0.1);
+  background: white;
+}
+.amm-err { font-size: 0.74rem; color: #dc2626; }
+
+.amm-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Label buttons */
+.amm-label-btns { display: flex; gap: 8px; }
+.amm-label-btn {
+  flex: 1; padding: 8px 6px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  background: #f8fafc; color: #475569;
+  font-size: 0.78rem; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.amm-label-btn:hover { border-color: #185fa5; color: #185fa5; background: #eff6ff; }
+.amm-label-btn--active {
+  border-color: #185fa5; background: #eff6ff; color: #185fa5;
+  box-shadow: 0 0 0 2px rgba(24,95,165,0.12);
+}
+
+/* Default checkbox */
+.amm-default-row {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; padding: 12px; border-radius: 8px;
+  border: 1.5px solid #e2e8f0; background: #f8fafc;
+  transition: border-color 0.15s;
+}
+.amm-default-row:hover { border-color: #185fa5; }
+.amm-default-row input { width: 16px; height: 16px; cursor: pointer; accent-color: #185fa5; }
+.amm-default-row span { font-size: 0.82rem; font-weight: 500; color: #475569; }
+
+/* ── Footer ─────────────────────────────────── */
+.amm-foot {
+  display: flex; justify-content: flex-end; gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.amm-btn-cancel {
+  padding: 10px 22px; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; background: #f8fafc;
+  color: #475569; font-size: 0.875rem; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+}
+.amm-btn-cancel:hover { background: #e2e8f0; }
+.amm-btn-save {
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #185fa5, #1e7abf);
+  border: none; border-radius: 8px;
+  color: white; font-size: 0.875rem; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(24,95,165,0.3);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.amm-btn-save:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* Spinner */
+.amm-spin {
+  display: inline-block;
+  animation: amm-rotate 0.8s linear infinite;
+}
+@keyframes amm-rotate { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 700px) {
+  .amm-body { grid-template-columns: 1fr; }
+  .amm-map-section { border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .amm-map-container { min-height: 220px; }
+}

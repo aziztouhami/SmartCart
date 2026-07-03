@@ -39,6 +39,14 @@ class CategoryRepository extends ServiceEntityRepository
         return $this->findOneBy(['slug' => $slug]);
     }
 
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /**
      * Find root categories (with no parent)
      */

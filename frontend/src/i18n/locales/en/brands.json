@@ -1,0 +1,11 @@
+{
+  "title": "All Brands",
+  "subtitle": "Browse products by brand",
+  "brandCount_one": "{{count}} brand",
+  "brandCount_other": "{{count}} brands",
+  "productCount_one": "{{count}} product",
+  "productCount_other": "{{count}} products",
+  "empty": {
+    "title": "No brands found"
+  }
+}

@@ -10,11 +10,46 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
+      - '../src/Recommendation/Entity/'
 
   App\Controller\:
     resource: '../src/Controller/'
     tags: ['controller.service_arguments']
 
+  App\Recommendation\Controller\:
+    resource: '../src/Recommendation/Controller/'
+    tags: ['controller.service_arguments']
+
+  App\Chatbot\Controller\:
+    resource: '../src/Chatbot/Controller/'
+    tags: ['controller.service_arguments']
+
   App\Service\AuthenticationService:
     arguments:
       $tokenTtl: '%env(int:JWT_EXPIRATION)%'
+
+  App\Controller\Auth\AuthController:
+    arguments:
+      $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+
+  App\Service\MailService:
+    arguments:
+      $frontendUrl: '%env(FRONTEND_URL)%'
+      $adminEmail: '%env(ADMIN_EMAIL)%'
+
+  App\Service\FileUploadService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Chatbot\Service\GeminiClientService:
+    arguments:
+      $apiKey: '%env(GEMINI_API_KEY)%'
+      $model: '%env(GEMINI_MODEL)%'
+
+  App\Chatbot\Service\ChatbotService:
+    arguments:
+      $siteName: '%env(APP_NAME)%'
+
+  Database\Seeders\:
+    resource: '../database/seeders/'
+    tags: ['doctrine.fixture.orm']

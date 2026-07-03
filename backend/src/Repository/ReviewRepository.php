@@ -103,4 +103,27 @@ class ReviewRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Paginated reviews for a product
+     */
+    public function findByProductPaginated(Product $product, int $page = 1, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.product = :product')
+            ->setParameter('product', $product)
+            ->orderBy('r.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find the review left by a specific user on a product (to prevent duplicates)
+     */
+    public function findByProductAndUser(Product $product, User $user): ?Review
+    {
+        return $this->findOneBy(['product' => $product, 'user' => $user]);
+    }
 }

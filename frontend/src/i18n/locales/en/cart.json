@@ -1,0 +1,73 @@
+{
+  "title": "Shopping Cart",
+  "itemCount_one": "{{count}} item",
+  "itemCount_other": "{{count}} items",
+  "clearCart": "Clear Cart",
+  "continueShopping": "Continue Shopping",
+  "empty": {
+    "title": "Your cart is empty",
+    "message": "Add some products to get started.",
+    "browseProducts": "Browse Products"
+  },
+  "item": {
+    "pricePerUnit": "{{price}} TND / unit",
+    "lowStock": "Only {{count}} left!",
+    "remove": "Remove"
+  },
+  "summary": {
+    "title": "Order Summary",
+    "items": "Items ({{count}})",
+    "shipping": "Shipping",
+    "free": "Free",
+    "total": "Total",
+    "proceedToCheckout": "Proceed to Checkout",
+    "signInToCheckout": "Sign In to Checkout",
+    "signIn": "Sign in",
+    "toPlaceOrder": "to place your order"
+  },
+  "checkout": {
+    "shippingAddress": "Shipping Address",
+    "loadingAddresses": "Loading saved addresses…",
+    "savedAddresses": "Saved Addresses",
+    "default": "Default",
+    "enterNewAddress": "Enter new address",
+    "pickOnMap": "Pick on Map",
+    "myAddress": "My Address",
+    "contactPhone": "Contact Phone",
+    "cancel": "Cancel",
+    "placeOrder": "Place Order",
+    "placingOrder": "Placing Order…",
+    "fields": {
+      "street": "Street",
+      "streetPlaceholder": "123 Main Street",
+      "city": "City",
+      "cityPlaceholder": "Tunis",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "1000",
+      "country": "Country",
+      "countryPlaceholder": "Tunisia",
+      "phonePlaceholder": "+216 XX XXX XXX"
+    },
+    "errors": {
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Please enter a valid Tunisian phone number (e.g. +216 XX XXX XXX).",
+      "addressRequired": "Street, city and country are required.",
+      "placeOrderFailed": "Failed to place order. Please try again."
+    }
+  },
+  "confirm": {
+    "title": "Confirm Your Order",
+    "items": "Items",
+    "shippingTo": "Shipping To",
+    "back": "Back",
+    "confirmOrder": "Confirm Order"
+  },
+  "success": {
+    "title": "Order Placed!",
+    "orderReceivedPrefix": "Order",
+    "orderReceivedSuffix": "has been received.",
+    "notifyNote": "We'll notify you when it's confirmed.",
+    "continueShopping": "Continue Shopping",
+    "trackOrder": "Track My Order"
+  }
+}

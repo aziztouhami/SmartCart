@@ -1,0 +1,211 @@
+/* ── Products-specific styles ───────────────── */
+
+.ap-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  display: block;
+}
+.ap-thumb-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.ap-brand-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.825rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.ap-brand-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Product form modal ──────────────────────── */
+
+.ap-form-body {
+  max-height: 74vh;
+  overflow-y: auto;
+}
+
+.ap-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ap-section--last,
+.ap-section:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.ap-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.ap-hero-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.ap-image-slot {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ap-image-slot label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ap-hero-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ap-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+}
+
+@media (max-width: 720px) {
+  .ap-hero-row { flex-direction: column; }
+  .ap-image-slot { flex-basis: auto; }
+  .ap-feature-grid { grid-template-columns: 1fr; }
+}
+
+.ap-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.ap-filter-btn {
+  padding: 9px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: white;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.ap-filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.ap-filter-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.ap-product-name {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.ap-product-desc {
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+}
+
+.ap-price {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Stock / status badges */
+.ap-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ap-badge--ok  { background: #dcfce7; color: #166534; }
+.ap-badge--low { background: #fef3c7; color: #92400e; }
+.ap-badge--out { background: #fee2e2; color: #991b1b; }
+
+/* Form validation error */
+.ap-err {
+  font-size: 0.75rem;
+  color: var(--color-error);
+  font-weight: 500;
+}
+
+/* Wide modal for product form */
+.ap-modal-wide {
+  max-width: 760px;
+}
+
+/* Reuse toast from categories */
+.ac-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999;
+  padding: 14px 22px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: toast-in 0.3s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ac-toast--success { background: #166534; color: white; }
+.ac-toast--error   { background: #991b1b; color: white; }
+
+.ac-btn-danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+}
+
+.adm-modal--sm { max-width: 420px; }

@@ -6,6 +6,7 @@ use App\Repository\InteractionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InteractionRepository::class)]
+#[ORM\Index(columns: ['type'])]
 class Interaction
 {
     #[ORM\Id]

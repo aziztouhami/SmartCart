@@ -1,0 +1,10 @@
+{
+  "promotion": "Promotion",
+  "new": "New",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "ends": "Ends {{date}}",
+  "added": "Added",
+  "addToCart": "Add to Cart",
+  "outOfStock": "Out of stock"
+}

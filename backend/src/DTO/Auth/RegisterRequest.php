@@ -19,4 +19,11 @@ class RegisterRequest
 
     #[Assert\NotBlank]
     public string $lastName;
+
+    public bool $marketingOptIn = false;
+
+    /** Optional — seeds cold-start recommendations before any real activity exists. */
+    public array $preferredCategoryIds = [];
+
+    public array $preferredBrandIds = [];
 }

@@ -43,6 +43,17 @@ class Product
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
 
+    #[ORM\ManyToOne(targetEntity: Brand::class, inversedBy: 'products')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Brand $brand = null;
+
+    #[ORM\ManyToOne(targetEntity: ProductType::class, inversedBy: 'products')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ProductType $productType = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $attributes = [];
+
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'product', cascade: ['remove'])]
     private Collection $orderItems;
 
@@ -179,6 +190,43 @@ class Product
     public function setCategory(?Category $category): self
     {
         $this->category = $category;
+        return $this;
+    }
+
+    public function getBrand(): ?Brand
+    {
+        return $this->brand;
+    }
+
+    public function setBrand(?Brand $brand): self
+    {
+        $this->brand = $brand;
+        return $this;
+    }
+
+    public function getProductType(): ?ProductType
+    {
+        return $this->productType;
+    }
+
+    public function setProductType(?ProductType $productType): self
+    {
+        $this->productType = $productType;
+        return $this;
+    }
+
+    /**
+     * Feature values keyed by the owning ProductType's attribute slug
+     * (e.g. ['color' => 'Black', 'battery-capacity' => 5000]).
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    public function setAttributes(array $attributes): self
+    {
+        $this->attributes = $attributes;
         return $this;
     }
 

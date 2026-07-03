@@ -1,0 +1,15 @@
+{
+  "title": "My Favorites",
+  "savedCount_one": "{{count}} saved product",
+  "savedCount_other": "{{count}} saved products",
+  "empty": {
+    "title": "No favorites yet",
+    "message": "Click the heart icon on any product to save it here.",
+    "browseProducts": "Browse Products"
+  },
+  "removeFromFavorites": "Remove from favorites",
+  "inStock": "In Stock",
+  "outOfStock": "Out of Stock",
+  "addToCart": "Add to Cart",
+  "unavailable": "Unavailable"
+}

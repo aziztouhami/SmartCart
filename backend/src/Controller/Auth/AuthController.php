@@ -3,18 +3,14 @@
 namespace App\Controller\Auth;
 
 use App\DTO\Auth\LoginRequest;
-use App\DTO\Auth\LoginResponse;
 use App\DTO\Auth\RegisterRequest;
-use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Service\AuthenticationService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\UserService;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -23,6 +19,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[OA\Tag(name: 'Authentication', description: 'User authentication and account management')]
 class AuthController extends AbstractController
 {
+    public function __construct(
+        private UserService $userService,
+        private AuthenticationService $authService,
+        private SerializerInterface $serializer,
+        private ValidatorInterface $validator,
+        private string $googleClientId = '',
+    ) {}
+
     #[Route('/login', name: 'api_login', methods: ['POST'])]
     #[OA\Post(
         path: '/api/auth/login',
@@ -64,50 +68,36 @@ class AuthController extends AbstractController
             new OA\Response(response: 500, description: 'Internal server error'),
         ]
     )]
-    public function login(
-        Request $request,
-        SerializerInterface $serializer,
-        ValidatorInterface $validator,
-        UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        AuthenticationService $authService,
-    ): JsonResponse {
-        try {
-            // Parse request
-            $loginRequest = $serializer->deserialize(
-                $request->getContent(),
-                LoginRequest::class,
-                'json'
-            );
+    public function login(Request $request): JsonResponse
+    {
+        if (!str_contains($request->headers->get('Content-Type', ''), 'application/json')) {
+            return $this->json(['error' => 'Content-Type must be application/json'], Response::HTTP_UNSUPPORTED_MEDIA_TYPE);
+        }
 
-            // Validate
-            $errors = $validator->validate($loginRequest);
+        try {
+            $loginRequest = $this->serializer->deserialize($request->getContent(), LoginRequest::class, 'json');
+
+            $errors = $this->validator->validate($loginRequest);
             if (count($errors) > 0) {
                 return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
             }
 
-            // Find user
-            $user = $userRepository->findOneBy(['email' => $loginRequest->email]);
-            if (!$user) {
+            $user = $this->userService->verifyCredentials($loginRequest->email, $loginRequest->password);
+
+            if (!$user->isVerified()) {
                 return $this->json(
-                    ['error' => 'Invalid email or password'],
-                    Response::HTTP_UNAUTHORIZED
+                    ['error' => 'Please confirm your email address before logging in.', 'code' => 'EMAIL_NOT_VERIFIED'],
+                    Response::HTTP_FORBIDDEN
                 );
             }
 
-            // Verify password
-            if (!$passwordHasher->isPasswordValid($user, $loginRequest->password)) {
-                return $this->json(
-                    ['error' => 'Invalid email or password'],
-                    Response::HTTP_UNAUTHORIZED
-                );
-            }
-
-            // Create and return JWT response
-            $response = $authService->createLoginResponse($user);
-
-            return $this->json($response, Response::HTTP_OK);
-
+            return $this->json($this->authService->createLoginResponse($user), Response::HTTP_OK);
+        } catch (\RuntimeException $e) {
+            $code = $e->getCode();
+            return $this->json(
+                ['error' => $e->getMessage()],
+                ($code >= 400 && $code < 600) ? $code : Response::HTTP_UNAUTHORIZED
+            );
         } catch (\Exception $e) {
             return $this->json(
                 ['error' => 'An error occurred during login: ' . $e->getMessage()],
@@ -159,61 +149,91 @@ class AuthController extends AbstractController
             new OA\Response(response: 500, description: 'Internal server error'),
         ]
     )]
-    public function register(
-        Request $request,
-        SerializerInterface $serializer,
-        ValidatorInterface $validator,
-        UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $em,
-        AuthenticationService $authService,
-    ): JsonResponse {
+    public function register(Request $request): JsonResponse
+    {
         try {
-            // Parse request
-            $registerRequest = $serializer->deserialize(
-                $request->getContent(),
-                RegisterRequest::class,
-                'json'
-            );
+            $registerRequest = $this->serializer->deserialize($request->getContent(), RegisterRequest::class, 'json');
 
-            // Validate
-            $errors = $validator->validate($registerRequest);
+            $errors = $this->validator->validate($registerRequest);
             if (count($errors) > 0) {
                 return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
             }
 
-            // Check if user exists
-            if ($userRepository->findOneBy(['email' => $registerRequest->email])) {
-                return $this->json(
-                    ['error' => 'Email already in use'],
-                    Response::HTTP_CONFLICT
-                );
-            }
+            $user = $this->userService->register($registerRequest);
 
-            // Create user
-            $user = new User();
-            $user->setEmail($registerRequest->email);
-            $user->setFirstName($registerRequest->firstName);
-            $user->setLastName($registerRequest->lastName);
-            $user->setPassword(
-                $passwordHasher->hashPassword($user, $registerRequest->password)
-            );
-            $user->setRoles(['ROLE_USER']);
-
-            $em->persist($user);
-            $em->flush();
-
-            // Return JWT response
-            $response = $authService->createLoginResponse($user);
-
-            return $this->json($response, Response::HTTP_CREATED);
-
+            return $this->json([
+                'message' => 'Account created. Please check your email to confirm your account before logging in.',
+                'email'   => $user->getEmail(),
+            ], Response::HTTP_CREATED);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
             return $this->json(
                 ['error' => 'An error occurred during registration: ' . $e->getMessage()],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    #[Route('/verify-email', name: 'api_verify_email', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/auth/verify-email',
+        operationId: 'verifyEmail',
+        summary: 'Confirm account via emailed token',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(type: 'object', properties: [
+                new OA\Property(property: 'token', type: 'string'),
+            ])
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Account confirmed'),
+            new OA\Response(response: 400, description: 'Invalid or expired token'),
+        ]
+    )]
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $data  = json_decode($request->getContent(), true) ?? [];
+        $token = $data['token'] ?? '';
+
+        if (!$token) {
+            return $this->json(['error' => 'Missing confirmation token'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->userService->verifyEmail($token);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
+        }
+
+        return $this->json(['message' => 'Your email has been confirmed. You can now log in.']);
+    }
+
+    #[Route('/resend-verification', name: 'api_resend_verification', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/auth/resend-verification',
+        operationId: 'resendVerification',
+        summary: 'Resend the account confirmation email',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(type: 'object', properties: [
+                new OA\Property(property: 'email', type: 'string'),
+            ])
+        ),
+        responses: [new OA\Response(response: 200, description: 'Confirmation email resent if applicable')]
+    )]
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $data  = json_decode($request->getContent(), true) ?? [];
+        $email = $data['email'] ?? '';
+
+        if ($email) {
+            $this->userService->resendVerificationEmail($email);
+        }
+
+        return $this->json([
+            'message' => 'If an account with that email exists and is not yet confirmed, a new confirmation link has been sent.',
+        ]);
     }
 
     #[Route('/me', name: 'api_me', methods: ['GET'])]
@@ -252,13 +272,86 @@ class AuthController extends AbstractController
         }
 
         return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'id'        => $user->getId(),
+            'email'     => $user->getEmail(),
             'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
+            'lastName'  => $user->getLastName(),
+            'roles'     => $user->getRoles(),
             'createdAt' => $user->getCreatedAt(),
         ]);
+    }
+
+    #[Route('/google-login', name: 'api_google_login', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/auth/google-login',
+        operationId: 'googleLogin',
+        summary: 'Login or register via Google OAuth',
+        description: 'Verifies the given Google OAuth access token, then logs in (or creates) the matching account.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['accessToken'],
+                properties: [new OA\Property(property: 'accessToken', type: 'string')]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Login successful, JWT token returned'),
+            new OA\Response(response: 400, description: 'Missing access token or account creation failed'),
+            new OA\Response(response: 401, description: 'Invalid or unverified Google token'),
+        ]
+    )]
+    public function googleLogin(Request $request): JsonResponse
+    {
+        $data        = json_decode($request->getContent(), true) ?? [];
+        $accessToken = $data['accessToken'] ?? '';
+
+        if (!$accessToken) {
+            return $this->json(['error' => 'Missing access token'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Verify the token with Google's tokeninfo endpoint (also returns `aud` for audience check)
+        $ch = curl_init('https://oauth2.googleapis.com/tokeninfo?access_token=' . urlencode($accessToken));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$body) {
+            return $this->json(['error' => 'Invalid Google token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $tokenInfo = json_decode($body, true);
+
+        // Verify the token was issued for this app
+        if ($this->googleClientId && ($tokenInfo['aud'] ?? '') !== $this->googleClientId
+            && ($tokenInfo['azp'] ?? '') !== $this->googleClientId) {
+            return $this->json(['error' => 'Token was not issued for this application'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        if (($tokenInfo['email_verified'] ?? '') !== 'true' && ($tokenInfo['email_verified'] ?? false) !== true) {
+            return $this->json(['error' => 'Google email is not verified'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Fetch the full profile (tokeninfo may not include name)
+        $profileCh = curl_init('https://www.googleapis.com/oauth2/v3/userinfo');
+        curl_setopt($profileCh, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($profileCh, CURLOPT_TIMEOUT, 10);
+        curl_setopt($profileCh, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
+        $profileBody = curl_exec($profileCh);
+        curl_close($profileCh);
+
+        $profile = json_decode($profileBody, true) ?: [];
+        // Merge so email/verified from tokenInfo are always present
+        $profile = array_merge($tokenInfo, $profile);
+
+        try {
+            $user = $this->userService->findOrCreateFromGoogle($profile);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+
+        return $this->json($this->authService->createLoginResponse($user));
     }
 
     #[Route('/logout', name: 'api_logout', methods: ['POST'])]
@@ -284,8 +377,6 @@ class AuthController extends AbstractController
     )]
     public function logout(): JsonResponse
     {
-        // JWT tokens are stateless, so logout is just a client-side action
-        // The client should remove the token from storage
         return $this->json(['message' => 'Logged out successfully']);
     }
 }

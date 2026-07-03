@@ -1,0 +1,118 @@
+{
+  "nav": {
+    "back": "Back",
+    "logout": "Log Out"
+  },
+  "header": {
+    "admin": "Admin"
+  },
+  "personalInfo": {
+    "title": "Personal Information",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "First name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Last name",
+    "email": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+216 XX XXX XXX",
+    "save": "Save Changes",
+    "saveSuccess": "Profile updated successfully."
+  },
+  "password": {
+    "title": "Change Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "newPlaceholder": "min. 8 characters",
+    "confirm": "Confirm New Password",
+    "update": "Update Password",
+    "updateSuccess": "Password changed successfully.",
+    "errors": {
+      "currentRequired": "Enter your current password.",
+      "tooShort": "New password must be at least 8 characters.",
+      "mismatch": "Passwords do not match."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "marketingOptIn": "Send me promotions and special offers by email",
+    "optInSuccess": "You will now receive promo emails.",
+    "optOutSuccess": "Promo emails turned off.",
+    "updateError": "Failed to update notification preference."
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "text": "Deleting your account schedules it for permanent removal in 30 days. Logging back in before then automatically cancels the deletion.",
+    "deleteButton": "Delete My Account",
+    "deleteError": "Failed to schedule account deletion.",
+    "confirmModal": {
+      "title": "Delete your account?",
+      "textBefore": "Your account will be scheduled for permanent deletion in",
+      "textBold": "30 days",
+      "textAfter": "If you log back in before then, the deletion is cancelled automatically and your account is restored.",
+      "cancel": "Cancel",
+      "confirmButton": "Yes, Delete My Account",
+      "scheduling": "Scheduling…"
+    }
+  },
+  "preferences": {
+    "title": "Shopping Preferences",
+    "hint": "Pick categories and brands you like — we'll use them to recommend products until we learn more from what you actually browse and buy.",
+    "updateError": "Failed to update preferences."
+  },
+  "addresses": {
+    "title": "Delivery Addresses",
+    "addButton": "Add Address",
+    "loading": "Loading addresses…",
+    "empty": "No addresses saved yet.",
+    "addFirstButton": "Add Your First Address",
+    "default": "Default",
+    "setDefaultButton": "Set Default",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "loadError": "Could not load addresses.",
+    "addSuccess": "Address added.",
+    "updateSuccess": "Address updated.",
+    "saveError": "Failed to save address.",
+    "setDefaultSuccess": "Default address updated.",
+    "setDefaultError": "Failed to update default address.",
+    "removeSuccess": "Address removed.",
+    "removeError": "Failed to delete address."
+  },
+  "addressModal": {
+    "editTitle": "Edit Address",
+    "addTitle": "Add New Address",
+    "mapHintSelected": "Location selected — drag the marker or click to change it",
+    "mapHintEmpty": "Click on the map to pin your address",
+    "detectButton": "Detect My Position",
+    "detecting": "Detecting…",
+    "geocoding": "Finding address…",
+    "label": "Address Label",
+    "labels": {
+      "home": "Home",
+      "work": "Work",
+      "other": "Other"
+    },
+    "street": "Street Address *",
+    "streetPlaceholder": "e.g. 12 Rue de la Liberté",
+    "city": "City *",
+    "cityPlaceholder": "e.g. Tunis",
+    "postalCode": "Postal Code",
+    "postalCodePlaceholder": "e.g. 1002",
+    "country": "Country *",
+    "countryPlaceholder": "e.g. Tunisia",
+    "setDefault": "Set as default delivery address",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "addAddress": "Add Address",
+    "loadingMap": "Loading map…",
+    "errors": {
+      "streetRequired": "Street is required.",
+      "cityRequired": "City is required.",
+      "countryRequired": "Country is required.",
+      "geolocationUnsupported": "Geolocation is not supported by your browser.",
+      "permissionDenied": "Location permission denied. Please allow access in your browser settings.",
+      "detectFailed": "Unable to detect your position. Please try again."
+    }
+  }
+}

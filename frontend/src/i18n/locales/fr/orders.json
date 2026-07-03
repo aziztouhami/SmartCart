@@ -1,0 +1,72 @@
+{
+  "title": "Mes commandes",
+  "subtitle": "Suivez et gérez vos commandes",
+  "continueShopping": "Continuer mes achats",
+  "loading": "Chargement des commandes…",
+  "empty": {
+    "title": "Aucune commande pour le moment",
+    "message": "Commencez vos achats pour voir vos commandes ici.",
+    "shopNow": "Acheter maintenant"
+  },
+  "status": {
+    "pending": "En attente",
+    "confirmed": "Confirmée",
+    "shipped": "Expédiée",
+    "delivered": "Livrée",
+    "cancelled": "Annulée"
+  },
+  "timeline": {
+    "pending": "Passée",
+    "confirmed": "Confirmée",
+    "shipped": "Expédiée",
+    "delivered": "Livrée"
+  },
+  "card": {
+    "orderNumber": "Commande n°{{id}}",
+    "cancelOrder": "Annuler la commande",
+    "cancelledNotice": "Cette commande a été annulée.",
+    "itemCount_one": "{{count}} article",
+    "itemCount_other": "{{count}} articles",
+    "hideDetails": "Masquer les détails",
+    "viewDetails": "Voir les détails"
+  },
+  "detail": {
+    "loading": "Chargement…",
+    "reviewed": "Avis laissé",
+    "rate": "Évaluer",
+    "deliveredTo": "Livré à"
+  },
+  "review": {
+    "title": "Évaluer ce produit",
+    "commentLabel": "Votre avis (facultatif)",
+    "commentPlaceholder": "Partagez votre expérience avec ce produit…",
+    "cancel": "Annuler",
+    "submit": "Envoyer l'avis",
+    "submitting": "Envoi en cours…",
+    "ratingLabels": {
+      "poor": "Mauvais",
+      "average": "Moyen",
+      "good": "Bon",
+      "excellent": "Excellent"
+    },
+    "errors": {
+      "submitFailed": "Impossible d'envoyer l'avis."
+    }
+  },
+  "cancelModal": {
+    "title": "Annuler la commande n°{{id}} ?",
+    "warning": "Cette action est irréversible une fois confirmée.",
+    "keepOrder": "Conserver la commande",
+    "cancelOrder": "Annuler la commande",
+    "cancelling": "Annulation en cours…"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {{page}} sur {{totalPages}}"
+  },
+  "errors": {
+    "loadFailed": "Impossible de charger les commandes.",
+    "cancelFailed": "Impossible d'annuler la commande."
+  }
+}

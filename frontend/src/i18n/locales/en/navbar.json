@@ -1,0 +1,21 @@
+{
+  "searchPlaceholder": "Search products, brands, categories...",
+  "searchTitle": "Search",
+  "otherNameMatches": "Other name matches",
+  "byBrand": "By Brand",
+  "byCategory": "By Category",
+  "outOfStock": "Out of stock",
+  "seeAllResultsFor": "See all results for",
+  "brandsTitle": "Brands",
+  "favoritesTitle": "Favorites",
+  "cartTitle": "Cart",
+  "signIn": "Sign In",
+  "createAccount": "Create Account",
+  "promotions": "Promotions",
+  "myProfile": "My Profile",
+  "myFavorites": "My Favorites",
+  "myOrders": "My Orders",
+  "adminPanel": "Admin Panel",
+  "logOut": "Log Out",
+  "account": "Account"
+}

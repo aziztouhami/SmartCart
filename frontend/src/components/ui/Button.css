@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════════════
+   Button — shared action button (ui- prefix, used across pages)
+═══════════════════════════════════════════════════════════ */
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family);
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.ui-btn:disabled { cursor: not-allowed; opacity: 0.65; }
+.ui-btn:active:not(:disabled) { transform: translateY(0); }
+.ui-btn--full { width: 100%; }
+
+/* ── Sizes ───────────────────────────────────────────────── */
+.ui-btn--sm { padding: 8px 16px; font-size: 0.8rem; }
+.ui-btn--md { padding: 11px 22px; font-size: 0.875rem; }
+.ui-btn--lg { padding: 14px 30px; font-size: 0.95rem; }
+
+/* ── Primary ─────────────────────────────────────────────── */
+.ui-btn--primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-hover));
+  color: white;
+  box-shadow: 0 6px 16px rgba(24, 95, 165, 0.3);
+}
+.ui-btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(24, 95, 165, 0.4);
+}
+.ui-btn--primary:disabled { background: #cbd5e1; box-shadow: none; }
+
+/* ── Outline ─────────────────────────────────────────────── */
+.ui-btn--outline {
+  background: transparent;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+}
+.ui-btn--outline:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* ── Ghost ───────────────────────────────────────────────── */
+.ui-btn--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.ui-btn--ghost:hover:not(:disabled) {
+  background: var(--color-card-bg);
+  color: var(--color-primary);
+}
+
+/* ── Danger ──────────────────────────────────────────────── */
+.ui-btn--danger {
+  background: transparent;
+  border: 1.5px solid #fecaca;
+  color: #dc2626;
+}
+.ui-btn--danger:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+/* ── Success ─────────────────────────────────────────────── */
+.ui-btn--success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3);
+}

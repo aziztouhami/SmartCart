@@ -1,0 +1,186 @@
+<?php
+
+namespace App\Service;
+
+use App\DTO\Product\CreateAttributeRequest;
+use App\DTO\Product\CreateProductTypeRequest;
+use App\DTO\Product\UpdateProductTypeRequest;
+use App\Entity\ProductType;
+use App\Entity\ProductTypeAttribute;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ProductTypeService
+{
+    public function __construct(
+        private EntityManagerInterface $em,
+        private SlugService $slugService,
+    ) {}
+
+    public function create(CreateProductTypeRequest $dto): ProductType
+    {
+        $type = new ProductType();
+        $type->setName($dto->name);
+        $type->setSlug($this->slugService->generateProductTypeSlug($dto->name));
+
+        foreach ($dto->attributes as $raw) {
+            $type->addAttribute($this->buildAttribute($type, $raw));
+        }
+
+        $this->em->persist($type);
+        $this->em->flush();
+
+        return $type;
+    }
+
+    /**
+     * Add a new feature to an already-existing type (e.g. the admin realizes
+     * "smartwatch" also needs a "Strap material" field after the fact).
+     */
+    public function addAttribute(ProductType $type, CreateAttributeRequest $dto): ProductTypeAttribute
+    {
+        $attribute = $this->buildAttribute($type, [
+            'name'     => $dto->name,
+            'dataType' => $dto->dataType,
+            'unit'     => $dto->unit,
+            'options'  => $dto->options,
+            'required' => $dto->required,
+        ]);
+
+        $type->addAttribute($attribute);
+        $this->em->persist($attribute);
+        $this->em->flush();
+
+        return $attribute;
+    }
+
+    /**
+     * Rename a type. The slug is intentionally left untouched once set —
+     * products already reference it, and product detail pages may link to
+     * /product-type/{slug}-style URLs in the future.
+     */
+    public function rename(ProductType $type, UpdateProductTypeRequest $dto): ProductType
+    {
+        $type->setName($dto->name);
+        $this->em->flush();
+
+        return $type;
+    }
+
+    /**
+     * Drop a feature from a type. Any value already stored under that slug
+     * on existing products is simply orphaned (harmless — it stops being
+     * read or shown once the definition is gone).
+     */
+    public function removeAttribute(ProductType $type, ProductTypeAttribute $attribute): void
+    {
+        if ($attribute->getProductType()?->getId() !== $type->getId()) {
+            throw new \RuntimeException('This feature does not belong to this product type', 404);
+        }
+
+        $type->removeAttribute($attribute);
+        $this->em->remove($attribute);
+        $this->em->flush();
+    }
+
+    public function delete(ProductType $type): void
+    {
+        if (!$type->getProducts()->isEmpty()) {
+            throw new \RuntimeException('Cannot delete a type that still has products assigned to it', 409);
+        }
+
+        $this->em->remove($type);
+        $this->em->flush();
+    }
+
+    /**
+     * Validates a product's raw attribute payload against its type's feature
+     * definitions: drops unknown keys, coerces values to the declared data
+     * type, and enforces required features. Returns the cleaned map to store
+     * on Product::$attributes.
+     */
+    public function resolveAttributeValues(ProductType $type, array $rawValues): array
+    {
+        $resolved = [];
+
+        foreach ($type->getAttributes() as $attribute) {
+            $slug = $attribute->getSlug();
+
+            if (!array_key_exists($slug, $rawValues) || $rawValues[$slug] === null || $rawValues[$slug] === '') {
+                if ($attribute->isRequired()) {
+                    throw new \RuntimeException(sprintf('Feature "%s" is required for this product type', $attribute->getName()), 400);
+                }
+                continue;
+            }
+
+            $resolved[$slug] = $this->coerceValue($attribute, $rawValues[$slug]);
+        }
+
+        return $resolved;
+    }
+
+    private function buildAttribute(ProductType $type, array $raw): ProductTypeAttribute
+    {
+        $name = trim((string) ($raw['name'] ?? ''));
+        if ($name === '') {
+            throw new \RuntimeException('Each feature needs a name', 400);
+        }
+
+        $slug = $this->slugService->slugify($name);
+        foreach ($type->getAttributes() as $existing) {
+            if ($existing->getSlug() === $slug) {
+                throw new \RuntimeException(sprintf('This type already has a feature named "%s"', $name), 409);
+            }
+        }
+
+        $dataType = $raw['dataType'] ?? 'text';
+        $options  = $raw['options'] ?? null;
+
+        if ($dataType === 'select' && empty($options)) {
+            throw new \RuntimeException(sprintf('Feature "%s" is a select but has no options', $name), 400);
+        }
+
+        $attribute = new ProductTypeAttribute();
+        $attribute->setName($name);
+        $attribute->setSlug($slug);
+
+        try {
+            $attribute->setDataType($dataType);
+        } catch (\InvalidArgumentException $e) {
+            throw new \RuntimeException($e->getMessage(), 400);
+        }
+
+        $attribute->setUnit($raw['unit'] ?? null);
+        $attribute->setOptions($dataType === 'select' ? array_values($options) : null);
+        $attribute->setRequired((bool) ($raw['required'] ?? false));
+
+        return $attribute;
+    }
+
+    private function coerceValue(ProductTypeAttribute $attribute, mixed $value): mixed
+    {
+        switch ($attribute->getDataType()) {
+            case 'number':
+                if (!is_numeric($value)) {
+                    throw new \RuntimeException(sprintf('Feature "%s" must be a number', $attribute->getName()), 400);
+                }
+                return (float) $value;
+
+            case 'boolean':
+                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+
+            case 'select':
+                $options = $attribute->getOptions() ?? [];
+                if (!in_array($value, $options, true)) {
+                    throw new \RuntimeException(sprintf(
+                        'Feature "%s" must be one of: %s',
+                        $attribute->getName(),
+                        implode(', ', $options)
+                    ), 400);
+                }
+                return $value;
+
+            default:
+                return (string) $value;
+        }
+    }
+}
