@@ -77,11 +77,7 @@ class ProductAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $product = $this->productService->create($dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $product = $this->productService->create($dto);
 
         return $this->json(
             ProductDetail::fromEntity($product, 0.0, 0),
@@ -139,11 +135,7 @@ class ProductAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $product = $this->productService->update($product, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $product = $this->productService->update($product, $dto);
 
         $avgRating   = $this->reviewRepository->getAverageRating($product);
         $reviewCount = $this->reviewRepository->countByProduct($product);
@@ -185,11 +177,7 @@ class ProductAdminController extends AbstractController
 
         $data = json_decode($request->getContent(), true) ?? [];
 
-        try {
-            $product = $this->productService->updateStock($product, $data);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $product = $this->productService->updateStock($product, $data);
 
         return $this->json(['id' => $product->getId(), 'stock' => $product->getStock()]);
     }

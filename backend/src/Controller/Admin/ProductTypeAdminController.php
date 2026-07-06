@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\DTO\Product\CreateAttributeRequest;
 use App\DTO\Product\CreateProductTypeRequest;
 use App\DTO\Product\ProductTypeDetail;
+use App\DTO\Product\SuggestAttributesRequest;
 use App\DTO\Product\UpdateProductTypeRequest;
 use App\Repository\ProductTypeAttributeRepository;
 use App\Repository\ProductTypeRepository;
@@ -107,13 +108,55 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $type = $this->productTypeService->create($dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $type = $this->productTypeService->create($dto);
 
         return $this->json(ProductTypeDetail::fromEntity($type), Response::HTTP_CREATED);
+    }
+
+    /**
+     * AI-suggested standard features for a product type name the admin is
+     * about to create (e.g. "Casque audio" → Connectivité, Autonomie, ...).
+     * Nothing is persisted — the admin reviews/edits the suggestions on the
+     * frontend, then submits through the normal POST above to actually
+     * create the type.
+     */
+    #[Route('/suggest-attributes', name: 'suggest_attributes', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/admin/product-types/suggest-attributes',
+        operationId: 'adminSuggestProductTypeAttributes',
+        summary: 'Suggest standard features for a new product type (AI, not persisted)',
+        security: [['Bearer' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(required: ['name'], properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Casque audio'),
+                new OA\Property(
+                    property: 'existingNames',
+                    type: 'array',
+                    items: new OA\Items(type: 'string'),
+                    description: 'Features the type already has (edit flow) — suggestions will avoid repeating these',
+                ),
+            ])
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Suggested features — review before creating the type'),
+            new OA\Response(response: 400, description: 'Validation error'),
+        ]
+    )]
+    public function suggestAttributes(Request $request): JsonResponse
+    {
+        try {
+            $dto = $this->serializer->deserialize($request->getContent(), SuggestAttributesRequest::class, 'json');
+        } catch (\Exception) {
+            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
+        }
+
+        return $this->json(['attributes' => $this->productTypeService->suggestAttributes($dto->name, $dto->existingNames)]);
     }
 
     /**
@@ -207,11 +250,7 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $this->productTypeService->addAttribute($type, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->productTypeService->addAttribute($type, $dto);
 
         return $this->json(ProductTypeDetail::fromEntity($type), Response::HTTP_CREATED);
     }
@@ -246,11 +285,7 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => 'Feature not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $this->productTypeService->removeAttribute($type, $attribute);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->productTypeService->removeAttribute($type, $attribute);
 
         return $this->json(ProductTypeDetail::fromEntity($type));
     }
@@ -278,11 +313,7 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => 'Product type not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $this->productTypeService->delete($type);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_CONFLICT);
-        }
+        $this->productTypeService->delete($type);
 
         return $this->json(null, Response::HTTP_NO_CONTENT);
     }

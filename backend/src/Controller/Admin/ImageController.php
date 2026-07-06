@@ -46,16 +46,12 @@ class ImageController extends AbstractController
             return $this->json(['error' => 'No file provided'], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $relativeUrl = $this->fileUploadService->upload(
-                $file,
-                '',
-                ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-                5 * 1024 * 1024,
-            );
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $relativeUrl = $this->fileUploadService->upload(
+            $file,
+            '',
+            ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+            5 * 1024 * 1024,
+        );
 
         return $this->json(
             ['url' => $request->getSchemeAndHttpHost() . $relativeUrl],

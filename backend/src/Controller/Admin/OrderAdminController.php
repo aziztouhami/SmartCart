@@ -136,11 +136,7 @@ class OrderAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $order = $this->orderService->updateStatus($order, $dto->status);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $order = $this->orderService->updateStatus($order, $dto->status);
 
         return $this->json(OrderDetail::fromEntity($order));
     }

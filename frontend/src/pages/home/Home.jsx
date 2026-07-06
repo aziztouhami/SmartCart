@@ -10,9 +10,6 @@ import { useCategories } from '../../context/CategoryContext';
 import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categoryIcons';
 import './Home.css';
 
-// Kept for backward compatibility (ProductDetail imports this)
-export const ALL_PRODUCTS = [];
-
 const EMPTY_FACETS = { brands: [], productTypes: [], priceRange: { min: 0, max: 0 }, attributes: [] };
 const EMPTY_FILTERS = { brand: '', type: '', attrs: {}, inStock: false, minPrice: '', maxPrice: '' };
 

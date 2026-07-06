@@ -5,7 +5,7 @@ import { ShoppingCart, MapPin } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import { useCart } from '../../context/CartContext';
 import { isAuthenticated, getUser, updateLocalUser } from '../../services/authService';
-import { orderApi, addressApi, profileApi } from '../../services/cartService';
+import { orderApi, addressApi } from '../../services/cartService';
 import { formatPrice as fmt } from '../../utils/format';
 import './Cart.css';
 
@@ -124,12 +124,9 @@ export default function Cart() {
     setPlacing(true);
     try {
       const res = await orderApi.checkout(pendingPayload);
-      // Auto-save phone to profile if user doesn't have one yet
-      const trimmedPhone = phone.trim();
-      if (!getUser()?.phone) {
-        profileApi.update({ phone: trimmedPhone }).catch(() => {});
-        updateLocalUser({ phone: trimmedPhone });
-      }
+      // The backend already saved this phone as the user's default for next
+      // time — just keep the local cached profile in sync with it.
+      updateLocalUser({ phone: phone.trim() });
       setOrderId(res.data.id);
       clearCart();
       setConfirmOpen(false);

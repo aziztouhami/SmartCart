@@ -57,18 +57,15 @@ class RecommendationController extends AbstractController
         path: '/api/recommendations/product/{id}',
         operationId: 'getProductRecommendations',
         summary: 'Get "similar" and "complementary" recommendations for a product detail page',
-        description: 'Similar = substitute products (same category/brand/type). Complementary = frequently bought/carted together with this product, from a different category.',
+        description: 'Returns at most 4 similar products and at most 4 complementary (frequently bought together) products.',
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 8)),
         ],
-        responses: [new OA\Response(response: 200, description: 'Similar and complementary product lists')]
+        responses: [new OA\Response(response: 200, description: 'Similar and complementary product lists, max 4 each')]
     )]
-    public function forProduct(int $id, Request $request): JsonResponse
+    public function forProduct(int $id): JsonResponse
     {
-        $limit = min(20, max(1, (int) $request->query->get('limit', 8)));
-
-        $lists = $this->recommendationServing->forProduct($id, $limit);
+        $lists = $this->recommendationServing->forProduct($id, 4);
         $promoMap = $this->promotionRepository->findActiveForProducts([...$lists['similar'], ...$lists['complementary']]);
 
         $toDto = fn ($products) => array_map(

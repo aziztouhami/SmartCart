@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/chatbot', name: 'api_chatbot_')]
-#[OA\Tag(name: 'Chatbot', description: 'Shop assistant chatbot, grounded on the product catalogue (Gemini-backed)')]
+#[OA\Tag(name: 'Chatbot', description: 'Shop assistant chatbot, grounded on the product catalogue (Llama 3.3 70B via Groq)')]
 class ChatbotController extends AbstractController
 {
     public function __construct(

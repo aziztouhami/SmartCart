@@ -46,12 +46,7 @@ class UserService
         $this->em->persist($user);
         $this->em->flush();
 
-        try {
-            $this->mailService->sendVerificationEmail($user);
-        } catch (\Throwable) {
-            // The account is already created — a mail delivery issue must not
-            // surface as a registration failure (same handling as order mail).
-        }
+        $this->mailService->sendSafely(fn () => $this->mailService->sendVerificationEmail($user));
 
         return $user;
     }
@@ -66,11 +61,7 @@ class UserService
         $user->setVerificationToken(bin2hex(random_bytes(32)));
         $this->em->flush();
 
-        try {
-            $this->mailService->sendVerificationEmail($user);
-        } catch (\Throwable) {
-            // Same rationale as register(): don't fail the request over mail delivery.
-        }
+        $this->mailService->sendSafely(fn () => $this->mailService->sendVerificationEmail($user));
     }
 
     public function verifyEmail(string $token): User

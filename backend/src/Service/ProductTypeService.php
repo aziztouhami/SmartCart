@@ -7,6 +7,8 @@ use App\DTO\Product\CreateProductTypeRequest;
 use App\DTO\Product\UpdateProductTypeRequest;
 use App\Entity\ProductType;
 use App\Entity\ProductTypeAttribute;
+use App\Service\Ai\GroqClientService;
+use App\Service\Ai\Prompt\ProductAttributesPrompt;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ProductTypeService
@@ -14,7 +16,68 @@ class ProductTypeService
     public function __construct(
         private EntityManagerInterface $em,
         private SlugService $slugService,
+        private GroqClientService $aiClient,
+        private ProductAttributesPrompt $productAttributesPrompt,
     ) {}
+
+    /**
+     * Asks the LLM for standard-market features for a product type name the
+     * admin is about to create (e.g. "Casque audio"). Nothing is persisted —
+     * the admin reviews, edits, and confirms via the normal create()/
+     * addAttribute() flow. The model is never trusted to emit a valid
+     * dataType/options shape on its own, so every field is re-validated here
+     * exactly as it would be for a human-submitted CreateAttributeRequest.
+     *
+     * @param string[] $existingNames Features the type already has (edit flow) —
+     *                                the model is asked for new ones only, and
+     *                                the result is filtered again as a backstop.
+     * @return array<int, array{name: string, dataType: string, unit: ?string, options: ?array, required: bool}>
+     */
+    public function suggestAttributes(string $typeName, array $existingNames = []): array
+    {
+        $prompt = $this->productAttributesPrompt->build($typeName, $existingNames);
+
+        $result = $this->aiClient->generateJson($prompt);
+        if (!isset($result['attributes']) || !is_array($result['attributes'])) {
+            return [];
+        }
+
+        $existingLower = array_map(fn (string $n) => mb_strtolower(trim($n)), $existingNames);
+
+        $suggestions = [];
+        foreach ($result['attributes'] as $raw) {
+            if (!is_array($raw) || empty($raw['name'])) {
+                continue;
+            }
+
+            $name = trim((string) $raw['name']);
+            if (in_array(mb_strtolower($name), $existingLower, true)) {
+                continue;
+            }
+
+            $dataType = in_array($raw['dataType'] ?? null, ProductTypeAttribute::DATA_TYPES, true)
+                ? $raw['dataType']
+                : 'text';
+            $options = $raw['options'] ?? null;
+
+            // A "select" with no usable options is not a valid suggestion —
+            // downgrade to "text" rather than surfacing something the admin
+            // would immediately have to fix.
+            if ($dataType === 'select' && empty($options)) {
+                $dataType = 'text';
+            }
+
+            $suggestions[] = [
+                'name' => $name,
+                'dataType' => $dataType,
+                'unit' => $dataType === 'number' && !empty($raw['unit']) ? (string) $raw['unit'] : null,
+                'options' => $dataType === 'select' ? array_values(array_map('strval', (array) $options)) : null,
+                'required' => (bool) ($raw['required'] ?? false),
+            ];
+        }
+
+        return $suggestions;
+    }
 
     public function create(CreateProductTypeRequest $dto): ProductType
     {

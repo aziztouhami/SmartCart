@@ -11,12 +11,15 @@ use App\Repository\ChatMessageLogRepository;
 use App\Repository\ProductRepository;
 use App\Repository\PromotionRepository;
 use App\Repository\ReviewRepository;
+use App\Service\Ai\GroqClientService;
+use App\Service\Ai\Prompt\ShopAssistantPrompt;
 
 /**
  * Orchestrates one chat turn: logs the message (also the rate-limit
  * counter), finds grounding products, builds the full prompt — catalogue
  * overview + full product detail (price, stock, description, features,
- * active promotion, rating) — calls Gemini, logs and returns the reply.
+ * active promotion, rating) — calls the LLM (Llama 3.3 70B via Groq), logs
+ * and returns the reply.
  */
 class ChatbotService
 {
@@ -35,7 +38,9 @@ class ChatbotService
     ];
 
     public function __construct(
-        private GeminiClientService $geminiClient,
+        private GroqClientService $aiClient,
+        private TranslationService $translationService,
+        private ShopAssistantPrompt $shopAssistantPrompt,
         private ProductRepository $productRepository,
         private CategoryRepository $categoryRepository,
         private BrandRepository $brandRepository,
@@ -58,10 +63,10 @@ class ChatbotService
     {
         $this->log($sessionId, 'user', $message);
 
-        $products = $this->findRelevantProducts($message);
+        $products = $this->findRelevantProducts($message, $history);
         $prompt = $this->buildPrompt($message, $products, $history);
 
-        $reply = $this->geminiClient->generate($prompt) ?? self::FALLBACK_REPLY;
+        $reply = $this->aiClient->generate($prompt) ?? self::FALLBACK_REPLY;
 
         $this->log($sessionId, 'assistant', $reply);
 
@@ -77,20 +82,108 @@ class ChatbotService
         $this->chatMessageLogRepository->save($entry, true);
     }
 
-    /** @return Product[] */
-    private function findRelevantProducts(string $message): array
+    /**
+     * @param array<int, array{role: string, content: string}> $history
+     * @return Product[]
+     */
+    private function findRelevantProducts(string $message, array $history = []): array
     {
-        $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($message)) ?: [];
-        $keywords = array_values(array_filter(
+        // Combine the current message with the last 3 conversation turns so that
+        // follow-up questions ("c'est quoi leur prix", "et en rouge ?") can still
+        // find the products discussed earlier — this works for ALL product types
+        // without any hardcoded list.
+        $textToSearch = $message;
+        foreach (array_slice($history, -3) as $turn) {
+            $textToSearch .= ' ' . ($turn['content'] ?? '');
+        }
+
+        $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($textToSearch)) ?: [];
+        $keywords = array_values(array_unique(array_filter(
             $words,
             fn ($w) => mb_strlen($w) > 2 && !in_array($w, self::STOPWORDS, true)
-        ));
+        )));
 
         if (empty($keywords)) {
             return [];
         }
 
-        return $this->productRepository->findByAnyKeyword($keywords, self::MAX_PRODUCTS_IN_PROMPT);
+        // If the user wrote in French (or any non-English language), translate the
+        // current message to English and extract additional keywords from the translation.
+        // This lets "avez-vous des téléphones ?" find products named "iPhone 15" or
+        // in a category called "Smartphones" without any hardcoded vocabulary list.
+        // TranslationService returns the original text unchanged when the DeepL key
+        // is not configured or the API call fails, so the chatbot always keeps working.
+        $translatedMessage = $this->translationService->toEnglish($message);
+        if ($translatedMessage !== $message) {
+            $translatedWords = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($translatedMessage)) ?: [];
+            $translatedKeywords = array_filter(
+                $translatedWords,
+                fn ($w) => mb_strlen($w) > 2 && !in_array($w, self::STOPWORDS, true)
+            );
+            $keywords = array_values(array_unique(array_merge($keywords, $translatedKeywords)));
+        }
+
+        // Pass 1: exact substring search across product name, description, category, brand.
+        $products = $this->productRepository->findByAnyKeyword($keywords, self::MAX_PRODUCTS_IN_PROMPT);
+
+        // Pass 2: if nothing matched, compare user keywords against the actual category
+        // names in the DB using bidirectional containment and shared-suffix matching.
+        // This catches semantic near-matches (e.g. "telephones" ↔ "Smartphones" share
+        // the suffix "phones") without requiring any hardcoded synonym dictionary.
+        if (empty($products)) {
+            $products = $this->findProductsByContextualMatch($keywords);
+        }
+
+        return $products;
+    }
+
+    /**
+     * @param string[] $keywords
+     * @return Product[]
+     */
+    private function findProductsByContextualMatch(array $keywords): array
+    {
+        $matchedIds = [];
+
+        foreach ($this->categoryRepository->findAll() as $category) {
+            $catLower = mb_strtolower($category->getName());
+            foreach ($keywords as $kw) {
+                if (str_contains($catLower, $kw)              // "smartphones" contains "smartphone"
+                    || str_contains($kw, $catLower)           // "tablette" contains "tablet"
+                    || $this->shareCommonSuffix($kw, $catLower, 5) // "telephones"/"smartphones" → "hones"
+                ) {
+                    $matchedIds[] = $category->getId();
+                    break;
+                }
+            }
+        }
+
+        if (empty($matchedIds)) {
+            return [];
+        }
+
+        return $this->productRepository->findByCategoryIds(
+            array_unique($matchedIds),
+            self::MAX_PRODUCTS_IN_PROMPT
+        );
+    }
+
+    /**
+     * Returns true when $a and $b share a common trailing substring of at least
+     * $minLength characters. Used to detect morphological near-matches between
+     * user vocabulary and DB category names without any hardcoded synonym list.
+     *
+     * Example: shareCommonSuffix("telephones", "smartphones", 5) → true ("hones")
+     */
+    private function shareCommonSuffix(string $a, string $b, int $minLength): bool
+    {
+        $max = min(mb_strlen($a), mb_strlen($b));
+        for ($len = $max; $len >= $minLength; $len--) {
+            if (mb_substr($a, -$len) === mb_substr($b, -$len)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -99,43 +192,21 @@ class ChatbotService
      */
     private function buildPrompt(string $message, array $products, array $history): string
     {
-        $lines = [
-            "Tu es l'assistant boutique de {$this->siteName}.",
-            "Réponds UNIQUEMENT à partir des données fournies ci-dessous (aperçu du catalogue + fiches produit).",
-            "Si une information ne figure pas dans ces données, dis-le clairement — n'invente jamais un prix, un stock, une caractéristique ou une promotion.",
-            "Réponds TOUJOURS dans la même langue que le dernier message de l'utilisateur (français s'il écrit en français, anglais s'il écrit en anglais, etc.) — jamais dans une autre langue, même si les instructions ci-dessus sont en français.",
-            "Réponds de façon brève et utile (quelques phrases maximum).",
-            '',
-            $this->buildCatalogOverview(),
-            '',
-            '[FICHES PRODUIT PERTINENTES]',
-        ];
-
-        if (empty($products)) {
-            $lines[] = '(Aucun produit du catalogue ne correspond précisément à cette demande — base-toi sur l\'aperçu du catalogue ci-dessus si la question est générale.)';
-        } else {
+        $productLines = [];
+        if (!empty($products)) {
             $promoMap = $this->promotionRepository->findActiveForProducts($products);
             foreach ($products as $p) {
-                $lines[] = $this->describeProduct($p, $promoMap[$p->getId()] ?? null);
+                $productLines[] = $this->describeProduct($p, $promoMap[$p->getId()] ?? null);
             }
         }
-        $lines[] = '';
 
-        if (!empty($history)) {
-            $lines[] = '[HISTORIQUE DE CONVERSATION]';
-            foreach (array_slice($history, -6) as $turn) {
-                $role = ($turn['role'] ?? '') === 'assistant' ? 'Assistant' : 'Utilisateur';
-                $lines[] = "{$role}: " . ($turn['content'] ?? '');
-            }
-            $lines[] = '';
-        }
-
-        $lines[] = '[NOUVEAU MESSAGE]';
-        $lines[] = "Utilisateur: {$message}";
-        $lines[] = '';
-        $lines[] = "(Rappel : ta réponse doit être dans la même langue que le message ci-dessus, pas forcément en français.)";
-
-        return implode("\n", $lines);
+        return $this->shopAssistantPrompt->build(
+            $this->siteName,
+            $this->buildCatalogOverview(),
+            $productLines,
+            $history,
+            $message,
+        );
     }
 
     /**
@@ -215,7 +286,7 @@ class ChatbotService
 
     /**
      * The product's attributes JSON is keyed by slug (e.g. "battery-capacity"
-     * => 5000) — not something Gemini (or a user) should have to decode, so
+     * => 5000) — not something the model (or a user) should have to decode, so
      * this maps each slug back to its ProductTypeAttribute's human name and
      * unit (e.g. "Capacité de la batterie: 5000 mAh").
      */

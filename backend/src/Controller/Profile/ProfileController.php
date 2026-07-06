@@ -90,11 +90,7 @@ class ProfileController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $user = $this->userService->updateProfile($user, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $user = $this->userService->updateProfile($user, $dto);
 
         return $this->json($this->buildProfileArray($user));
     }
@@ -141,11 +137,7 @@ class ProfileController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $this->userService->changePassword($user, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->userService->changePassword($user, $dto);
 
         return $this->json(['message' => 'Password updated successfully']);
     }

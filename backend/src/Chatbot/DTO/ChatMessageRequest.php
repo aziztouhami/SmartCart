@@ -12,7 +12,7 @@ class ChatMessageRequest
 
     /**
      * Recent turns the client is already holding in its own widget state,
-     * sent back so Gemini has short-term context. The backend stays
+     * sent back so the model has short-term context. The backend stays
      * stateless beyond the rate-limit log — it doesn't need to persist or
      * replay history itself.
      *

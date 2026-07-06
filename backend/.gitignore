@@ -10,7 +10,6 @@
 
 # Doctrine
 .doctrine_ids.map.php
-/migrations/
 
 # PHP
 *.phar

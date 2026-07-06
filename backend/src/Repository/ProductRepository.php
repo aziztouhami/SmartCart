@@ -96,12 +96,33 @@ class ProductRepository extends ServiceEntityRepository
         $orConditions = [];
         foreach ($keywords as $i => $word) {
             $key = "kw{$i}";
-            $orConditions[] = "LOWER(p.name) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}";
+            $orConditions[] = "LOWER(p.name) LIKE :{$key} OR LOWER(p.description) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}";
             $qb->setParameter($key, '%' . mb_strtolower($word) . '%');
         }
         $qb->andWhere(implode(' OR ', $orConditions));
 
         return $qb
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Returns products belonging to any of the given category IDs.
+     * Used by the chatbot's contextual fallback search.
+     *
+     * @param int[] $categoryIds
+     * @return Product[]
+     */
+    public function findByCategoryIds(array $categoryIds, int $limit = 6): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.category', 'c')
+            ->leftJoin('p.brand', 'b')
+            ->addSelect('p, c, b')
+            ->where('p.category IN (:ids)')
+            ->setParameter('ids', $categoryIds)
+            ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -264,40 +285,6 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $groups;
-    }
-
-    /**
-     * @deprecated Use findForAutocompleteGrouped instead.
-     */
-    public function findForAutocomplete(string $rawQuery, int $limit = 6): array
-    {
-        $lower = mb_strtolower(trim($rawQuery));
-        $words = array_values(array_filter(preg_split('/\s+/', $lower)));
-        if (empty($words)) {
-            return [];
-        }
-
-        $qb = $this->createQueryBuilder('p')
-            ->leftJoin('p.category', 'c')
-            ->leftJoin('p.brand', 'b')
-            ->addSelect(
-                'CASE WHEN LOWER(p.name) LIKE :sw THEN 1 WHEN LOWER(p.name) LIKE :co THEN 2 ELSE 3 END AS HIDDEN relevance'
-            )
-            ->setParameter('sw', $lower . '%')
-            ->setParameter('co', '%' . $lower . '%');
-
-        foreach ($words as $i => $word) {
-            $key = 'w' . $i;
-            $qb->andWhere("LOWER(p.name) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}")
-               ->setParameter($key, '%' . $word . '%');
-        }
-
-        return $qb
-            ->orderBy('relevance', 'ASC')
-            ->addOrderBy('p.name', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
     }
 
     /**

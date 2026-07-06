@@ -5,15 +5,8 @@ import Navbar from '../../components/Navbar';
 import { useFavorites } from '../../context/FavoriteContext';
 import { useCart } from '../../context/CartContext';
 import { formatPrice as fmt } from '../../utils/format';
+import { HeartIcon } from '../../components/ui';
 import './Favorites.css';
-
-function HeartFilled() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" strokeWidth="2">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-    </svg>
-  );
-}
 
 export default function Favorites() {
   const { t } = useTranslation('favorites');
@@ -46,9 +39,7 @@ export default function Favorites() {
           {!loading && items.length === 0 && (
             <div className="fv-empty">
               <div className="fv-empty-icon">
-                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#cbd5e1" strokeWidth="1.5">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
+                <HeartIcon size={64} stroke="#cbd5e1" strokeWidth={1.5} />
               </div>
               <h2 className="fv-empty-title">{t('empty.title')}</h2>
               <p className="fv-empty-sub">{t('empty.message')}</p>
@@ -76,7 +67,7 @@ export default function Favorites() {
                       onClick={e => { e.stopPropagation(); toggleFavorite(fav.productId); }}
                       title={t('removeFromFavorites')}
                     >
-                      <HeartFilled />
+                      <HeartIcon size={16} filled />
                     </button>
                   </div>
 

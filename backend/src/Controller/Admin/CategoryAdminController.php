@@ -69,11 +69,7 @@ class CategoryAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $category = $this->categoryService->create($dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $category = $this->categoryService->create($dto);
 
         return $this->json(CategoryTree::fromEntity($category), Response::HTTP_CREATED);
     }
@@ -124,11 +120,7 @@ class CategoryAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $category = $this->categoryService->update($category, $dto, $rawData);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $category = $this->categoryService->update($category, $dto, $rawData);
 
         return $this->json(CategoryTree::fromEntity($category));
     }

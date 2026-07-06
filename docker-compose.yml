@@ -49,8 +49,9 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@smartcart.local}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       APP_NAME: ${APP_NAME:-SmartCart}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      MYMEMORY_EMAIL: ${MYMEMORY_EMAIL:-}
     ports:
       - "8000:8000"
     volumes:
@@ -73,6 +74,7 @@ services:
              fi &&
              php bin/console doctrine:database:create --if-not-exists &&
              php bin/console doctrine:migrations:migrate --no-interaction &&
+             php bin/console cache:clear &&
              PHP_CLI_SERVER_WORKERS=8 php -S 0.0.0.0:8000 -t public public/index.php"
 
   # React Frontend

@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home as HomeIcon, Briefcase, MapPin } from 'lucide-react';
-import { getUser, logout } from '../../services/authService';
+import { getUser, logout, updateLocalUser } from '../../services/authService';
 import { addressApi, profileApi, brandApi } from '../../services/cartService';
 import { useCart } from '../../context/CartContext';
 import { useCategories } from '../../context/CategoryContext';
@@ -30,8 +30,11 @@ export default function Profile() {
     phone:     user?.phone     ?? '',
   });
 
+  const [savingInfo, setSavingInfo] = useState(false);
+
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwErr,  setPwErr]  = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
 
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -114,16 +117,47 @@ export default function Profile() {
   };
 
   /* ── Profile form ── */
-  const handleSave = (e) => { e.preventDefault(); showToast(t('personalInfo.saveSuccess')); };
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSavingInfo(true);
+    try {
+      const res = await profileApi.update({
+        firstName: form.firstName,
+        lastName:  form.lastName,
+        email:     form.email,
+        phone:     form.phone,
+      });
+      updateLocalUser({
+        firstName: res.data.firstName,
+        lastName:  res.data.lastName,
+        email:     res.data.email,
+        phone:     res.data.phone,
+      });
+      showToast(t('personalInfo.saveSuccess'));
+    } catch (err) {
+      showToast(err.response?.data?.error || t('personalInfo.saveError'), 'error');
+    } finally {
+      setSavingInfo(false);
+    }
+  };
 
-  const handlePassword = (e) => {
+  const handlePassword = async (e) => {
     e.preventDefault();
     setPwErr('');
     if (!pwForm.current)               { setPwErr(t('password.errors.currentRequired')); return; }
     if (pwForm.next.length < 8)        { setPwErr(t('password.errors.tooShort')); return; }
     if (pwForm.next !== pwForm.confirm) { setPwErr(t('password.errors.mismatch')); return; }
-    showToast(t('password.updateSuccess'));
-    setPwForm({ current: '', next: '', confirm: '' });
+
+    setPwSaving(true);
+    try {
+      await profileApi.changePassword({ currentPassword: pwForm.current, newPassword: pwForm.next });
+      showToast(t('password.updateSuccess'));
+      setPwForm({ current: '', next: '', confirm: '' });
+    } catch (err) {
+      setPwErr(err.response?.data?.error || t('password.updateError'));
+    } finally {
+      setPwSaving(false);
+    }
   };
 
   /* ── Address CRUD ── */
@@ -248,7 +282,9 @@ export default function Profile() {
                   <label>{t('personalInfo.phone')}</label>
                   <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('personalInfo.phonePlaceholder')} />
                 </div>
-                <button type="submit" className="pf-btn-save">{t('personalInfo.save')}</button>
+                <button type="submit" className="pf-btn-save" disabled={savingInfo}>
+                  {savingInfo ? t('personalInfo.saving') : t('personalInfo.save')}
+                </button>
               </form>
             </div>
 
@@ -268,7 +304,9 @@ export default function Profile() {
                   <label>{t('password.confirm')}</label>
                   <input type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} placeholder="••••••••" />
                 </div>
-                <button type="submit" className="pf-btn-save">{t('password.update')}</button>
+                <button type="submit" className="pf-btn-save" disabled={pwSaving}>
+                  {pwSaving ? t('password.updating') : t('password.update')}
+                </button>
               </form>
             </div>
           </div>

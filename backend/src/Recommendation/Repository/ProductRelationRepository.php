@@ -99,22 +99,31 @@ class ProductRelationRepository extends ServiceEntityRepository
      * page — a single indexed read against (product_id, type, score),
      * no session/recency stitching needed.
      *
+     * Pass $minScore > 0 to exclude low-confidence relations (e.g. filter
+     * out coincidental co-occurrence noise for the "Frequently Bought
+     * Together" section so only meaningful pairings are shown).
+     *
      * @return int[] related product ids, most relevant first
      */
-    public function findTopForProduct(int $productId, string $type, int $limit): array
+    public function findTopForProduct(int $productId, string $type, int $limit, float $minScore = 0.0): array
     {
-        $rows = $this->createQueryBuilder('r')
+        $qb = $this->createQueryBuilder('r')
             ->select('IDENTITY(r.relatedProduct) AS relatedProductId')
             ->andWhere('r.product = :productId')
             ->andWhere('r.type = :type')
             ->setParameter('productId', $productId)
             ->setParameter('type', $type)
             ->orderBy('r.score', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getArrayResult();
+            ->setMaxResults($limit);
 
-        return array_map(fn ($row) => (int) $row['relatedProductId'], $rows);
+        if ($minScore > 0.0) {
+            $qb->andWhere('r.score >= :minScore')->setParameter('minScore', $minScore);
+        }
+
+        return array_map(
+            fn ($row) => (int) $row['relatedProductId'],
+            $qb->getQuery()->getArrayResult()
+        );
     }
 
     public function countAll(): int

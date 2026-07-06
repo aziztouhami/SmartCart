@@ -17,6 +17,21 @@ class MailService
         private string $adminEmail,
     ) {}
 
+    /**
+     * Runs a mail-send call, swallowing any failure. A mail delivery issue
+     * (bad SMTP credentials, network blip, quota) must never fail the request
+     * that triggered it — registration, checkout, an order status update, or
+     * a promotion blast all still succeed even if the email doesn't go out.
+     */
+    public function sendSafely(callable $send): void
+    {
+        try {
+            $send();
+        } catch (\Throwable) {
+            // Intentionally silent — see method docblock.
+        }
+    }
+
     public function sendVerificationEmail(User $user): void
     {
         $link = rtrim($this->frontendUrl, '/') . '/verify-email?token=' . $user->getVerificationToken();

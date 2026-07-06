@@ -3,3 +3,4 @@ export { default as Badge } from './Badge';
 export { default as IconButton } from './IconButton';
 export { default as Skeleton } from './Skeleton';
 export { default as Price } from './Price';
+export { default as HeartIcon } from './HeartIcon';

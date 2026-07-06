@@ -12,6 +12,12 @@
   gap: 10px;
 }
 
+.tff-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .tff-feature-list-label {
   font-size: 0.8rem;
   font-weight: 600;
@@ -19,15 +25,58 @@
   margin-top: 4px;
 }
 
+.tff-feature-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tff-feature-list-head .tff-feature-list-label {
+  margin-top: 0;
+}
+
+.tff-suggest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: linear-gradient(135deg, var(--color-primary), #7c3aed);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.tff-suggest-btn svg { width: 14px; height: 14px; }
+
+.tff-suggest-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tff-suggest-btn:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+
 .tff-feature-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 10px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease;
+}
+
+.tff-feature-row:hover {
+  border-color: #cbd5e1;
 }
 
 .tff-feature-row input,
@@ -37,17 +86,25 @@
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-family: var(--font-family);
+  min-width: 0;
 }
 
-.tff-feature-name  { flex: 1 1 140px; }
-.tff-feature-type  { flex: 0 0 130px; }
+.tff-feature-row input:focus,
+.tff-feature-row select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.1);
+}
+
+.tff-feature-name  { flex: 1 1 160px; }
+.tff-feature-type  { flex: 0 0 128px; }
 .tff-feature-unit,
-.tff-feature-options { flex: 1 1 130px; }
+.tff-feature-options { flex: 1 1 140px; }
 
 .tff-feature-required {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 0.75rem;
   color: var(--color-text-muted);
   white-space: nowrap;
@@ -56,11 +113,19 @@
 .tff-feature-remove {
   border: none;
   background: none;
-  color: var(--color-error);
+  color: var(--color-text-muted);
   cursor: pointer;
   font-size: 0.9rem;
-  padding: 2px 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.tff-feature-remove:hover {
+  color: var(--color-error);
+  background: #fee2e2;
 }
 
 .tff-add-feature-btn,

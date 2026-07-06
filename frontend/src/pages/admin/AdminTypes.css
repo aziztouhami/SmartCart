@@ -85,3 +85,62 @@
   font-size: 0.85rem;
   font-style: italic;
 }
+
+/* ── Add/Edit type modal: wider layout for the feature editor ───────────── */
+.aty-type-modal {
+  max-width: 640px;
+}
+
+.aty-type-modal .adm-modal-body {
+  max-height: 68vh;
+  overflow-y: auto;
+}
+
+/* ── AI-suggested features pending review (edit modal) ───────────── */
+.aty-suggested-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  margin-top: 4px;
+  background: linear-gradient(180deg, #f5f3ff, #faf9ff);
+  border: 1.5px dashed #c4b5fd;
+  border-radius: var(--radius-md);
+}
+
+.aty-suggested-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aty-suggested-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6d28d9;
+}
+
+.aty-suggested-title svg { width: 14px; height: 14px; }
+
+.aty-suggested-discard {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.aty-suggested-discard:hover {
+  color: var(--color-error);
+  text-decoration: underline;
+}
+
+.aty-suggested-addall {
+  align-self: flex-end;
+}

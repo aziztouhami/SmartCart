@@ -17,7 +17,9 @@
     "phone": "Phone",
     "phonePlaceholder": "+216 XX XXX XXX",
     "save": "Save Changes",
-    "saveSuccess": "Profile updated successfully."
+    "saving": "Saving…",
+    "saveSuccess": "Profile updated successfully.",
+    "saveError": "Failed to update profile."
   },
   "password": {
     "title": "Change Password",
@@ -26,7 +28,9 @@
     "newPlaceholder": "min. 8 characters",
     "confirm": "Confirm New Password",
     "update": "Update Password",
+    "updating": "Updating…",
     "updateSuccess": "Password changed successfully.",
+    "updateError": "Failed to update password.",
     "errors": {
       "currentRequired": "Enter your current password.",
       "tooShort": "New password must be at least 8 characters.",

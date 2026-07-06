@@ -85,11 +85,7 @@ class FavoriteController extends AbstractController
         $data      = json_decode($request->getContent(), true) ?? [];
         $productId = (int) ($data['productId'] ?? 0);
 
-        try {
-            $favorite = $this->favoriteService->add($user, $productId);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $favorite = $this->favoriteService->add($user, $productId);
 
         return $this->json(FavoriteItem::fromEntity($favorite), Response::HTTP_CREATED);
     }
@@ -113,11 +109,7 @@ class FavoriteController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $this->favoriteService->remove($user, $productId);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->favoriteService->remove($user, $productId);
 
         return $this->json(['message' => 'Removed from favorites']);
     }

@@ -148,11 +148,7 @@ class OrderController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $order = $this->orderService->checkout($user, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $order = $this->orderService->checkout($user, $dto);
 
         return $this->json(OrderDetail::fromEntity($order), Response::HTTP_CREATED);
     }
@@ -190,11 +186,7 @@ class OrderController extends AbstractController
             return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
         }
 
-        try {
-            $order = $this->orderService->cancelOwnOrder($order);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $order = $this->orderService->cancelOwnOrder($order);
 
         return $this->json(OrderDetail::fromEntity($order));
     }

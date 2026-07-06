@@ -77,12 +77,13 @@ export const adminProductApi = {
 };
 
 export const productTypeApi = {
-  list:           ()                          => api.get('/admin/product-types'),
-  create:         (data)                       => api.post('/admin/product-types', data),
-  rename:         (typeId, data)               => api.put(`/admin/product-types/${typeId}`, data),
-  addAttribute:   (typeId, data)               => api.post(`/admin/product-types/${typeId}/attributes`, data),
-  removeAttribute:(typeId, attributeId)        => api.delete(`/admin/product-types/${typeId}/attributes/${attributeId}`),
-  remove:         (typeId)                     => api.delete(`/admin/product-types/${typeId}`),
+  list:              ()                          => api.get('/admin/product-types'),
+  create:            (data)                       => api.post('/admin/product-types', data),
+  rename:            (typeId, data)               => api.put(`/admin/product-types/${typeId}`, data),
+  addAttribute:      (typeId, data)               => api.post(`/admin/product-types/${typeId}/attributes`, data),
+  removeAttribute:   (typeId, attributeId)        => api.delete(`/admin/product-types/${typeId}/attributes/${attributeId}`),
+  remove:            (typeId)                     => api.delete(`/admin/product-types/${typeId}`),
+  suggestAttributes: (name, existingNames = [])   => api.post('/admin/product-types/suggest-attributes', { name, existingNames }),
 };
 
 export const adminCategoryApi = {
@@ -105,6 +106,7 @@ export const adminPromotionApi = {
 export const profileApi = {
   get:             ()     => api.get('/profile'),
   update:          (data) => api.put('/profile', data),
+  changePassword:  (data) => api.put('/profile/password', data),
   requestDeletion: ()     => api.delete('/profile'),
 };
 

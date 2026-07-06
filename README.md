@@ -1,6 +1,6 @@
 # SmartCart — Plateforme E-Commerce avec Recommandations Intelligentes
 
-SmartCart est une plateforme e-commerce développée dans le cadre d'un stage chez Sofiatech. Elle combine une API REST sécurisée par JWT, une interface React multilingue, un assistant IA intégré (Gemini), et un moteur de recommandation basé sur le filtrage collaboratif pour personnaliser l'expérience de chaque utilisateur.
+SmartCart est une plateforme e-commerce développée dans le cadre d'un stage chez Sofiatech. Elle combine une API REST sécurisée par JWT, une interface React multilingue, un assistant IA intégré (Groq / Llama 3.3), et un moteur de recommandation basé sur le filtrage collaboratif pour personnaliser l'expérience de chaque utilisateur.
 
 ---
 
@@ -13,7 +13,7 @@ Le projet suit une architecture découplée (Headless) :
 - **Frontend React** : application SPA qui communique avec le backend exclusivement via l'API REST, sécurisée par JWT.
 - **Backend Symfony 7** : exposition d'une API REST, gestion des entités métier, sécurité, et logique applicative.
 - **Moteur de recommandation** : service Symfony indépendant basé sur le filtrage collaboratif, calculant des scores de similarité entre utilisateurs à partir de leurs interactions.
-- **Assistant IA (Chatbot)** : intégration de l'API Google Gemini pour répondre aux questions produits des visiteurs en langage naturel.
+- **Assistant IA (Chatbot)** : intégration de l'API Groq (Llama 3.3 70B) pour répondre aux questions produits des visiteurs en langage naturel, et pour suggérer automatiquement les attributs standards d'un type de produit dans le panneau admin.
 - **Base de données PostgreSQL** : stockage relationnel optimisé avec index sur les tables produits et historique des interactions.
 
 ---
@@ -27,7 +27,8 @@ Le projet suit une architecture découplée (Headless) :
 | Base de données | PostgreSQL 15 |
 | Authentification | JWT — LexikJWTAuthenticationBundle v3 |
 | OAuth social | Google OAuth 2.0 |
-| Chatbot IA | Google Gemini API (gemini-2.5-flash-lite) |
+| Chatbot IA | Groq API (Llama 3.3 70B) |
+| Traduction (chatbot) | MyMemory Translation API |
 | Documentation API | swagger-php v4 + Swagger UI (CDN) |
 | Conteneurisation | Docker et Docker Compose |
 | ORM | Doctrine ORM v2 |
@@ -56,9 +57,9 @@ Stage Sofiatech/
 │   │   └── uploads/           # Images uploadées (produits, marques)
 │   └── src/
 │       ├── Chatbot/
-│       │   ├── Controller/    # ChatbotController — endpoint POST /api/chatbot
+│       │   ├── Controller/    # ChatbotController — endpoint POST /api/chatbot/message
 │       │   ├── DTO/           # ChatMessageRequest
-│       │   └── Service/       # ChatbotService (logique), GeminiClientService (HTTP Gemini)
+│       │   └── Service/       # ChatbotService (logique), TranslationService (MyMemory)
 │       ├── Command/
 │       │   ├── ExportFeaturesCommand.php       # Export CSV des features ML
 │       │   └── PruneDeletedAccountsCommand.php # Purge des comptes supprimés (RGPD)
@@ -88,6 +89,9 @@ Stage Sofiatech/
 │       ├── Repository/        # Repositories Doctrine (15 repositories)
 │       ├── Security/          # Composants de sécurité Symfony
 │       └── Service/           # Logique métier (19 services)
+│           └── Ai/            # GroqClientService (client HTTP Groq générique)
+│               └── Prompt/    # Un builder de prompt par fonctionnalité IA
+│                              # (ShopAssistantPrompt, ProductAttributesPrompt)
 │
 ├── frontend/
 │   ├── public/
@@ -159,8 +163,8 @@ Renseigner les valeurs suivantes dans `backend/.env` :
 - `APP_SECRET` — générer avec `openssl rand -hex 32`
 - `JWT_SECRET` — générer avec `openssl rand -hex 32`
 - `GOOGLE_CLIENT_ID` — depuis la Google Cloud Console
-- `GEMINI_API_KEY` — depuis Google AI Studio
-- `MAILER_DSN` — connexion au serveur mail (MailPit en développement, voir ci-dessous)
+- `GROQ_API_KEY` — clé gratuite depuis https://console.groq.com/keys (chatbot + suggestion d'attributs IA)
+- `MAILER_DSN` — connexion au serveur mail (MailPit en développement, voir ci-dessous ; pour un envoi réel via Gmail, voir [Configurer l'envoi d'emails](#configurer-lenvoi-demails))
 
 **3. Créer le fichier d'environnement frontend**
 
@@ -247,9 +251,12 @@ npm start
 | `JWT_EXPIRATION` | `3600` | Durée de validité du token JWT en secondes |
 | `CORS_ALLOW_ORIGIN` | `http://localhost:3000` | Origines autorisées pour les requêtes cross-origin |
 | `GOOGLE_CLIENT_ID` | à définir | Client ID OAuth 2.0 pour la connexion Google |
-| `GEMINI_API_KEY` | à définir | Clé API Google Gemini pour le chatbot |
-| `GEMINI_MODEL` | `gemini-2.5-flash-lite` | Modèle Gemini utilisé par le chatbot |
-| `MAILER_DSN` | `smtp://mailer:1025` | Connexion au serveur mail (MailPit en dev) |
+| `GROQ_API_KEY` | à définir | Clé API Groq — chatbot + suggestion d'attributs IA (gratuite sur https://console.groq.com/keys) |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Modèle Groq utilisé |
+| `MYMEMORY_EMAIL` | vide | Email optionnel pour la traduction du chatbot (MyMemory) — passe le quota de 1 000 à 10 000 mots/jour, aucune carte bancaire requise |
+| `MAILER_DSN` | `smtp://mailer:1025` | Connexion au serveur mail (MailPit en dev — voir [Configurer l'envoi d'emails](#configurer-lenvoi-demails) pour un envoi réel) |
+| `ADMIN_EMAIL` | `admin@smartcart.local` | Adresse expéditrice des emails envoyés par l'application |
+| `FRONTEND_URL` | `http://localhost:3000` | Base des liens générés dans les emails (confirmation de compte, etc.) |
 
 Exemple de `DATABASE_URL` en local :
 
@@ -277,6 +284,30 @@ postgresql://smartcart_user:smartcart_password@postgres:5432/smartcart_db
 | `REACT_APP_ENABLE_ANALYTICS` | `true` | Activation du tracking des interactions |
 | `REACT_APP_ENVIRONMENT` | `development` | Environnement courant |
 | `REACT_APP_DEBUG` | `true` | Mode debug frontend |
+
+---
+
+## Configurer l'envoi d'emails
+
+Par défaut (`MAILER_DSN=smtp://mailer:1025`), tous les emails envoyés par l'application (confirmation de compte, confirmation/expédition/livraison de commande, promotions) sont capturés par **MailPit** et consultables sur http://localhost:8025 — rien n'est réellement envoyé. C'est le réglage recommandé en développement.
+
+Pour un envoi réel via Gmail :
+
+1. Activer la validation en deux étapes sur le compte Google : https://myaccount.google.com/security
+2. Générer un mot de passe d'application : https://myaccount.google.com/apppasswords
+3. Renseigner `MAILER_DSN` dans `backend/.env` **et** `.env` (racine du projet, lu par `docker-compose.yml`) :
+
+   ```
+   MAILER_DSN=smtp://votre.email%40gmail.com:motdepasseapplication@smtp.gmail.com:587
+   ```
+
+   - Encoder le `@` de l'adresse email en `%40`.
+   - Retirer les espaces du mot de passe d'application affiché par Google (16 caractères collés).
+
+4. Recréer le conteneur backend pour appliquer la variable : `docker compose up -d --force-recreate backend`
+5. Vérifier avec : `docker exec smartcart_backend php bin/console mailer:test votre@email.com --from=admin@smartcart.local`
+
+Les échecs d'envoi n'interrompent jamais une inscription ou une commande (`MailService` est toujours appelé dans un `try/catch` silencieux) — en cas de doute, ce test `mailer:test` est le moyen le plus direct de vérifier que les identifiants SMTP sont valides.
 
 ---
 
@@ -341,6 +372,7 @@ Le flux d'inscription inclut une **vérification d'email obligatoire** : le comp
 - Listage avec filtres (catégorie, marque, prix, attributs), tri et pagination.
 - Recherche par texte + autocomplétion (`GET /api/products/autocomplete`).
 - Schéma d'attributs **dynamique par type de produit** : chaque type (ex. "Smartphone", "T-shirt") définit ses propres attributs (ex. "Couleur", "Stockage") gérés via `ProductType` et `ProductTypeAttribute`.
+- **Suggestion d'attributs par IA** (`POST /api/admin/product-types/suggest-attributes`) : à la création ou à l'édition d'un type, l'admin peut demander à l'IA (Groq/Llama 3.3) de proposer les attributs standards du marché pour ce type de produit. En édition, les attributs déjà définis sont exclus de la suggestion ; renommer le type puis re-suggérer remplace le lot précédent plutôt que de l'accumuler. Rien n'est persisté avant validation explicite de l'admin.
 - Gestion des images produits avec upload vers `public/uploads/`.
 - Génération automatique de slugs uniques.
 
@@ -366,6 +398,7 @@ Le flux d'inscription inclut une **vérification d'email obligatoire** : le comp
 ### Commandes
 
 - Passage de commande avec sélection d'adresse de livraison (`POST /api/orders/checkout`).
+- Le numéro de téléphone de contact saisi à la commande est **mémorisé comme valeur par défaut** du profil pour la prochaine commande (mis à jour à chaque checkout, pas seulement à la première fois).
 - Prix des articles **figés au moment de l'achat**.
 - Application automatique des promotions actives.
 - Historique des commandes avec détail des lignes.
@@ -413,15 +446,16 @@ Le flux d'inscription inclut une **vérification d'email obligatoire** : le comp
 - Validation du type et de la taille côté backend.
 - Composant React `ImageUpload` avec aperçu.
 
-### Chatbot IA (Gemini)
+### Chatbot IA (Groq / Llama 3.3)
 
 Un assistant conversationnel est intégré dans le frontend (bulle flottante `Chatbot.jsx`) et répond aux questions des visiteurs sur les produits, catégories et commandes.
 
-- Endpoint public : `POST /api/chatbot` — accessible sans authentification.
-- `ChatbotService` construit un prompt contextuel enrichi avec les données du catalogue.
-- `GeminiClientService` communique avec l'API Gemini via Symfony HttpClient.
-- Le modèle et la clé API sont configurés via les variables d'environnement `GEMINI_MODEL` et `GEMINI_API_KEY`.
-- Si la clé API est absente, le chatbot se désactive silencieusement.
+- Endpoint public : `POST /api/chatbot/message` (header `X-Session-Id` requis) — accessible sans authentification.
+- `ChatbotService` trouve les produits pertinents par mot-clé (avec repli sur une correspondance de catégorie), construit le prompt via `ShopAssistantPrompt` (`Service/Ai/Prompt/`), puis appelle `GroqClientService`.
+- Les messages non écrits en anglais sont traduits au préalable par `TranslationService` (API MyMemory) afin de retrouver des produits dont le nom/catégorie est en anglais.
+- Limite de débit : 12 messages / 60 secondes par session (`X-Session-Id`), au-delà réponse `429`.
+- Le modèle et la clé API sont configurés via les variables d'environnement `GROQ_MODEL` et `GROQ_API_KEY`.
+- Si la clé API est absente, le chatbot se désactive silencieusement (réponse de repli).
 - Les échanges sont enregistrés dans `chat_message_log` pour analyse.
 
 ### Internationalisation (i18n)
@@ -468,7 +502,7 @@ Les endpoints publics (sans token) sont :
 - `GET /api/products`, `GET /api/categories`, `GET /api/brands` (lecture catalogue)
 - `GET /api/recommendations` (recommandations anonymes)
 - `POST /api/guest/events` (tracking visiteurs anonymes)
-- `POST /api/chatbot`
+- `POST /api/chatbot/message`
 - `GET /api/docs`, `GET /api/docs.json`
 
 Tous les autres endpoints sous `/api/` exigent un token valide. Les routes sous `/api/admin/` exigent en plus le rôle `ROLE_ADMIN`.

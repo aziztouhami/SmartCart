@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/api/auth')]
 #[OA\Tag(name: 'Authentication', description: 'User authentication and account management')]
@@ -24,6 +25,7 @@ class AuthController extends AbstractController
         private AuthenticationService $authService,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator,
+        private HttpClientInterface $httpClient,
         private string $googleClientId = '',
     ) {}
 
@@ -58,6 +60,7 @@ class AuthController extends AbstractController
                             new OA\Property(property: 'email', type: 'string'),
                             new OA\Property(property: 'firstName', type: 'string'),
                             new OA\Property(property: 'lastName', type: 'string'),
+                            new OA\Property(property: 'phone', type: 'string', nullable: true),
                             new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string')),
                         ]),
                     ]
@@ -200,11 +203,7 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Missing confirmation token'], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $this->userService->verifyEmail($token);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->userService->verifyEmail($token);
 
         return $this->json(['message' => 'Your email has been confirmed. You can now log in.']);
     }
@@ -310,18 +309,13 @@ class AuthController extends AbstractController
         }
 
         // Verify the token with Google's tokeninfo endpoint (also returns `aud` for audience check)
-        $ch = curl_init('https://oauth2.googleapis.com/tokeninfo?access_token=' . urlencode($accessToken));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        $body     = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $tokenInfo = $this->fetchGoogleJson('GET', 'https://oauth2.googleapis.com/tokeninfo', [
+            'query' => ['access_token' => $accessToken],
+        ]);
 
-        if ($httpCode !== 200 || !$body) {
+        if (!$tokenInfo) {
             return $this->json(['error' => 'Invalid Google token'], Response::HTTP_UNAUTHORIZED);
         }
-
-        $tokenInfo = json_decode($body, true);
 
         // Verify the token was issued for this app
         if ($this->googleClientId && ($tokenInfo['aud'] ?? '') !== $this->googleClientId
@@ -334,24 +328,34 @@ class AuthController extends AbstractController
         }
 
         // Fetch the full profile (tokeninfo may not include name)
-        $profileCh = curl_init('https://www.googleapis.com/oauth2/v3/userinfo');
-        curl_setopt($profileCh, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($profileCh, CURLOPT_TIMEOUT, 10);
-        curl_setopt($profileCh, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
-        $profileBody = curl_exec($profileCh);
-        curl_close($profileCh);
-
-        $profile = json_decode($profileBody, true) ?: [];
+        $profile = $this->fetchGoogleJson('GET', 'https://www.googleapis.com/oauth2/v3/userinfo', [
+            'headers' => ['Authorization' => 'Bearer ' . $accessToken],
+        ]) ?? [];
         // Merge so email/verified from tokenInfo are always present
         $profile = array_merge($tokenInfo, $profile);
 
-        try {
-            $user = $this->userService->findOrCreateFromGoogle($profile);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
+        $user = $this->userService->findOrCreateFromGoogle($profile);
 
         return $this->json($this->authService->createLoginResponse($user));
+    }
+
+    /**
+     * GET request to a Google API endpoint, decoded as JSON. Returns null on
+     * any failure (network error, non-200 status, invalid JSON) — same
+     * degrade-silently convention as GroqClientService/TranslationService.
+     */
+    private function fetchGoogleJson(string $method, string $url, array $options = []): ?array
+    {
+        try {
+            $response = $this->httpClient->request($method, $url, array_merge(['timeout' => 10], $options));
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            return $response->toArray(false);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     #[Route('/logout', name: 'api_logout', methods: ['POST'])]

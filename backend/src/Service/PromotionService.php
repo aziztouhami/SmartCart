@@ -96,11 +96,8 @@ class PromotionService
     private function notifyOptedInUsers(Promotion $promotion): void
     {
         foreach ($this->userRepository->findMarketingOptIn() as $user) {
-            try {
-                $this->mailService->sendPromotionEmail($user, $promotion);
-            } catch (\Throwable) {
-                // One bad email must not block the rest of the batch or the promotion creation.
-            }
+            // One bad email must not block the rest of the batch or the promotion creation.
+            $this->mailService->sendSafely(fn () => $this->mailService->sendPromotionEmail($user, $promotion));
         }
     }
 

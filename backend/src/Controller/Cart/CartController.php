@@ -94,11 +94,7 @@ class CartController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $cart = $this->cartService->addItem($user, $dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $cart = $this->cartService->addItem($user, $dto);
 
         return $this->json(CartResponse::fromOrder($cart));
     }
@@ -153,11 +149,7 @@ class CartController extends AbstractController
             return $this->json(['error' => 'Item does not belong to your cart'], Response::HTTP_FORBIDDEN);
         }
 
-        try {
-            $cart = $this->cartService->updateItem($item, $dto->quantity);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $cart = $this->cartService->updateItem($item, $dto->quantity);
 
         return $this->json(CartResponse::fromOrder($cart));
     }

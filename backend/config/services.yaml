@@ -41,10 +41,14 @@ services:
     arguments:
       $projectDir: '%kernel.project_dir%'
 
-  App\Chatbot\Service\GeminiClientService:
+  App\Chatbot\Service\TranslationService:
     arguments:
-      $apiKey: '%env(GEMINI_API_KEY)%'
-      $model: '%env(GEMINI_MODEL)%'
+      $email: '%env(MYMEMORY_EMAIL)%'
+
+  App\Service\Ai\GroqClientService:
+    arguments:
+      $apiKey: '%env(GROQ_API_KEY)%'
+      $model: '%env(GROQ_MODEL)%'
 
   App\Chatbot\Service\ChatbotService:
     arguments:

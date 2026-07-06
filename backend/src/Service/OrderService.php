@@ -62,6 +62,12 @@ class OrderService
         $cart->setStatus('pending');
         $cart->setShippingAddress($shippingAddress);
         $cart->setUpdatedAt(new \DateTimeImmutable());
+
+        // Remember the phone used for this order as the default for next time.
+        if ($dto->contactPhone !== $user->getPhone()) {
+            $user->setPhone($dto->contactPhone);
+        }
+
         $this->em->flush();
 
         // Real purchase signal for the recommender — recorded server-side so it
@@ -70,11 +76,7 @@ class OrderService
             $this->interactionService->track($user, $item->getProduct(), 'purchase', $item->getQuantity());
         }
 
-        try {
-            $this->mailService->sendOrderConfirmation($cart);
-        } catch (\Throwable) {
-            // Order placement must not fail because of a mail delivery issue.
-        }
+        $this->mailService->sendSafely(fn () => $this->mailService->sendOrderConfirmation($cart));
 
         return $cart;
     }
@@ -109,15 +111,13 @@ class OrderService
         $order->setUpdatedAt(new \DateTimeImmutable());
         $this->em->flush();
 
-        try {
+        $this->mailService->sendSafely(function () use ($order, $newStatus) {
             if ($newStatus === 'shipped') {
                 $this->mailService->sendOrderShipped($order);
             } elseif ($newStatus === 'delivered') {
                 $this->mailService->sendOrderDelivered($order);
             }
-        } catch (\Throwable) {
-            // Status update must not fail because of a mail delivery issue.
-        }
+        });
 
         return $order;
     }

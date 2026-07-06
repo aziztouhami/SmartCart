@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { productTypeApi } from '../../services/cartService';
 import { EMPTY_FEATURE, parseOptions, FeatureRowEditor } from '../../components/admin/TypeFeatureFields';
+import { IconPlus, IconEdit, IconTrash, IconSearch } from '../../components/admin/AdminIcons';
 import './AdminTypes.css';
 
-const IconPlus  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
-const IconEdit  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
-const IconTrash = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
-const IconSearch = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>;
+const IconSparkles = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>;
 
 const DATA_TYPE_LABEL = { text: 'Text', number: 'Number', boolean: 'Yes/No', select: 'Choice list' };
 
@@ -23,6 +21,7 @@ export default function AdminTypes() {
   const [newTypeName, setNewTypeName]     = useState('');
   const [newFeatures, setNewFeatures]     = useState([]);
   const [error, setError]                 = useState('');
+  const [suggesting, setSuggesting]       = useState(false);
 
   // Edit-type modal state
   const [editName, setEditName]           = useState('');
@@ -30,6 +29,9 @@ export default function AdminTypes() {
   const [newFeature, setNewFeature]       = useState(EMPTY_FEATURE);
   const [featureSaving, setFeatureSaving] = useState(false);
   const [removingId, setRemovingId]       = useState(null);
+  const [suggestedFeatures, setSuggestedFeatures] = useState([]);
+  const [suggestingEdit, setSuggestingEdit]       = useState(false);
+  const [addingSuggested, setAddingSuggested]     = useState(false);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -52,6 +54,7 @@ export default function AdminTypes() {
     setNewTypeName('');
     setNewFeatures([]);
     setError('');
+    setSuggesting(false);
     setModal({ mode: 'add' });
   };
 
@@ -59,11 +62,124 @@ export default function AdminTypes() {
     setEditName(type.name);
     setAddingFeature(false);
     setNewFeature(EMPTY_FEATURE);
+    setSuggestedFeatures([]);
+    setSuggestingEdit(false);
     setError('');
     setModal({ mode: 'edit', type });
   };
 
   const closeModal = () => setModal(null);
+
+  const handleSuggestAttributes = async () => {
+    if (!newTypeName.trim() || suggesting) return;
+
+    setError('');
+    setSuggesting(true);
+    try {
+      const res = await productTypeApi.suggestAttributes(newTypeName.trim());
+      const suggested = (res.data.attributes || []).map(a => ({
+        name: a.name,
+        dataType: a.dataType,
+        unit: a.unit || '',
+        options: (a.options || []).join(', '),
+        required: !!a.required,
+        _source: 'ai',
+      }));
+
+      if (suggested.length === 0) {
+        showToast('No suggestions found — add features manually.', 'error');
+      } else {
+        // Replace the previous AI suggestions (e.g. from before the type
+        // name was changed) rather than piling on top of them; anything the
+        // admin added manually is kept as-is.
+        setNewFeatures(rows => [...rows.filter(r => r._source !== 'ai'), ...suggested]);
+        showToast(`${suggested.length} feature${suggested.length > 1 ? 's' : ''} suggested — review before creating.`);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to get AI suggestions.');
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const handleSuggestForEdit = async () => {
+    if (!editName.trim() || suggestingEdit) return;
+
+    setError('');
+    setSuggestingEdit(true);
+    try {
+      const existingNames = modal.type.attributes.map(a => a.name);
+      const res = await productTypeApi.suggestAttributes(editName.trim(), existingNames);
+      const existingLower = existingNames.map(n => n.trim().toLowerCase());
+      const suggested = (res.data.attributes || [])
+        .filter(a => !existingLower.includes((a.name || '').trim().toLowerCase()))
+        .map(a => ({
+          name: a.name,
+          dataType: a.dataType,
+          unit: a.unit || '',
+          options: (a.options || []).join(', '),
+          required: !!a.required,
+        }));
+
+      // Always replace: re-suggesting (e.g. after renaming the type) should
+      // show suggestions for the current name, not pile on top of the last batch.
+      setSuggestedFeatures(suggested);
+      if (suggested.length === 0) {
+        showToast('No new suggestions — this type already covers the standard features.', 'error');
+      } else {
+        showToast(`${suggested.length} new feature${suggested.length > 1 ? 's' : ''} suggested — review before adding.`);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to get AI suggestions.');
+    } finally {
+      setSuggestingEdit(false);
+    }
+  };
+
+  const handleAddAllSuggested = async () => {
+    const pending = suggestedFeatures;
+    if (pending.every(f => !f.name.trim())) return;
+
+    setAddingSuggested(true);
+    let lastType = modal.type;
+    const addedIndices = new Set();
+    let failure = null;
+    for (let i = 0; i < pending.length; i++) {
+      const feat = pending[i];
+      if (!feat.name.trim()) continue;
+
+      const payload = {
+        name: feat.name.trim(),
+        dataType: feat.dataType,
+        unit: feat.dataType === 'number' ? (feat.unit.trim() || null) : null,
+        options: feat.dataType === 'select' ? parseOptions(feat.options) : null,
+        required: !!feat.required,
+      };
+      try {
+        const res = await productTypeApi.addAttribute(modal.type.id, payload);
+        lastType = res.data;
+        addedIndices.add(i);
+      } catch (err) {
+        failure = err;
+        break;
+      }
+    }
+
+    if (addedIndices.size > 0) {
+      setModal(m => ({ ...m, type: lastType }));
+      setTypes(prev => prev.map(t => (t.id === lastType.id ? lastType : t)));
+    }
+    // Drop only the rows that were actually added; keep the rest (including
+    // the one that failed) so the admin can retry or fix it.
+    setSuggestedFeatures(prev => prev.filter((_, i) => !addedIndices.has(i)));
+
+    if (failure) {
+      showToast(failure.response?.data?.error || 'Failed to add some suggested features.', 'error');
+    } else {
+      showToast(`${addedIndices.size} feature${addedIndices.size > 1 ? 's' : ''} added.`);
+    }
+    setAddingSuggested(false);
+  };
 
   const handleCreate = async () => {
     setError('');
@@ -256,7 +372,7 @@ export default function AdminTypes() {
       {/* Add type modal */}
       {modal?.mode === 'add' && (
         <div className="adm-overlay" onClick={closeModal}>
-          <div className="adm-modal" onClick={e => e.stopPropagation()}>
+          <div className="adm-modal aty-type-modal" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Add New Type</h2>
               <button className="adm-modal-close" onClick={closeModal}>✕</button>
@@ -273,22 +389,38 @@ export default function AdminTypes() {
                 />
               </div>
 
-              <label className="tff-feature-list-label">Features</label>
-              {newFeatures.map((feat, idx) => (
-                <FeatureRowEditor
-                  key={idx}
-                  feature={feat}
-                  onChange={updated => setNewFeatures(rows => rows.map((r, i) => (i === idx ? updated : r)))}
-                  onRemove={() => setNewFeatures(rows => rows.filter((_, i) => i !== idx))}
-                />
-              ))}
-              <button
-                type="button"
-                className="tff-add-feature-btn"
-                onClick={() => setNewFeatures(rows => [...rows, { ...EMPTY_FEATURE }])}
-              >
-                + Add feature
-              </button>
+              <div className="tff-feature-list">
+                <div className="tff-feature-list-head">
+                  <label className="tff-feature-list-label">Features</label>
+                  <button
+                    type="button"
+                    className="tff-suggest-btn"
+                    onClick={handleSuggestAttributes}
+                    disabled={suggesting || !newTypeName.trim()}
+                    title={!newTypeName.trim() ? 'Enter a type name first' : 'Suggest standard features with AI'}
+                  >
+                    <IconSparkles /> {suggesting ? 'Thinking…' : 'Suggest with AI'}
+                  </button>
+                </div>
+                {newFeatures.length === 0 && (
+                  <p className="aty-no-features">No features yet — suggest with AI or add one manually.</p>
+                )}
+                {newFeatures.map((feat, idx) => (
+                  <FeatureRowEditor
+                    key={idx}
+                    feature={feat}
+                    onChange={updated => setNewFeatures(rows => rows.map((r, i) => (i === idx ? updated : r)))}
+                    onRemove={() => setNewFeatures(rows => rows.filter((_, i) => i !== idx))}
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="tff-add-feature-btn"
+                  onClick={() => setNewFeatures(rows => [...rows, { ...EMPTY_FEATURE, _source: 'manual' }])}
+                >
+                  + Add feature
+                </button>
+              </div>
 
               {error && <span className="ap-err">{error}</span>}
             </div>
@@ -305,7 +437,7 @@ export default function AdminTypes() {
       {/* Edit type modal */}
       {modal?.mode === 'edit' && (
         <div className="adm-overlay" onClick={closeModal}>
-          <div className="adm-modal" onClick={e => e.stopPropagation()}>
+          <div className="adm-modal aty-type-modal" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Edit Type</h2>
               <button className="adm-modal-close" onClick={closeModal}>✕</button>
@@ -322,29 +454,69 @@ export default function AdminTypes() {
                 {error && <span className="ap-err">{error}</span>}
               </div>
 
-              <label className="tff-feature-list-label">Features</label>
-              {modal.type.attributes.length === 0 ? (
-                <p className="aty-no-features">No features defined yet.</p>
-              ) : (
-                <div className="aty-existing-features">
-                  {modal.type.attributes.map(attr => (
-                    <div className="aty-existing-feature" key={attr.id}>
-                      <span className="aty-existing-feature-name">{attr.name}</span>
-                      <span className="aty-existing-feature-meta">
-                        {DATA_TYPE_LABEL[attr.dataType]}{attr.unit ? ` · ${attr.unit}` : ''}{attr.required ? ' · required' : ''}
-                      </span>
-                      <button
-                        type="button"
-                        className="aty-existing-feature-remove"
-                        disabled={removingId === attr.id}
-                        onClick={() => handleRemoveFeature(attr.id)}
-                      >
-                        {removingId === attr.id ? 'Removing…' : 'Remove'}
+              <div className="tff-feature-list">
+                <div className="tff-feature-list-head">
+                  <label className="tff-feature-list-label">Features</label>
+                  <button
+                    type="button"
+                    className="tff-suggest-btn"
+                    onClick={handleSuggestForEdit}
+                    disabled={suggestingEdit || !editName.trim()}
+                    title={!editName.trim() ? 'Enter a type name first' : 'Suggest new features with AI'}
+                  >
+                    <IconSparkles /> {suggestingEdit ? 'Thinking…' : 'Suggest with AI'}
+                  </button>
+                </div>
+                {modal.type.attributes.length === 0 ? (
+                  <p className="aty-no-features">No features defined yet.</p>
+                ) : (
+                  <div className="aty-existing-features">
+                    {modal.type.attributes.map(attr => (
+                      <div className="aty-existing-feature" key={attr.id}>
+                        <span className="aty-existing-feature-name">{attr.name}</span>
+                        <span className="aty-existing-feature-meta">
+                          {DATA_TYPE_LABEL[attr.dataType]}{attr.unit ? ` · ${attr.unit}` : ''}{attr.required ? ' · required' : ''}
+                        </span>
+                        <button
+                          type="button"
+                          className="aty-existing-feature-remove"
+                          disabled={removingId === attr.id}
+                          onClick={() => handleRemoveFeature(attr.id)}
+                        >
+                          {removingId === attr.id ? 'Removing…' : 'Remove'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {suggestedFeatures.length > 0 && (
+                  <div className="aty-suggested-block">
+                    <div className="aty-suggested-head">
+                      <span className="aty-suggested-title"><IconSparkles /> Suggested features — review before adding</span>
+                      <button type="button" className="aty-suggested-discard" onClick={() => setSuggestedFeatures([])}>
+                        Discard
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                    {suggestedFeatures.map((feat, idx) => (
+                      <FeatureRowEditor
+                        key={idx}
+                        feature={feat}
+                        onChange={updated => setSuggestedFeatures(rows => rows.map((r, i) => (i === idx ? updated : r)))}
+                        onRemove={() => setSuggestedFeatures(rows => rows.filter((_, i) => i !== idx))}
+                      />
+                    ))}
+                    <button
+                      type="button"
+                      className="adm-btn-save aty-suggested-addall"
+                      disabled={addingSuggested}
+                      onClick={handleAddAllSuggested}
+                    >
+                      {addingSuggested ? 'Adding…' : `Add all (${suggestedFeatures.length})`}
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {!addingFeature ? (
                 <button type="button" className="tff-add-feature-link" onClick={() => setAddingFeature(true)}>

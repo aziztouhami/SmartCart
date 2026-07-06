@@ -17,7 +17,9 @@
     "phone": "Téléphone",
     "phonePlaceholder": "+216 XX XXX XXX",
     "save": "Enregistrer les modifications",
-    "saveSuccess": "Profil mis à jour avec succès."
+    "saving": "Enregistrement…",
+    "saveSuccess": "Profil mis à jour avec succès.",
+    "saveError": "Échec de la mise à jour du profil."
   },
   "password": {
     "title": "Changer le mot de passe",
@@ -26,7 +28,9 @@
     "newPlaceholder": "8 caractères minimum",
     "confirm": "Confirmer le nouveau mot de passe",
     "update": "Mettre à jour le mot de passe",
+    "updating": "Mise à jour…",
     "updateSuccess": "Mot de passe modifié avec succès.",
+    "updateError": "Échec de la mise à jour du mot de passe.",
     "errors": {
       "currentRequired": "Veuillez saisir votre mot de passe actuel.",
       "tooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",

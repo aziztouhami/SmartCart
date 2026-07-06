@@ -25,6 +25,7 @@ class AuthenticationService
                 'email' => $user->getEmail(),
                 'firstName' => $user->getFirstName(),
                 'lastName' => $user->getLastName(),
+                'phone' => $user->getPhone(),
                 'roles' => $user->getRoles(),
             ]
         );

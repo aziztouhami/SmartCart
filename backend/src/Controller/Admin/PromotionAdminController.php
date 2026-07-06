@@ -97,11 +97,7 @@ class PromotionAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $promotion = $this->promotionService->create($dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $promotion = $this->promotionService->create($dto);
 
         return $this->json(PromotionListItem::fromEntity($promotion), Response::HTTP_CREATED);
     }

@@ -124,11 +124,7 @@ class ReviewController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $review = $this->reviewService->create($user, $product, $reviewRequest);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $review = $this->reviewService->create($user, $product, $reviewRequest);
 
         return $this->json(ReviewItem::fromEntity($review), Response::HTTP_CREATED);
     }
@@ -161,11 +157,7 @@ class ReviewController extends AbstractController
             return $this->json(['error' => 'Review not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $this->reviewService->delete($user, $review);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $this->reviewService->delete($user, $review);
 
         return $this->json(['message' => 'Review deleted successfully']);
     }

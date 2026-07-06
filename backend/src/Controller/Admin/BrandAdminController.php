@@ -67,11 +67,7 @@ class BrandAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $brand = $this->brandService->create($dto);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $brand = $this->brandService->create($dto);
 
         $stats = $this->brandRepository->getStats($brand);
 
@@ -121,11 +117,7 @@ class BrandAdminController extends AbstractController
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $brand = $this->brandService->update($brand, $dto, $rawData);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $brand = $this->brandService->update($brand, $dto, $rawData);
 
         $stats = $this->brandRepository->getStats($brand);
 
@@ -159,17 +151,13 @@ class BrandAdminController extends AbstractController
             return $this->json(['error' => 'No image file provided'], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $relativeUrl = $this->fileUploadService->upload(
-                $file,
-                'brands',
-                ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
-                5 * 1024 * 1024,
-                'brand_',
-            );
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        }
+        $relativeUrl = $this->fileUploadService->upload(
+            $file,
+            'brands',
+            ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+            5 * 1024 * 1024,
+            'brand_',
+        );
 
         return $this->json(['url' => $request->getSchemeAndHttpHost() . $relativeUrl]);
     }
