@@ -1,0 +1,12 @@
+App\DTO\Auth\RegisterRequest:
+    properties:
+        email:
+            - NotBlank: ~
+            - Email: ~
+        password:
+            - NotBlank: ~
+            - Length: { min: 8 }
+        firstName:
+            - NotBlank: ~
+        lastName:
+            - NotBlank: ~

@@ -1,0 +1,5 @@
+App\DTO\Chatbot\ChatMessageRequest:
+    properties:
+        message:
+            - NotBlank: { message: 'Message is required' }
+            - Length: { max: 1000, maxMessage: 'Message must be at most {{ limit }} characters' }

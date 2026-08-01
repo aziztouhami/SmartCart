@@ -18,8 +18,8 @@ class RecommendationControllerTest extends WebTestCase
         $this->client = static::createClient();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
 
-        $this->em->createQuery('DELETE FROM App\Recommendation\Entity\ProductRelation')->execute();
-        $this->em->createQuery('DELETE FROM App\Recommendation\Entity\ColdStartRecommendation')->execute();
+        $this->em->createQuery('DELETE FROM App\Entity\ProductRelation')->execute();
+        $this->em->createQuery('DELETE FROM App\Entity\ColdStartRecommendation')->execute();
         $this->em->createQuery('DELETE FROM App\Entity\OrderItem')->execute();
         $this->em->createQuery('DELETE FROM App\Entity\Order')->execute();
         $this->em->createQuery('DELETE FROM App\Entity\Product')->execute();

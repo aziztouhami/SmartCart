@@ -43,7 +43,7 @@ Le projet suit une architecture découplée (Headless) :
 ## Architecture du projet
 
 ```
-Stage Sofiatech/
+SmartCart/
 ├── backend/
 │   ├── config/
 │   │   ├── packages/          # Configuration Symfony (doctrine, security, jwt, cors, mailer...)
@@ -56,42 +56,46 @@ Stage Sofiatech/
 │   │   ├── index.php          # Point d'entrée de l'application
 │   │   └── uploads/           # Images uploadées (produits, marques)
 │   └── src/
-│       ├── Chatbot/
-│       │   ├── Controller/    # ChatbotController — endpoint POST /api/chatbot/message
-│       │   ├── DTO/           # ChatMessageRequest
-│       │   └── Service/       # ChatbotService (logique), TranslationService (MyMemory)
 │       ├── Command/
-│       │   ├── ExportFeaturesCommand.php       # Export CSV des features ML
-│       │   └── PruneDeletedAccountsCommand.php # Purge des comptes supprimés (RGPD)
+│       │   ├── AnalyzeSeasonalTrendsCommand.php    # Tendances saisonnières par catégorie (recommandation)
+│       │   ├── ExportFeaturesCommand.php           # Export CSV des features ML
+│       │   ├── PruneDeletedAccountsCommand.php     # Purge des comptes supprimés (RGPD)
+│       │   └── RebuildRecommendationsCommand.php   # Recalcul batch des recommandations
 │       ├── Controller/
-│       │   ├── Admin/         # Tableau de bord, produits, catégories, marques, commandes,
-│       │   │                  # promotions, types de produits, utilisateurs, images
-│       │   ├── Auth/          # login, register, verify-email, resend-verification, me, google-login, logout
-│       │   ├── Brand/         # Catalogue marques (public)
-│       │   ├── Cart/          # Panier (ajout, mise à jour, suppression, synchronisation)
-│       │   ├── Category/      # Arbre de catégories (public)
-│       │   ├── Documentation/ # Génération et affichage de la doc Swagger
-│       │   ├── Order/         # Commandes utilisateur + téléchargement PDF
-│       │   └── Product/       # Catalogue, avis, interactions, événements anonymes
-│       │   └── Profile/       # Profil, adresses, favoris, tableau de bord, avis
-│       ├── DTO/               # Objets de transfert de données (Auth, Brand, Cart, Category,
-│       │                      # Favorite, Order, Pagination, Product, Profile, Promotion, Review)
-│       ├── Entity/            # Entités Doctrine (15 entités)
-│       ├── OpenApi/           # Configuration globale de la spec OpenAPI
-│       ├── Recommendation/    # Moteur de recommandation (voir section dédiée)
-│       │   ├── Command/       # RebuildRecommendationsCommand, AnalyzeSeasonalTrendsCommand
-│       │   ├── Controller/    # RecommendationController, RecommendationAdminController
-│       │   ├── Entity/        # ProductRelation, UserRecommendation, ColdStartRecommendation,
-│       │   │                  # CategorySeasonalScore
-│       │   ├── Ml/            # LogisticRegressionTrainer, MatrixFactorizationTrainer
-│       │   ├── Repository/    # 4 repositories dédiés aux entités de recommandation
-│       │   └── Service/       # 8 services (collaborative, content, cold start, seasonal...)
-│       ├── Repository/        # Repositories Doctrine (15 repositories)
-│       ├── Security/          # Composants de sécurité Symfony
-│       └── Service/           # Logique métier (19 services)
-│           └── Ai/            # GroqClientService (client HTTP Groq générique)
-│               └── Prompt/    # Un builder de prompt par fonctionnalité IA
-│                              # (ShopAssistantPrompt, ProductAttributesPrompt)
+│       │   ├── Admin/          # Tableau de bord, produits, catégories, marques, commandes,
+│       │   │                   # promotions, types de produits, utilisateurs, images, recommandations
+│       │   ├── Auth/           # login, register, verify-email, resend-verification, me, google-login, logout
+│       │   ├── Brand/          # Catalogue marques (public)
+│       │   ├── Cart/           # Panier (ajout, mise à jour, suppression, synchronisation)
+│       │   ├── Category/       # Arbre de catégories (public)
+│       │   ├── Chatbot/        # ChatbotController — endpoint POST /api/chatbot/message
+│       │   ├── Documentation/  # Génération et affichage de la doc Swagger
+│       │   ├── Order/          # Commandes utilisateur + téléchargement PDF
+│       │   ├── Product/        # Catalogue, avis, interactions, événements anonymes
+│       │   ├── Profile/        # Profil, adresses, favoris, tableau de bord, avis
+│       │   └── Recommendation/ # RecommendationController — endpoint GET /api/recommendations
+│       ├── DTO/                # Objets de transfert de données, un sous-dossier par domaine
+│       │                       # (Address, Admin, Auth, Brand, Cart, Category, Chatbot, Favorite,
+│       │                       # Order, Pagination, Product, Profile, Promotion, Review) —
+│       │                       # classes de données pures, aucune contrainte de validation dedans
+│       ├── Entity/             # Entités Doctrine (19), y compris celles du moteur de recommandation
+│       │                       # (ProductRelation, UserRecommendation, ColdStartRecommendation,
+│       │                       # CategorySeasonalScore)
+│       ├── EventListener/      # RuntimeExceptionListener (rendu JSON uniforme des erreurs)
+│       ├── ML/                 # LogisticRegressionTrainer, MatrixFactorizationTrainer — algorithmes
+│       │                       # d'apprentissage (PHP pur, sans dépendance) utilisés par le moteur
+│       │                       # de recommandation
+│       ├── OpenApi/            # Configuration globale de la spec OpenAPI
+│       ├── Repository/         # Repositories Doctrine (19)
+│       ├── Service/            # Logique métier (21 services)
+│       │   ├── Ai/             # GroqClientService (client HTTP Groq générique)
+│       │   │   └── Prompt/     # Un builder de prompt par fonctionnalité IA
+│       │   │                   # (ShopAssistantPrompt, ProductAttributesPrompt)
+│       │   ├── Chatbot/        # ChatbotService (logique), TranslationService (MyMemory)
+│       │   └── Recommendation/ # 8 services (collaborative, content, cold start, seasonal...)
+│       └── Validation/         # Contraintes Symfony Validator en YAML, un fichier par DTO,
+│                                # organisées en miroir de DTO/ (Address, Auth, Brand, Cart,
+│                                # Category, Chatbot, Order, Product, Profile, Promotion, Review)
 │
 ├── frontend/
 │   ├── public/
@@ -137,7 +141,7 @@ Stage Sofiatech/
 
 ## Démarrage rapide avec Docker
 
-C'est la méthode recommandée. Docker Compose orchestre les trois services (base de données, backend, frontend) et gère automatiquement les migrations et la génération des clés JWT au démarrage.
+C'est la méthode recommandée. Docker Compose orchestre les services principaux (base de données, MailPit, backend, frontend) et gère automatiquement les migrations et la génération des clés JWT au démarrage.
 
 ### Prérequis
 
@@ -150,7 +154,7 @@ C'est la méthode recommandée. Docker Compose orchestre les trois services (bas
 
 ```bash
 git clone <url-du-depot>
-cd "Stage Sofiatech"
+cd SmartCart
 ```
 
 **2. Créer le fichier d'environnement backend**
@@ -237,6 +241,32 @@ npm start
 
 ---
 
+## Démarrage hybride (backend + base de données en Docker, frontend en local)
+
+Un compromis pratique en développement : la base de données et l'API tournent en conteneurs (pas de PHP/PostgreSQL à installer sur la machine), tandis que le frontend tourne directement avec `npm start` (rechargement à chaud plus rapide que le conteneur React).
+
+**1 et 2.** Créer `backend/.env` et `frontend/.env` comme décrit dans la section [Démarrage rapide avec Docker](#démarrage-rapide-avec-docker) ci-dessus.
+
+**3. Démarrer uniquement la base de données, MailPit et le backend**
+
+```bash
+docker compose up -d postgres mailer backend
+```
+
+Le service `frontend` du `docker-compose.yml` n'est volontairement pas démarré.
+
+**4. Démarrer le frontend en local**
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Le frontend local (`http://localhost:3000`) appelle l'API exposée par le conteneur backend sur `http://localhost:8000/api` exactement comme en tout-Docker — `REACT_APP_API_URL` n'a pas besoin de changer.
+
+---
+
 ## Variables d'environnement
 
 ### Backend (`backend/.env`)
@@ -258,17 +288,19 @@ npm start
 | `ADMIN_EMAIL` | `admin@smartcart.local` | Adresse expéditrice des emails envoyés par l'application |
 | `FRONTEND_URL` | `http://localhost:3000` | Base des liens générés dans les emails (confirmation de compte, etc.) |
 
-Exemple de `DATABASE_URL` en local :
+Exemple de `DATABASE_URL` en local (identifiants par défaut définis dans `docker-compose.yml`) :
 
 ```
-postgresql://smartcart_user:smartcart_password@localhost:5436/smartcart_db
+postgresql://scu:scp@localhost:5436/scdb
 ```
 
 En environnement Docker, le backend se connecte au service `postgres` sur le réseau interne :
 
 ```
-postgresql://smartcart_user:smartcart_password@postgres:5432/smartcart_db
+postgresql://scu:scp@postgres:5432/scdb
 ```
+
+Ces identifiants (`DB_USER`, `DB_PASSWORD`, `DB_NAME`) peuvent être surchargés via un fichier `.env` à la racine du dépôt, lu par `docker-compose.yml`.
 
 ### Frontend (`frontend/.env`)
 
@@ -328,10 +360,12 @@ Pour accéder à la base de données depuis un outil externe comme DBeaver :
 ```
 Hôte        : 127.0.0.1
 Port        : 5436
-Base        : smartcart_db
-Utilisateur : smartcart_user
-Mot de passe: (voir backend/.env)
+Base        : scdb
+Utilisateur : scu
+Mot de passe: scp
 ```
+
+(valeurs par défaut de `docker-compose.yml` — voir `DB_USER` / `DB_PASSWORD` / `DB_NAME` ci-dessus si surchargées)
 
 Pour forcer la recréation d'un service après une modification de `docker-compose.yml` :
 
@@ -343,7 +377,7 @@ Pour réinitialiser complètement la base de données (supprime toutes les donn�
 
 ```bash
 docker compose down
-docker volume rm stagesofiatech_postgres_data
+docker volume rm smartcart_postgres_data
 docker compose up -d
 ```
 
@@ -521,7 +555,7 @@ Tous les endpoints sont documentés : Auth, Product, Category, Brand, Cart, Orde
 
 ## Moteur de recommandation
 
-Le moteur vit dans son propre module autonome `backend/src/Recommendation/` et combine trois approches :
+Le moteur combine trois approches, réparties dans `Controller/Recommendation/`, `Service/Recommendation/`, `Repository/` et `ML/` (voir l'arborescence ci-dessus) :
 
 - **Filtrage collaboratif** (`CollaborativeFilteringService`) — "les utilisateurs comme vous ont aussi aimé...". Une factorisation matricielle (mini funk-SVD entraîné par descente de gradient stochastique, en PHP pur) apprend un vecteur de facteurs latents par utilisateur et par produit à partir de la matrice de goût (vues/paniers/achats/notes pondérés).
 - **Recommandation par contenu** (`ContentRecommendationService` + `ContentSimilarityService`) — "similaire à ce que vous avez aimé", basé sur la catégorie, la marque, le type de produit et les valeurs d'attributs partagées. Les poids sont appris via régression logistique (`LogisticRegressionTrainer`) à partir des co-occurrences réelles.

@@ -1,0 +1,16 @@
+App\DTO\Address\CreateAddressRequest:
+    properties:
+        label:
+            - NotBlank: ~
+            - Length: { max: 100 }
+        street:
+            - NotBlank: ~
+            - Length: { max: 255 }
+        city:
+            - NotBlank: ~
+            - Length: { max: 100 }
+        postalCode:
+            - Length: { max: 20 }
+        country:
+            - NotBlank: ~
+            - Length: { max: 100 }

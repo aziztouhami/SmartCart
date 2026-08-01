@@ -1,0 +1,13 @@
+App\DTO\Order\CheckoutRequest:
+    properties:
+        street:
+            - Length: { max: 255 }
+        city:
+            - Length: { max: 100 }
+        postalCode:
+            - Length: { max: 20 }
+        country:
+            - Length: { max: 100 }
+        contactPhone:
+            - NotBlank: { message: 'Phone number is required to place an order.' }
+            - Length: { max: 30 }

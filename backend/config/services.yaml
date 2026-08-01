@@ -10,18 +10,9 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
-      - '../src/Recommendation/Entity/'
 
   App\Controller\:
     resource: '../src/Controller/'
-    tags: ['controller.service_arguments']
-
-  App\Recommendation\Controller\:
-    resource: '../src/Recommendation/Controller/'
-    tags: ['controller.service_arguments']
-
-  App\Chatbot\Controller\:
-    resource: '../src/Chatbot/Controller/'
     tags: ['controller.service_arguments']
 
   App\Service\AuthenticationService:
@@ -41,7 +32,7 @@ services:
     arguments:
       $projectDir: '%kernel.project_dir%'
 
-  App\Chatbot\Service\TranslationService:
+  App\Service\Chatbot\TranslationService:
     arguments:
       $email: '%env(MYMEMORY_EMAIL)%'
 
@@ -50,7 +41,7 @@ services:
       $apiKey: '%env(GROQ_API_KEY)%'
       $model: '%env(GROQ_MODEL)%'
 
-  App\Chatbot\Service\ChatbotService:
+  App\Service\Chatbot\ChatbotService:
     arguments:
       $siteName: '%env(APP_NAME)%'
 

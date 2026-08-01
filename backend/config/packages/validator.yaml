@@ -1,0 +1,5 @@
+framework:
+  validation:
+    mapping:
+      paths:
+        - '%kernel.project_dir%/src/Validation'

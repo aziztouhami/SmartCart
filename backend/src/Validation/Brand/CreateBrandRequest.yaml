@@ -1,0 +1,5 @@
+App\DTO\Brand\CreateBrandRequest:
+    properties:
+        name:
+            - NotBlank: { message: 'Brand name is required' }
+            - Length: { max: 255 }

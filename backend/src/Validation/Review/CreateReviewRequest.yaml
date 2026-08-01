@@ -1,0 +1,7 @@
+App\DTO\Review\CreateReviewRequest:
+    properties:
+        rating:
+            - NotNull: { message: 'Rating is required' }
+            - Range: { min: 1, max: 100, notInRangeMessage: 'Rating must be between 1 and 100' }
+        comment:
+            - Length: { max: 2000 }

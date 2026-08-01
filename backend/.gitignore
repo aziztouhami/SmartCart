@@ -1,6 +1,4 @@
 # Symfony
-/bin/console
-/bin/phpunit
 .env.local
 .env.*.local
 /public/bundles/

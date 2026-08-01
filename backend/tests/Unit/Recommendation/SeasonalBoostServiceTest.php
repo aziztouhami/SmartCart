@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Recommendation;
 
 use App\Entity\Category;
 use App\Entity\Product;
-use App\Recommendation\Service\SeasonalBoostService;
+use App\Service\Recommendation\SeasonalBoostService;
 use PHPUnit\Framework\TestCase;
 
 class SeasonalBoostServiceTest extends TestCase

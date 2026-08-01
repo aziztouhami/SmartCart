@@ -1,0 +1,10 @@
+App\DTO\Category\UpdateCategoryRequest:
+    properties:
+        name:
+            - Length: { max: 255 }
+        parentId:
+            - Positive: ~
+        seasonalMonths:
+            - All:
+                constraints:
+                    - Range: { min: 1, max: 12 }

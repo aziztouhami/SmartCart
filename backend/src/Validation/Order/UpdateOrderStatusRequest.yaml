@@ -1,0 +1,7 @@
+App\DTO\Order\UpdateOrderStatusRequest:
+    properties:
+        status:
+            - NotBlank: ~
+            - Choice:
+                choices: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
+                message: 'Status must be one of: pending, confirmed, shipped, delivered, cancelled'

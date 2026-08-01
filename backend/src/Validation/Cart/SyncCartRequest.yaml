@@ -1,0 +1,7 @@
+App\DTO\Cart\SyncCartRequest:
+    properties:
+        items:
+            - NotNull: ~
+            - Type: 'array'
+        strategy:
+            - Choice: { choices: ['merge', 'replace'] }

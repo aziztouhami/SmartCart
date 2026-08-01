@@ -1,0 +1,4 @@
+App\DTO\Brand\UpdateBrandRequest:
+    properties:
+        name:
+            - Length: { max: 255 }

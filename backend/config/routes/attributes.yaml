@@ -3,15 +3,3 @@ controllers:
     path: ../../src/Controller/
     namespace: App\Controller
   type: attribute
-
-recommendation_controllers:
-  resource:
-    path: ../../src/Recommendation/Controller/
-    namespace: App\Recommendation\Controller
-  type: attribute
-
-chatbot_controllers:
-  resource:
-    path: ../../src/Chatbot/Controller/
-    namespace: App\Chatbot\Controller
-  type: attribute

@@ -1,0 +1,8 @@
+App\DTO\Cart\AddToCartRequest:
+    properties:
+        productId:
+            - NotNull: ~
+            - Positive: ~
+        quantity:
+            - NotNull: ~
+            - Positive: ~

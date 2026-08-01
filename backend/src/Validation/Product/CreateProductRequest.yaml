@@ -1,0 +1,14 @@
+App\DTO\Product\CreateProductRequest:
+    properties:
+        name:
+            - NotBlank: { message: 'Product name is required' }
+            - Length: { max: 255 }
+        price:
+            - NotBlank: { message: 'Price is required' }
+            - Positive: { message: 'Price must be a positive number' }
+        stock:
+            - NotNull: { message: 'Stock is required' }
+            - PositiveOrZero: { message: 'Stock cannot be negative' }
+        categoryId:
+            - NotNull: { message: 'Category is required' }
+            - Positive: ~

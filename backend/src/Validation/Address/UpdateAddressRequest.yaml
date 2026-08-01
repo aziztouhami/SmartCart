@@ -1,0 +1,12 @@
+App\DTO\Address\UpdateAddressRequest:
+    properties:
+        label:
+            - Length: { max: 100 }
+        street:
+            - Length: { max: 255 }
+        city:
+            - Length: { max: 100 }
+        postalCode:
+            - Length: { max: 20 }
+        country:
+            - Length: { max: 100 }

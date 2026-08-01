@@ -1,0 +1,10 @@
+App\DTO\Product\UpdateProductRequest:
+    properties:
+        name:
+            - Length: { max: 255 }
+        price:
+            - Positive: { message: 'Price must be a positive number' }
+        stock:
+            - PositiveOrZero: { message: 'Stock cannot be negative' }
+        categoryId:
+            - Positive: ~

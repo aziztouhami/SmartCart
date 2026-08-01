@@ -1,0 +1,18 @@
+App\DTO\Promotion\CreatePromotionRequest:
+    properties:
+        type:
+            - NotBlank: { message: 'Promotion type is required' }
+            - Choice:
+                choices: ['product', 'brand', 'all']
+                message: 'Type must be product, brand or all'
+        discountType:
+            - NotBlank: { message: 'Discount type is required' }
+            - Choice:
+                choices: ['percentage', 'fixed']
+                message: 'Discount type must be percentage or fixed'
+        percentage:
+            - Range: { min: 1, max: 99, notInRangeMessage: 'Percentage must be between 1 and 99' }
+        fixedPrice:
+            - Positive: { message: 'Fixed price must be a positive number' }
+        startDate:
+            - NotBlank: { message: 'Start date is required' }

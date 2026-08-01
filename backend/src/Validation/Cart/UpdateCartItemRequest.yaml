@@ -1,0 +1,5 @@
+App\DTO\Cart\UpdateCartItemRequest:
+    properties:
+        quantity:
+            - NotNull: ~
+            - Positive: ~

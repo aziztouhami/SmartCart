@@ -32,12 +32,6 @@ doctrine:
             dir: '%kernel.project_dir%/src/Entity'
             prefix: 'App\Entity'
             alias: App
-          AppRecommendation:
-            is_bundle: false
-            type: attribute
-            dir: '%kernel.project_dir%/src/Recommendation/Entity'
-            prefix: 'App\Recommendation\Entity'
-            alias: AppRecommendation
 
         # Query cache
         query_cache_driver:

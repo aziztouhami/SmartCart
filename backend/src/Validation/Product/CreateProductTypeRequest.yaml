@@ -1,0 +1,5 @@
+App\DTO\Product\CreateProductTypeRequest:
+    properties:
+        name:
+            - NotBlank: { message: 'Type name is required' }
+            - Length: { max: 255 }

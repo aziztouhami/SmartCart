@@ -1,0 +1,11 @@
+App\DTO\Profile\UpdateProfileRequest:
+    properties:
+        firstName:
+            - Length: { max: 100 }
+        lastName:
+            - Length: { max: 100 }
+        email:
+            - Email: ~
+            - Length: { max: 180 }
+        phone:
+            - Length: { max: 20 }

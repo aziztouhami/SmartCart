@@ -1,0 +1,7 @@
+App\DTO\Product\CreateAttributeRequest:
+    properties:
+        name:
+            - NotBlank: { message: 'Feature name is required' }
+            - Length: { max: 255 }
+        dataType:
+            - NotBlank: { message: 'Data type is required' }
