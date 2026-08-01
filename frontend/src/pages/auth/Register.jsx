@@ -124,7 +124,7 @@ export default function Register() {
           <h2 className="auth-title">{t('register.title')}</h2>
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
-            {error && <div className="auth-error">{error}</div>}
+            {error && <div className="auth-error" data-testid="register-error">{error}</div>}
 
             <div className="form-row">
               <div className="field-group">
@@ -132,6 +132,7 @@ export default function Register() {
                 <div className="field-group__input-wrap">
                   <input
                     id="firstName" name="firstName" type="text"
+                    data-testid="register-firstName"
                     className="field-group__input field-group__input--no-icon"
                     placeholder={t('register.firstNamePlaceholder')}
                     value={form.firstName} onChange={handleChange}
@@ -145,6 +146,7 @@ export default function Register() {
                 <div className="field-group__input-wrap">
                   <input
                     id="lastName" name="lastName" type="text"
+                    data-testid="register-lastName"
                     className="field-group__input field-group__input--no-icon"
                     placeholder={t('register.lastNamePlaceholder')}
                     value={form.lastName} onChange={handleChange}
@@ -159,6 +161,7 @@ export default function Register() {
               <div className="field-group__input-wrap">
                 <input
                   id="email" name="email" type="email"
+                  data-testid="register-email"
                   className="field-group__input field-group__input--no-icon"
                   placeholder={t('register.emailPlaceholder')}
                   value={form.email} onChange={handleChange}
@@ -173,6 +176,7 @@ export default function Register() {
                 <input
                   id="password" name="password"
                   type={showPassword ? 'text' : 'password'}
+                  data-testid="register-password"
                   className="field-group__input"
                   placeholder={t('register.passwordPlaceholder')}
                   value={form.password} onChange={handleChange}
@@ -205,6 +209,7 @@ export default function Register() {
                 <input
                   id="confirmPassword" name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
+                  data-testid="register-confirmPassword"
                   className="field-group__input"
                   placeholder={t('register.confirmPasswordPlaceholder')}
                   value={form.confirmPassword} onChange={handleChange}
@@ -263,7 +268,7 @@ export default function Register() {
               <span>{t('register.marketingOptIn')}</span>
             </label>
 
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit" data-testid="register-submit" disabled={loading}>
               {loading ? t('register.creatingAccount') : t('register.createAccountButton')}
             </button>
 

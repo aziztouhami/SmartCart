@@ -144,7 +144,7 @@ export default function Login() {
               </div>
             )}
             {error && (
-              <div className="auth-error">
+              <div className="auth-error" data-testid="login-error">
                 {error}
                 {errorCode === 'EMAIL_NOT_VERIFIED' && (
                   resendState === 'sent' ? (
@@ -165,6 +165,7 @@ export default function Login() {
                   id="email"
                   name="email"
                   type="email"
+                  data-testid="login-email"
                   className="field-group__input field-group__input--no-icon"
                   placeholder={t('login.emailPlaceholder')}
                   value={form.email}
@@ -181,6 +182,7 @@ export default function Login() {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  data-testid="login-password"
                   className="field-group__input"
                   placeholder="••••••••"
                   value={form.password}
@@ -198,7 +200,7 @@ export default function Login() {
               </div>
             </div>
 
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit" data-testid="login-submit" disabled={loading}>
               {loading ? t('login.signingIn') : t('login.signIn')}
             </button>
           </form>

@@ -224,7 +224,7 @@ export default function Navbar() {
 
         {/* Row 1: Logo | Search | Favorites | Cart | Auth */}
         <div className="h-navbar-top">
-          <div className="h-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          <div className="h-logo" data-testid="nav-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             <span className="h-logo-icon">S</span>
             <span className="h-logo-text">SmartCart</span>
           </div>
@@ -238,6 +238,7 @@ export default function Navbar() {
             <input
               type="text"
               className="h-search-input"
+              data-testid="nav-search-input"
               placeholder={t('searchPlaceholder')}
               value={query}
               onChange={e => setQuery(e.target.value)}
@@ -297,6 +298,7 @@ export default function Navbar() {
           {/* Favorites */}
           <button
             className="h-icon-btn"
+            data-testid="nav-favorites-button"
             title={t('favoritesTitle')}
             onClick={() => loggedIn ? navigate('/favorites') : navigate('/login', { state: { from: '/favorites' } })}
           >
@@ -305,24 +307,24 @@ export default function Navbar() {
           </button>
 
           {/* Cart */}
-          <button className="h-icon-btn" title={t('cartTitle')} onClick={() => navigate('/cart')}>
+          <button className="h-icon-btn" data-testid="nav-cart-button" title={t('cartTitle')} onClick={() => navigate('/cart')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
             </svg>
-            {cartCount > 0 && <span className="h-icon-badge">{cartCount}</span>}
+            {cartCount > 0 && <span className="h-icon-badge" data-testid="nav-cart-count">{cartCount}</span>}
           </button>
 
           {/* Auth: UserMenu when logged in, Sign In + Create Account when not */}
           {loggedIn ? <UserMenu /> : (
             <div className="h-auth-btns">
-              <button className="h-btn-signin" onClick={() => navigate('/login')}>
+              <button className="h-btn-signin" data-testid="nav-signin-button" onClick={() => navigate('/login')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
                 {t('signIn')}
               </button>
-              <button className="h-btn-register" onClick={() => navigate('/register')}>
+              <button className="h-btn-register" data-testid="nav-register-button" onClick={() => navigate('/register')}>
                 {t('createAccount')}
               </button>
             </div>

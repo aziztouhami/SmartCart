@@ -182,11 +182,11 @@ export default function Cart() {
 
           {/* Empty state */}
           {items.length === 0 && (
-            <div className="cp-empty">
+            <div className="cp-empty" data-testid="cart-empty">
               <div className="cp-empty-icon"><ShoppingCart size={32} /></div>
               <h2>{t('empty.title')}</h2>
               <p>{t('empty.message')}</p>
-              <button className="cp-btn-solid" onClick={() => navigate('/')}>{t('empty.browseProducts')}</button>
+              <button className="cp-btn-solid" data-testid="cart-browse-products" onClick={() => navigate('/')}>{t('empty.browseProducts')}</button>
             </div>
           )}
 

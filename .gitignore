@@ -26,6 +26,11 @@ frontend/build/
 frontend/dist/
 frontend/.env.local
 
+# Frontend - Cypress artifacts
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+frontend/cypress/downloads/
+
 # Docker
 .docker/
 docker-compose.override.yml

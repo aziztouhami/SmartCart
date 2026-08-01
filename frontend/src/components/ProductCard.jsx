@@ -61,7 +61,7 @@ export default function ProductCard({ product }) {
   const promo = product.promotion;
 
   return (
-    <div className="pc-card" onClick={() => navigate(`/product/${product.id}`)}>
+    <div className="pc-card" data-testid="product-card" onClick={() => navigate(`/product/${product.id}`)}>
       <div className={`pc-image ${image ? 'pc-image--photo' : ''}`} style={!image ? { background: meta.gradient } : undefined}>
         {(promo || product.isNew) && (
           <div className="pc-tags">
@@ -118,6 +118,7 @@ export default function ProductCard({ product }) {
           size="sm"
           fullWidth
           className="pc-add-btn"
+          data-testid="product-add-to-cart"
           onClick={handleAddToCart}
           disabled={!product.inStock}
         >
