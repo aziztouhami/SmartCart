@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Domain\Exception\ApiException;
 use App\DTO\Auth\RegisterRequest;
 use App\DTO\Profile\ChangePasswordRequest;
 use App\DTO\Profile\UpdateProfileRequest;
@@ -23,7 +24,8 @@ class UserService
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $passwordHasher,
         private MailService $mailService,
-    ) {}
+    ) {
+    }
 
     public function register(RegisterRequest $dto): User
     {
@@ -92,8 +94,8 @@ class UserService
             throw new \RuntimeException('Invalid email or password', 401);
         }
 
-        if ($user->getDeletionRequestedAt() !== null) {
-            $cutoff = $user->getDeletionRequestedAt()->modify('+' . self::DELETION_GRACE_PERIOD_DAYS . ' days');
+        if (null !== $user->getDeletionRequestedAt()) {
+            $cutoff = $user->getDeletionRequestedAt()->modify('+'.self::DELETION_GRACE_PERIOD_DAYS.' days');
             if (new \DateTimeImmutable() > $cutoff) {
                 $this->em->remove($user);
                 $this->em->flush();
@@ -102,6 +104,10 @@ class UserService
 
             $user->setDeletionRequestedAt(null);
             $this->em->flush();
+        }
+
+        if (!$user->isVerified()) {
+            throw new ApiException('Please confirm your email address before logging in.', 403, 'EMAIL_NOT_VERIFIED');
         }
 
         return $user;
@@ -120,8 +126,8 @@ class UserService
      */
     public function purgeExpiredDeletions(): int
     {
-        $cutoff = (new \DateTimeImmutable())->modify('-' . self::DELETION_GRACE_PERIOD_DAYS . ' days');
-        $users  = $this->userRepository->findScheduledForDeletionBefore($cutoff);
+        $cutoff = (new \DateTimeImmutable())->modify('-'.self::DELETION_GRACE_PERIOD_DAYS.' days');
+        $users = $this->userRepository->findScheduledForDeletionBefore($cutoff);
 
         foreach ($users as $user) {
             $this->em->remove($user);
@@ -133,18 +139,30 @@ class UserService
 
     public function updateProfile(User $user, UpdateProfileRequest $dto): User
     {
-        if ($dto->email !== null && $dto->email !== $user->getEmail()) {
+        if (null !== $dto->email && $dto->email !== $user->getEmail()) {
             if ($this->userRepository->findOneBy(['email' => $dto->email])) {
                 throw new \RuntimeException('Email already in use', 409);
             }
             $user->setEmail($dto->email);
         }
-        if ($dto->firstName !== null)     $user->setFirstName($dto->firstName);
-        if ($dto->lastName !== null)      $user->setLastName($dto->lastName);
-        if ($dto->phone !== null)         $user->setPhone($dto->phone);
-        if ($dto->marketingOptIn !== null) $user->setMarketingOptIn($dto->marketingOptIn);
-        if ($dto->preferredCategoryIds !== null) $user->setPreferredCategoryIds($this->validCategoryIds($dto->preferredCategoryIds));
-        if ($dto->preferredBrandIds !== null)    $user->setPreferredBrandIds($this->validBrandIds($dto->preferredBrandIds));
+        if (null !== $dto->firstName) {
+            $user->setFirstName($dto->firstName);
+        }
+        if (null !== $dto->lastName) {
+            $user->setLastName($dto->lastName);
+        }
+        if (null !== $dto->phone) {
+            $user->setPhone($dto->phone);
+        }
+        if (null !== $dto->marketingOptIn) {
+            $user->setMarketingOptIn($dto->marketingOptIn);
+        }
+        if (null !== $dto->preferredCategoryIds) {
+            $user->setPreferredCategoryIds($this->validCategoryIds($dto->preferredCategoryIds));
+        }
+        if (null !== $dto->preferredBrandIds) {
+            $user->setPreferredBrandIds($this->validBrandIds($dto->preferredBrandIds));
+        }
 
         $user->setUpdatedAt(new \DateTimeImmutable());
         $this->em->flush();
@@ -161,6 +179,7 @@ class UserService
             return [];
         }
         $found = $this->categoryRepository->findBy(['id' => array_map('intval', $ids)]);
+
         return array_map(fn ($c) => $c->getId(), $found);
     }
 
@@ -173,6 +192,7 @@ class UserService
             return [];
         }
         $found = $this->brandRepository->findBy(['id' => array_map('intval', $ids)]);
+
         return array_map(fn ($b) => $b->getId(), $found);
     }
 

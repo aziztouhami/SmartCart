@@ -21,37 +21,38 @@ class LogisticRegressionTrainer
     private const EPOCHS = 400;
 
     /**
-     * @param array<int, float[]> $features one row per example, each a fixed-length feature vector
-     * @param array<int, float> $labels 1.0 or 0.0, same length as $features
-     * @param array<int, float> $sampleWeights how strongly each example should pull the fit (e.g. co-occurrence strength); defaults to 1.0
+     * @param array<int, float[]> $features      one row per example, each a fixed-length feature vector
+     * @param array<int, float>   $labels        1.0 or 0.0, same length as $features
+     * @param array<int, float>   $sampleWeights how strongly each example should pull the fit (e.g. co-occurrence strength); defaults to 1.0
+     *
      * @return float[] learned weights, [bias, w1, w2, ..., wN]
      */
     public function train(array $features, array $labels, array $sampleWeights = []): array
     {
         $n = count($features);
-        if ($n === 0) {
+        if (0 === $n) {
             return [];
         }
         $dimensions = count($features[0]);
         $weights = array_fill(0, $dimensions + 1, 0.0); // index 0 = bias
 
-        for ($epoch = 0; $epoch < self::EPOCHS; $epoch++) {
+        for ($epoch = 0; $epoch < self::EPOCHS; ++$epoch) {
             $gradients = array_fill(0, $dimensions + 1, 0.0);
 
-            for ($i = 0; $i < $n; $i++) {
+            for ($i = 0; $i < $n; ++$i) {
                 $x = $features[$i];
                 $prediction = $this->predict($x, $weights);
                 $error = $prediction - $labels[$i];
                 $sampleWeight = $sampleWeights[$i] ?? 1.0;
 
                 $gradients[0] += $error * $sampleWeight;
-                for ($d = 0; $d < $dimensions; $d++) {
+                for ($d = 0; $d < $dimensions; ++$d) {
                     $gradients[$d + 1] += $error * $sampleWeight * $x[$d];
                 }
             }
 
             $weights[0] -= self::LEARNING_RATE * ($gradients[0] / $n);
-            for ($d = 0; $d < $dimensions; $d++) {
+            for ($d = 0; $d < $dimensions; ++$d) {
                 $reg = self::L2_REGULARIZATION * $weights[$d + 1];
                 $weights[$d + 1] -= self::LEARNING_RATE * (($gradients[$d + 1] / $n) + $reg);
             }
@@ -62,7 +63,7 @@ class LogisticRegressionTrainer
 
     /**
      * @param float[] $features
-     * @param float[] $weights [bias, w1, ..., wN]
+     * @param float[] $weights  [bias, w1, ..., wN]
      */
     public function predict(array $features, array $weights): float
     {
@@ -70,6 +71,7 @@ class LogisticRegressionTrainer
         foreach ($features as $i => $value) {
             $z += $weights[$i + 1] * $value;
         }
+
         return $this->sigmoid($z);
     }
 
@@ -77,6 +79,7 @@ class LogisticRegressionTrainer
     {
         // Clamp to avoid float overflow on extreme inputs.
         $z = max(-35.0, min(35.0, $z));
+
         return 1.0 / (1.0 + exp(-$z));
     }
 }

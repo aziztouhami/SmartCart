@@ -17,7 +17,8 @@ class ReviewService
         private OrderRepository $orderRepository,
         private EntityManagerInterface $em,
         private InteractionService $interactionService,
-    ) {}
+    ) {
+    }
 
     public function create(User $user, Product $product, CreateReviewRequest $dto): Review
     {

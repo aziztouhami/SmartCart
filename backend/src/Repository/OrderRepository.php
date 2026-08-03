@@ -37,7 +37,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find orders by user
+     * Find orders by user.
      */
     public function findByUser(User $user, int $limit = 10, int $offset = 0): array
     {
@@ -52,7 +52,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find orders by status
+     * Find orders by status.
      */
     public function findByStatus(string $status, int $limit = 10): array
     {
@@ -66,7 +66,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find recent orders
+     * Find recent orders.
      */
     public function findRecent(int $limit = 10): array
     {
@@ -78,7 +78,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count orders by user
+     * Count orders by user.
      */
     public function countByUser(User $user): int
     {
@@ -91,7 +91,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the current active cart for a user (there is at most one per user)
+     * Find the current active cart for a user (there is at most one per user).
      */
     public function findCartByUser(User $user): ?Order
     {
@@ -99,7 +99,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all non-cart orders for a user (their order history)
+     * Find all non-cart orders for a user (their order history).
      */
     public function findUserOrders(User $user, int $page = 1, int $limit = 10): array
     {
@@ -128,7 +128,7 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Admin: all orders (no carts), with optional status filter
+     * Admin: all orders (no carts), with optional status filter.
      */
     public function findAllOrders(?string $status = null, int $page = 1, int $limit = 20): array
     {
@@ -137,7 +137,7 @@ class OrderRepository extends ServiceEntityRepository
             ->setParameter('cart', 'cart')
             ->orderBy('o.createdAt', 'DESC');
 
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('o.status = :status')->setParameter('status', $status);
         }
 
@@ -155,7 +155,7 @@ class OrderRepository extends ServiceEntityRepository
             ->andWhere('o.status != :cart')
             ->setParameter('cart', 'cart');
 
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('o.status = :status')->setParameter('status', $status);
         }
 
@@ -182,6 +182,7 @@ class OrderRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[$row['status']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 
@@ -198,7 +199,7 @@ class OrderRepository extends ServiceEntityRepository
     public function getMonthlyRevenue(): float
     {
         $start = new \DateTimeImmutable('first day of this month 00:00:00');
-        $end   = new \DateTimeImmutable('last day of this month 23:59:59');
+        $end = new \DateTimeImmutable('last day of this month 23:59:59');
 
         return (float) ($this->createQueryBuilder('o')
             ->select('SUM(o.totalAmount)')
@@ -214,7 +215,7 @@ class OrderRepository extends ServiceEntityRepository
     public function getDailyRevenue(): float
     {
         $start = new \DateTimeImmutable('today 00:00:00');
-        $end   = new \DateTimeImmutable('today 23:59:59');
+        $end = new \DateTimeImmutable('today 23:59:59');
 
         return (float) ($this->createQueryBuilder('o')
             ->select('SUM(o.totalAmount)')
@@ -236,9 +237,9 @@ class OrderRepository extends ServiceEntityRepository
     {
         $result = [];
 
-        for ($i = $months - 1; $i >= 0; $i--) {
+        for ($i = $months - 1; $i >= 0; --$i) {
             $start = new \DateTimeImmutable("first day of -{$i} month 00:00:00");
-            $end   = $start->modify('last day of this month 23:59:59');
+            $end = $start->modify('last day of this month 23:59:59');
 
             $value = (float) ($this->createQueryBuilder('o')
                 ->select('SUM(o.totalAmount)')
@@ -252,7 +253,7 @@ class OrderRepository extends ServiceEntityRepository
 
             $result[] = [
                 'month' => $start->format('M'),
-                'year'  => (int) $start->format('Y'),
+                'year' => (int) $start->format('Y'),
                 'value' => round($value, 2),
             ];
         }
@@ -288,6 +289,7 @@ class OrderRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[$row['status']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 
@@ -400,6 +402,7 @@ class OrderRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $result[(int) $row['userId']] = (int) $row['cnt'];
         }
+
         return $result;
     }
 }

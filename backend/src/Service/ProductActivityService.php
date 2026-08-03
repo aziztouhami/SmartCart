@@ -25,7 +25,8 @@ class ProductActivityService
         private InteractionRepository $interactionRepository,
         private GuestEventRepository $guestEventRepository,
         private OrderRepository $orderRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{viewingNow: int, inCarts: int}

@@ -9,11 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Promotion
 {
     public const TYPE_PRODUCT = 'product';
-    public const TYPE_BRAND   = 'brand';
-    public const TYPE_ALL     = 'all';
+    public const TYPE_BRAND = 'brand';
+    public const TYPE_ALL = 'all';
 
     public const DISCOUNT_PERCENTAGE = 'percentage';
-    public const DISCOUNT_FIXED      = 'fixed';
+    public const DISCOUNT_FIXED = 'fixed';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -67,6 +67,7 @@ class Promotion
     public function setType(string $type): self
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -78,6 +79,7 @@ class Promotion
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -89,6 +91,7 @@ class Promotion
     public function setBrand(?Brand $brand): self
     {
         $this->brand = $brand;
+
         return $this;
     }
 
@@ -100,6 +103,7 @@ class Promotion
     public function setDiscountType(string $discountType): self
     {
         $this->discountType = $discountType;
+
         return $this;
     }
 
@@ -111,6 +115,7 @@ class Promotion
     public function setPercentage(?string $percentage): self
     {
         $this->percentage = $percentage;
+
         return $this;
     }
 
@@ -122,6 +127,7 @@ class Promotion
     public function setFixedPrice(?string $fixedPrice): self
     {
         $this->fixedPrice = $fixedPrice;
+
         return $this;
     }
 
@@ -133,6 +139,7 @@ class Promotion
     public function setStartDate(\DateTimeImmutable $startDate): self
     {
         $this->startDate = $startDate;
+
         return $this;
     }
 
@@ -144,6 +151,7 @@ class Promotion
     public function setEndDate(?\DateTimeImmutable $endDate): self
     {
         $this->endDate = $endDate;
+
         return $this;
     }
 
@@ -155,6 +163,7 @@ class Promotion
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -163,9 +172,10 @@ class Promotion
         if ($this->startDate > $now) {
             return false;
         }
-        if ($this->endDate !== null && $this->endDate < $now) {
+        if (null !== $this->endDate && $this->endDate < $now) {
             return false;
         }
+
         return true;
     }
 
@@ -174,11 +184,12 @@ class Promotion
      */
     public function computePrice(float $basePrice): float
     {
-        if ($this->discountType === self::DISCOUNT_FIXED) {
+        if (self::DISCOUNT_FIXED === $this->discountType) {
             return (float) $this->fixedPrice;
         }
 
         $pct = (float) $this->percentage;
+
         return round($basePrice * (1 - $pct / 100), 2);
     }
 
@@ -190,14 +201,14 @@ class Promotion
         $newPrice = $this->computePrice($basePrice);
 
         return [
-            'id'           => $this->id,
+            'id' => $this->id,
             'discountType' => $this->discountType,
-            'percentage'   => $this->percentage !== null
+            'percentage' => null !== $this->percentage
                 ? (float) $this->percentage
                 : round((1 - $newPrice / $basePrice) * 100, 2),
-            'oldPrice'     => $basePrice,
-            'newPrice'     => $newPrice,
-            'endDate'      => $this->endDate?->format(\DateTimeInterface::ATOM),
+            'oldPrice' => $basePrice,
+            'newPrice' => $newPrice,
+            'endDate' => $this->endDate?->format(\DateTimeInterface::ATOM),
         ];
     }
 }

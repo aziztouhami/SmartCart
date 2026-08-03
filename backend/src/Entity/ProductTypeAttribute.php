@@ -58,6 +58,7 @@ class ProductTypeAttribute
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class ProductTypeAttribute
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -80,13 +82,10 @@ class ProductTypeAttribute
     public function setDataType(string $dataType): self
     {
         if (!in_array($dataType, self::DATA_TYPES, true)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid attribute data type "%s". Valid types are: %s',
-                $dataType,
-                implode(', ', self::DATA_TYPES)
-            ));
+            throw new \InvalidArgumentException(sprintf('Invalid attribute data type "%s". Valid types are: %s', $dataType, implode(', ', self::DATA_TYPES)));
         }
         $this->dataType = $dataType;
+
         return $this;
     }
 
@@ -98,6 +97,7 @@ class ProductTypeAttribute
     public function setUnit(?string $unit): self
     {
         $this->unit = $unit;
+
         return $this;
     }
 
@@ -109,6 +109,7 @@ class ProductTypeAttribute
     public function setOptions(?array $options): self
     {
         $this->options = $options;
+
         return $this;
     }
 
@@ -120,6 +121,7 @@ class ProductTypeAttribute
     public function setRequired(bool $required): self
     {
         $this->required = $required;
+
         return $this;
     }
 
@@ -136,6 +138,7 @@ class ProductTypeAttribute
     public function setProductType(?ProductType $productType): self
     {
         $this->productType = $productType;
+
         return $this;
     }
 }

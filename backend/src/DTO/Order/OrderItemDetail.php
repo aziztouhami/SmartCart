@@ -24,6 +24,7 @@ class OrderItemDetail
         $dto->unitPrice = (float) $item->getPrice();
         $dto->quantity = $item->getQuantity();
         $dto->subtotal = round((float) $item->getPrice() * $item->getQuantity(), 2);
+
         return $dto;
     }
 }

@@ -31,6 +31,20 @@ services:
     networks:
       - smartcart_network
 
+  # Ollama — local LLM server for the admin AI analytics module (fully offline,
+  # no data leaves the machine). Pull a model after starting it, e.g.:
+  #   docker exec smartcart_ollama ollama pull qwen3:8b
+  # See the README for a hardware-based model recommendation table.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: smartcart_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - smartcart_network
+
   # Symfony Backend API
   backend:
     build:
@@ -52,6 +66,9 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       MYMEMORY_EMAIL: ${MYMEMORY_EMAIL:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT:-120}
     ports:
       - "8000:8000"
     volumes:
@@ -64,6 +81,8 @@ services:
       postgres:
         condition: service_healthy
       mailer:
+        condition: service_started
+      ollama:
         condition: service_started
     command: >
       sh -c "composer install --no-interaction &&
@@ -116,3 +135,4 @@ networks:
 
 volumes:
   postgres_data:
+  ollama_data:

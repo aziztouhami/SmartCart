@@ -49,19 +49,19 @@ class AdminStatsControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken];
     }
 
     private function createProductWithInteraction(string $type): Product
     {
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName('Widget');
-        $product->setSlug('widget-' . uniqid());
+        $product->setSlug('widget-'.uniqid());
         $product->setPrice('10.00');
         $product->setStock(10);
         $product->setCategory($category);
@@ -69,7 +69,7 @@ class AdminStatsControllerTest extends WebTestCase
 
         $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         $user = new User();
-        $user->setEmail('viewer-' . uniqid() . '@example.com');
+        $user->setEmail('viewer-'.uniqid().'@example.com');
         $user->setFirstName('Viewer');
         $user->setLastName('User');
         $user->setIsVerified(true);
@@ -105,7 +105,7 @@ class AdminStatsControllerTest extends WebTestCase
         ]));
         $token = json_decode($this->client->getResponse()->getContent(), true)['token'];
 
-        $this->client->request('GET', '/api/admin/stats/behaviors', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/admin/stats/behaviors', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -135,7 +135,7 @@ class AdminStatsControllerTest extends WebTestCase
     {
         $product = $this->createProductWithInteraction('view');
 
-        $this->client->request('GET', '/api/admin/stats/product/' . $product->getId() . '/insights', server: $this->headers());
+        $this->client->request('GET', '/api/admin/stats/product/'.$product->getId().'/insights', server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

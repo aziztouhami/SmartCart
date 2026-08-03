@@ -14,7 +14,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[OA\Tag(name: 'Admin — Features', description: 'Feature vectors for the recommendation system (ROLE_ADMIN required)')]
 class FeatureController extends AbstractController
 {
-    public function __construct(private FeatureService $featureService) {}
+    public function __construct(private FeatureService $featureService)
+    {
+    }
 
     /**
      * Per-product feature vector: views, cart adds, purchases, favorites,

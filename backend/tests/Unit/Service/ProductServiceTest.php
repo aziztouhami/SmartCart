@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Service;
 
 use App\DTO\Product\CreateProductRequest;
 use App\DTO\Product\UpdateProductRequest;
+use App\DTO\Product\UpdateStockRequest;
 use App\Entity\Brand;
 use App\Entity\Category;
 use App\Entity\Product;
@@ -185,7 +186,9 @@ class ProductServiceTest extends TestCase
         $product = new Product();
         $product->setStock(5);
 
-        $result = $this->service->updateStock($product, ['quantity' => 20]);
+        $dto = new UpdateStockRequest();
+        $dto->quantity = 20;
+        $result = $this->service->updateStock($product, $dto);
 
         $this->assertSame(20, $result->getStock());
     }
@@ -198,7 +201,9 @@ class ProductServiceTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Stock cannot be negative');
 
-        $this->service->updateStock($product, ['quantity' => -1]);
+        $dto = new UpdateStockRequest();
+        $dto->quantity = -1;
+        $this->service->updateStock($product, $dto);
     }
 
     public function testUpdateStockAppliesPositiveAdjustment(): void
@@ -206,7 +211,9 @@ class ProductServiceTest extends TestCase
         $product = new Product();
         $product->setStock(5);
 
-        $result = $this->service->updateStock($product, ['adjustment' => 3]);
+        $dto = new UpdateStockRequest();
+        $dto->adjustment = 3;
+        $result = $this->service->updateStock($product, $dto);
 
         $this->assertSame(8, $result->getStock());
     }
@@ -219,7 +226,9 @@ class ProductServiceTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Adjustment would result in negative stock');
 
-        $this->service->updateStock($product, ['adjustment' => -10]);
+        $dto = new UpdateStockRequest();
+        $dto->adjustment = -10;
+        $this->service->updateStock($product, $dto);
     }
 
     public function testUpdateStockThrowsWhenNeitherQuantityNorAdjustmentGiven(): void
@@ -230,7 +239,7 @@ class ProductServiceTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Provide either "quantity" or "adjustment"');
 
-        $this->service->updateStock($product, []);
+        $this->service->updateStock($product, new UpdateStockRequest());
     }
 
     public function testDeleteRemovesProduct(): void

@@ -14,12 +14,13 @@ class CategoryService
         private CategoryRepository $categoryRepository,
         private EntityManagerInterface $em,
         private SlugService $slugService,
-    ) {}
+    ) {
+    }
 
     public function create(CreateCategoryRequest $dto): Category
     {
         $parent = null;
-        if ($dto->parentId !== null) {
+        if (null !== $dto->parentId) {
             $parent = $this->categoryRepository->find($dto->parentId);
             if (!$parent) {
                 throw new \RuntimeException('Parent category not found', 404);
@@ -41,11 +42,11 @@ class CategoryService
 
     /**
      * @param array<string, mixed> $rawData decoded request body — used to detect explicit
-     *        null for parentId/image (key present but null) vs. the key being absent entirely
+     *                                      null for parentId/image (key present but null) vs. the key being absent entirely
      */
     public function update(Category $category, UpdateCategoryRequest $dto, array $rawData): Category
     {
-        if ($dto->name !== null) {
+        if (null !== $dto->name) {
             $category->setName($dto->name);
             $category->setSlug($this->slugService->generateCategorySlug($dto->name, $category->getId()));
         }
@@ -56,7 +57,7 @@ class CategoryService
             $category->setSeasonalMonths($dto->seasonalMonths);
         }
         if (array_key_exists('parentId', $rawData)) {
-            if ($dto->parentId === null) {
+            if (null === $dto->parentId) {
                 $category->setParent(null);
             } else {
                 $parent = $this->categoryRepository->find($dto->parentId);

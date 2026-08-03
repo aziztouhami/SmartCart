@@ -49,19 +49,19 @@ class OrderControllerTest extends WebTestCase
 
     private function authHeaders(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->token, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token, 'CONTENT_TYPE' => 'application/json'];
     }
 
     private function createProduct(string $price, int $stock): Product
     {
         $category = new Category();
-        $category->setName('Test Category ' . uniqid());
-        $category->setSlug('test-category-' . uniqid());
+        $category->setName('Test Category '.uniqid());
+        $category->setSlug('test-category-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName('Widget');
-        $product->setSlug('product-' . uniqid());
+        $product->setSlug('product-'.uniqid());
         $product->setPrice($price);
         $product->setStock($stock);
         $product->setCategory($category);
@@ -179,7 +179,7 @@ class OrderControllerTest extends WebTestCase
         $this->em->persist($item);
         $this->em->flush();
 
-        $this->client->request('GET', '/api/orders/' . $order->getId(), server: $this->authHeaders());
+        $this->client->request('GET', '/api/orders/'.$order->getId(), server: $this->authHeaders());
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -190,7 +190,7 @@ class OrderControllerTest extends WebTestCase
         $cart->setStatus('pending');
         $this->em->flush();
 
-        $this->client->request('POST', '/api/orders/' . $cart->getId() . '/cancel', server: $this->authHeaders());
+        $this->client->request('POST', '/api/orders/'.$cart->getId().'/cancel', server: $this->authHeaders());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -203,7 +203,7 @@ class OrderControllerTest extends WebTestCase
         $cart->setStatus('confirmed');
         $this->em->flush();
 
-        $this->client->request('POST', '/api/orders/' . $cart->getId() . '/cancel', server: $this->authHeaders());
+        $this->client->request('POST', '/api/orders/'.$cart->getId().'/cancel', server: $this->authHeaders());
 
         $this->assertResponseStatusCodeSame(400);
     }

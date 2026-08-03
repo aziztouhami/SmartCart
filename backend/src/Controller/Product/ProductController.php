@@ -2,6 +2,11 @@
 
 namespace App\Controller\Product;
 
+use App\Domain\Http\Pagination;
+use App\Domain\Product\BestSellersResolver;
+use App\Domain\Product\ProductQueryParams;
+use App\Domain\Product\PromotedProductsSelector;
+use App\Domain\Product\SortParams;
 use App\DTO\Pagination\PaginatedResponse;
 use App\DTO\Product\ProductActivity;
 use App\DTO\Product\ProductAutocompleteItem;
@@ -27,7 +32,10 @@ class ProductController extends AbstractController
         private ReviewRepository $reviewRepository,
         private PromotionRepository $promotionRepository,
         private ProductActivityService $productActivityService,
-    ) {}
+        private PromotedProductsSelector $promotedProductsSelector,
+        private BestSellersResolver $bestSellersResolver,
+    ) {
+    }
 
     /**
      * List products with pagination, filters and sorting.
@@ -70,59 +78,43 @@ class ProductController extends AbstractController
     )]
     public function list(Request $request): JsonResponse
     {
-        $page  = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 12)));
-
-        $search   = $request->query->get('q') ?: null;
-        $category = $request->query->get('category') ? (int) $request->query->get('category') : null;
-        $brand    = $request->query->get('brand') ? (int) $request->query->get('brand') : null;
-        $type     = $request->query->get('type') ? (int) $request->query->get('type') : null;
-        $minPrice = $request->query->get('minPrice') !== null ? (float) $request->query->get('minPrice') : null;
-        $maxPrice = $request->query->get('maxPrice') !== null ? (float) $request->query->get('maxPrice') : null;
-        $inStock  = $request->query->has('inStock')
-            ? filter_var($request->query->get('inStock'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
-            : null;
-        $attributes = array_filter((array) $request->query->all('attr'), fn ($v) => $v !== null && $v !== '');
-
-        $allowedSorts = ['name', 'price', 'createdAt', 'rating', 'popularity'];
-        $sortBy    = in_array($request->query->get('sort'), $allowedSorts, true)
-            ? $request->query->get('sort')
-            : 'createdAt';
-        $sortOrder = strtoupper($request->query->get('order', 'desc')) === 'ASC' ? 'ASC' : 'DESC';
+        $filters = ProductQueryParams::fromRequest($request);
+        $sort = SortParams::fromRequest($request, ProductQueryParams::ALLOWED_SORTS, 'createdAt');
+        $pagination = Pagination::fromRequest($request);
 
         $products = $this->productRepository->findWithFilters(
-            search: $search,
-            categoryId: $category,
-            minPrice: $minPrice,
-            maxPrice: $maxPrice,
-            inStock: $inStock,
-            brandId: $brand,
-            productTypeId: $type,
-            attributes: $attributes ?: null,
-            sortBy: $sortBy,
-            sortOrder: $sortOrder,
-            page: $page,
-            limit: $limit,
+            search: $filters->search,
+            categoryId: $filters->category,
+            minPrice: $filters->minPrice,
+            maxPrice: $filters->maxPrice,
+            inStock: $filters->inStock,
+            brandId: $filters->brand,
+            productTypeId: $filters->type,
+            attributes: $filters->attributes,
+            sortBy: $sort->sortBy,
+            sortOrder: $sort->sortOrder,
+            page: $pagination->page,
+            limit: $pagination->limit,
         );
 
         $total = $this->productRepository->countWithFilters(
-            search: $search,
-            categoryId: $category,
-            minPrice: $minPrice,
-            maxPrice: $maxPrice,
-            inStock: $inStock,
-            brandId: $brand,
-            productTypeId: $type,
-            attributes: $attributes ?: null,
+            search: $filters->search,
+            categoryId: $filters->category,
+            minPrice: $filters->minPrice,
+            maxPrice: $filters->maxPrice,
+            inStock: $filters->inStock,
+            brandId: $filters->brand,
+            productTypeId: $filters->type,
+            attributes: $filters->attributes,
         );
 
         $promoMap = $this->promotionRepository->findActiveForProducts($products);
 
         $paginated = PaginatedResponse::create(
-            data: array_map(fn($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products),
+            data: array_map(fn ($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products),
             total: $total,
-            page: $page,
-            limit: $limit,
+            page: $pagination->page,
+            limit: $pagination->limit,
         );
 
         return $this->json($paginated);
@@ -145,25 +137,13 @@ class ProductController extends AbstractController
     )]
     public function promotions(Request $request): JsonResponse
     {
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $limit = Pagination::fromRequest($request, defaultLimit: 20)->limit;
 
-        // No active promotion at all (the common case) — skip the
-        // full-catalog load entirely instead of fetching every product just
-        // to filter all of them out.
-        if (empty($this->promotionRepository->findActive())) {
-            return $this->json([]);
-        }
-
-        $allProducts = $this->productRepository->findAllWithRelations();
-        $promoMap    = $this->promotionRepository->findActiveForProducts($allProducts);
-
-        $promoted = array_values(array_filter($allProducts, fn($p) => isset($promoMap[$p->getId()])));
-        usort($promoted, fn($a, $b) => $b->getId() <=> $a->getId());
-        $promoted = array_slice($promoted, 0, $limit);
+        $selection = $this->promotedProductsSelector->select($limit);
 
         return $this->json(array_map(
-            fn($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()]),
-            $promoted
+            fn ($p) => ProductListItem::fromEntity($p, $selection['promoMap'][$p->getId()]),
+            $selection['products']
         ));
     }
 
@@ -185,26 +165,12 @@ class ProductController extends AbstractController
     )]
     public function bestSellers(Request $request): JsonResponse
     {
-        $limit = min(50, max(1, (int) $request->query->get('limit', 10)));
+        $limit = Pagination::fromRequest($request, defaultLimit: 10)->limit;
 
-        $products = $this->productRepository->getTopSelling($limit);
-        if (empty($products)) {
-            $products = $this->productRepository->findWithFilters(
-                search: null,
-                categoryId: null,
-                minPrice: null,
-                maxPrice: null,
-                inStock: null,
-                sortBy: 'createdAt',
-                sortOrder: 'DESC',
-                page: 1,
-                limit: $limit,
-            );
-        }
-
+        $products = $this->bestSellersResolver->resolve($limit);
         $promoMap = $this->promotionRepository->findActiveForProducts($products);
 
-        return $this->json(array_map(fn($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products));
+        return $this->json(array_map(fn ($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products));
     }
 
     /**
@@ -235,26 +201,17 @@ class ProductController extends AbstractController
     )]
     public function facets(Request $request): JsonResponse
     {
-        $search   = $request->query->get('q') ?: null;
-        $category = $request->query->get('category') ? (int) $request->query->get('category') : null;
-        $brand    = $request->query->get('brand') ? (int) $request->query->get('brand') : null;
-        $type     = $request->query->get('type') ? (int) $request->query->get('type') : null;
-        $minPrice = $request->query->get('minPrice') !== null ? (float) $request->query->get('minPrice') : null;
-        $maxPrice = $request->query->get('maxPrice') !== null ? (float) $request->query->get('maxPrice') : null;
-        $inStock  = $request->query->has('inStock')
-            ? filter_var($request->query->get('inStock'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
-            : null;
-        $attributes = array_filter((array) $request->query->all('attr'), fn ($v) => $v !== null && $v !== '');
+        $filters = ProductQueryParams::fromRequest($request);
 
         return $this->json($this->productRepository->getFacets(
-            search: $search,
-            categoryId: $category,
-            brandId: $brand,
-            productTypeId: $type,
-            attributes: $attributes ?: null,
-            minPrice: $minPrice,
-            maxPrice: $maxPrice,
-            inStock: $inStock,
+            search: $filters->search,
+            categoryId: $filters->category,
+            brandId: $filters->brand,
+            productTypeId: $filters->type,
+            attributes: $filters->attributes,
+            minPrice: $filters->minPrice,
+            maxPrice: $filters->maxPrice,
+            inStock: $filters->inStock,
         ));
     }
 
@@ -283,10 +240,10 @@ class ProductController extends AbstractController
         $grouped = $this->productRepository->findForAutocompleteGrouped($q);
 
         return $this->json([
-            'nameStart'    => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['nameStart']),
+            'nameStart' => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['nameStart']),
             'nameContains' => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['nameContains']),
-            'byBrand'      => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['byBrand']),
-            'byCategory'   => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['byCategory']),
+            'byBrand' => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['byBrand']),
+            'byCategory' => array_map([ProductAutocompleteItem::class, 'fromEntity'], $grouped['byCategory']),
         ]);
     }
 
@@ -312,9 +269,9 @@ class ProductController extends AbstractController
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $avgRating   = $this->reviewRepository->getAverageRating($product);
+        $avgRating = $this->reviewRepository->getAverageRating($product);
         $reviewCount = $this->reviewRepository->countByProduct($product);
-        $promotion   = $this->promotionRepository->findActiveForProduct($product);
+        $promotion = $this->promotionRepository->findActiveForProduct($product);
 
         return $this->json(ProductDetail::fromEntity($product, $avgRating, $reviewCount, $promotion));
     }

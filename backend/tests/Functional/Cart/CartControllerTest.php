@@ -49,19 +49,19 @@ class CartControllerTest extends WebTestCase
 
     private function authHeaders(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->token, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token, 'CONTENT_TYPE' => 'application/json'];
     }
 
     private function createProduct(string $name, string $price, int $stock): Product
     {
         $category = new Category();
-        $category->setName('Test Category ' . uniqid());
-        $category->setSlug('test-category-' . uniqid());
+        $category->setName('Test Category '.uniqid());
+        $category->setSlug('test-category-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName($name);
-        $product->setSlug('product-' . uniqid());
+        $product->setSlug('product-'.uniqid());
         $product->setPrice($price);
         $product->setStock($stock);
         $product->setCategory($category);
@@ -140,7 +140,7 @@ class CartControllerTest extends WebTestCase
         $this->em->persist($item);
         $this->em->flush();
 
-        $this->client->request('PUT', '/api/cart/items/' . $item->getId(), server: $this->authHeaders(), content: json_encode([
+        $this->client->request('PUT', '/api/cart/items/'.$item->getId(), server: $this->authHeaders(), content: json_encode([
             'quantity' => 3,
         ]));
 
@@ -174,7 +174,7 @@ class CartControllerTest extends WebTestCase
         $this->em->persist($item);
         $this->em->flush();
 
-        $this->client->request('PUT', '/api/cart/items/' . $item->getId(), server: $this->authHeaders(), content: json_encode([
+        $this->client->request('PUT', '/api/cart/items/'.$item->getId(), server: $this->authHeaders(), content: json_encode([
             'quantity' => 3,
         ]));
 
@@ -208,7 +208,7 @@ class CartControllerTest extends WebTestCase
         $this->em->persist($itemB);
         $this->em->flush();
 
-        $this->client->request('DELETE', '/api/cart/items/' . $itemA->getId(), server: $this->authHeaders());
+        $this->client->request('DELETE', '/api/cart/items/'.$itemA->getId(), server: $this->authHeaders());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

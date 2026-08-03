@@ -2,13 +2,14 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Product\CreateProductRequest;
 use App\DTO\Product\ProductDetail;
 use App\DTO\Product\UpdateProductRequest;
+use App\DTO\Product\UpdateStockRequest;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
 use App\Service\ProductService;
-use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,8 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/products', name: 'api_admin_products_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -28,9 +27,9 @@ class ProductAdminController extends AbstractController
         private ProductRepository $productRepository,
         private ReviewRepository $reviewRepository,
         private ProductService $productService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Create a new product.
@@ -66,17 +65,7 @@ class ProductAdminController extends AbstractController
     )]
     public function create(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateProductRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateProductRequest::class);
         $product = $this->productService->create($dto);
 
         return $this->json(
@@ -124,20 +113,10 @@ class ProductAdminController extends AbstractController
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateProductRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateProductRequest::class);
         $product = $this->productService->update($product, $dto);
 
-        $avgRating   = $this->reviewRepository->getAverageRating($product);
+        $avgRating = $this->reviewRepository->getAverageRating($product);
         $reviewCount = $this->reviewRepository->countByProduct($product);
 
         return $this->json(ProductDetail::fromEntity($product, $avgRating, $reviewCount));
@@ -175,9 +154,8 @@ class ProductAdminController extends AbstractController
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
-
-        $product = $this->productService->updateStock($product, $data);
+        $dto = $this->dtoParser->parse($request, UpdateStockRequest::class);
+        $product = $this->productService->updateStock($product, $dto);
 
         return $this->json(['id' => $product->getId(), 'stock' => $product->getStock()]);
     }

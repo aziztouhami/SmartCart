@@ -6,7 +6,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Translates user messages to English using the MyMemory free translation API.
- * https://mymemory.translated.net/doc/spec.php
+ * https://mymemory.translated.net/doc/spec.php.
  *
  * Free tier limits:
  *   - 1 000 words/day  — anonymous (no configuration needed)
@@ -26,7 +26,8 @@ class TranslationService
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly string $email = '',
-    ) {}
+    ) {
+    }
 
     /**
      * Translates $text to English. Returns the original when the text is
@@ -35,22 +36,22 @@ class TranslationService
      */
     public function toEnglish(string $text): string
     {
-        if (trim($text) === '') {
+        if ('' === trim($text)) {
             return $text;
         }
 
         try {
             $query = [
-                'q'        => $text,
+                'q' => $text,
                 'langpair' => 'autodetect|en',
             ];
 
-            if ($this->email !== '') {
+            if ('' !== $this->email) {
                 $query['de'] = $this->email;
             }
 
             $response = $this->httpClient->request('GET', self::API_URL, [
-                'query'   => $query,
+                'query' => $query,
                 'timeout' => self::TIMEOUT,
             ]);
 
@@ -65,7 +66,7 @@ class TranslationService
             // MyMemory returns the original when it detects the source is
             // already English — comparing case-insensitively avoids a pointless
             // merge that would just duplicate the same keywords.
-            if ($translated === '' || mb_strtolower($translated) === mb_strtolower($text)) {
+            if ('' === $translated || mb_strtolower($translated) === mb_strtolower($text)) {
                 return $text;
             }
 

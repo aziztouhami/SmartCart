@@ -65,6 +65,7 @@ class ColdStartRecommendationRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $scores[(int) $row['productId']] = (float) $row['score'];
         }
+
         return $scores;
     }
 }

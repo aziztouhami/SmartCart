@@ -2,6 +2,8 @@
 
 namespace App\Controller\Category;
 
+use App\Domain\Http\Pagination;
+use App\Domain\Product\SortParams;
 use App\DTO\Category\CategoryItem;
 use App\DTO\Category\CategoryTree;
 use App\DTO\Pagination\PaginatedResponse;
@@ -24,7 +26,8 @@ class CategoryController extends AbstractController
         private CategoryRepository $categoryRepository,
         private ProductRepository $productRepository,
         private PromotionRepository $promotionRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Return all root categories, each with their direct subcategories.
@@ -42,7 +45,7 @@ class CategoryController extends AbstractController
         $roots = $this->categoryRepository->findRoots();
 
         return $this->json(array_map(
-            fn($c) => CategoryTree::fromEntity($c),
+            fn ($c) => CategoryTree::fromEntity($c),
             $roots
         ));
     }
@@ -100,31 +103,25 @@ class CategoryController extends AbstractController
             return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $page  = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 12)));
-
-        $allowedSorts = ['name', 'price', 'createdAt'];
-        $sortBy    = in_array($request->query->get('sort'), $allowedSorts, true)
-            ? $request->query->get('sort')
-            : 'createdAt';
-        $sortOrder = strtoupper($request->query->get('order', 'desc')) === 'ASC' ? 'ASC' : 'DESC';
+        $pagination = Pagination::fromRequest($request);
+        $sort = SortParams::fromRequest($request, ['name', 'price', 'createdAt'], 'createdAt');
 
         $products = $this->productRepository->findWithFilters(
             categoryId: $id,
-            sortBy: $sortBy,
-            sortOrder: $sortOrder,
-            page: $page,
-            limit: $limit,
+            sortBy: $sort->sortBy,
+            sortOrder: $sort->sortOrder,
+            page: $pagination->page,
+            limit: $pagination->limit,
         );
 
         $total = $this->productRepository->countWithFilters(categoryId: $id);
         $promoMap = $this->promotionRepository->findActiveForProducts($products);
 
         $paginated = PaginatedResponse::create(
-            data: array_map(fn($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products),
+            data: array_map(fn ($p) => ProductListItem::fromEntity($p, $promoMap[$p->getId()] ?? null), $products),
             total: $total,
-            page: $page,
-            limit: $limit,
+            page: $pagination->page,
+            limit: $pagination->limit,
         );
 
         return $this->json([

@@ -1,0 +1,4 @@
+App\DTO\Product\TrackInteractionRequest:
+    properties:
+        type:
+            - NotBlank: ~

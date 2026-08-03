@@ -77,9 +77,9 @@ class BrandRepository extends ServiceEntityRepository
 
         return [
             'productCount' => $productCount,
-            'soldCount'    => (int) $soldResult['soldCount'],
-            'revenue'      => (float) $soldResult['revenue'],
-            'avgRating'    => $avgRatingResult !== null ? round((float) $avgRatingResult, 1) : null,
+            'soldCount' => (int) $soldResult['soldCount'],
+            'revenue' => (float) $soldResult['revenue'],
+            'avgRating' => null !== $avgRatingResult ? round((float) $avgRatingResult, 1) : null,
         ];
     }
 }

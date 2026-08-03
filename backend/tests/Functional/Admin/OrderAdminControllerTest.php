@@ -59,19 +59,19 @@ class OrderAdminControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken, 'CONTENT_TYPE' => 'application/json'];
     }
 
     private function createOrder(string $status): Order
     {
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName('Widget');
-        $product->setSlug('widget-' . uniqid());
+        $product->setSlug('widget-'.uniqid());
         $product->setPrice('10.00');
         $product->setStock(10);
         $product->setCategory($category);
@@ -113,7 +113,7 @@ class OrderAdminControllerTest extends WebTestCase
         ]));
         $token = json_decode($this->client->getResponse()->getContent(), true)['token'];
 
-        $this->client->request('GET', '/api/admin/orders', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/admin/orders', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -148,7 +148,7 @@ class OrderAdminControllerTest extends WebTestCase
     {
         $cart = $this->createOrder('cart');
 
-        $this->client->request('GET', '/api/admin/orders/' . $cart->getId(), server: $this->headers());
+        $this->client->request('GET', '/api/admin/orders/'.$cart->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -157,7 +157,7 @@ class OrderAdminControllerTest extends WebTestCase
     {
         $order = $this->createOrder('pending');
 
-        $this->client->request('GET', '/api/admin/orders/' . $order->getId(), server: $this->headers());
+        $this->client->request('GET', '/api/admin/orders/'.$order->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -168,7 +168,7 @@ class OrderAdminControllerTest extends WebTestCase
     {
         $order = $this->createOrder('pending');
 
-        $this->client->request('PUT', '/api/admin/orders/' . $order->getId() . '/status', server: $this->headers(), content: json_encode([
+        $this->client->request('PUT', '/api/admin/orders/'.$order->getId().'/status', server: $this->headers(), content: json_encode([
             'status' => 'confirmed',
         ]));
 
@@ -181,7 +181,7 @@ class OrderAdminControllerTest extends WebTestCase
     {
         $order = $this->createOrder('delivered');
 
-        $this->client->request('PUT', '/api/admin/orders/' . $order->getId() . '/status', server: $this->headers(), content: json_encode([
+        $this->client->request('PUT', '/api/admin/orders/'.$order->getId().'/status', server: $this->headers(), content: json_encode([
             'status' => 'pending',
         ]));
 
@@ -192,7 +192,7 @@ class OrderAdminControllerTest extends WebTestCase
     {
         $order = $this->createOrder('pending');
 
-        $this->client->request('PUT', '/api/admin/orders/' . $order->getId() . '/status', server: $this->headers(), content: json_encode([
+        $this->client->request('PUT', '/api/admin/orders/'.$order->getId().'/status', server: $this->headers(), content: json_encode([
             'status' => 'not-a-real-status',
         ]));
 

@@ -4,9 +4,9 @@ namespace App\Service\Recommendation;
 
 use App\Entity\Product;
 use App\Entity\ProductRelation;
-use App\Repository\ProductRelationRepository;
 use App\Repository\GuestEventRepository;
 use App\Repository\InteractionRepository;
+use App\Repository\ProductRelationRepository;
 use App\Repository\ProductRepository;
 
 /**
@@ -42,7 +42,8 @@ class RecommendationBuilderService
         private ProductRepository $productRepository,
         private ProductRelationRepository $productRelationRepository,
         private ContentSimilarityService $contentSimilarity,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{groups: int, products: int, pairs: int}
@@ -51,7 +52,7 @@ class RecommendationBuilderService
     {
         $cutoff = new \DateTimeImmutable(sprintf('-%d days', self::LOOKBACK_DAYS));
 
-        $groups     = $this->collectGroups($cutoff);
+        $groups = $this->collectGroups($cutoff);
         $behavioral = $this->accumulateBehavioral($groups);
 
         $products = $this->productRepository->findAll();
@@ -85,9 +86,9 @@ class RecommendationBuilderService
         );
 
         return [
-            'groups'   => count($groups),
+            'groups' => count($groups),
             'products' => count($products),
-            'pairs'    => count($rows),
+            'pairs' => count($rows),
             'contentWeightsLearned' => $this->contentSimilarity->isTrained(),
             'contentWeightsConfidence' => round($this->contentSimilarity->getConfidence(), 3),
             'contentWeights' => $this->contentSimilarity->getWeights(),
@@ -96,7 +97,8 @@ class RecommendationBuilderService
 
     /**
      * @param array<int, array<int, float>> $pairs
-     * @param array<int, Product> $byId
+     * @param array<int, Product>           $byId
+     *
      * @return array<int, array<int, float>>
      */
     private function excludeSameCategoryPairs(array $pairs, array $byId): array
@@ -147,6 +149,7 @@ class RecommendationBuilderService
 
     /**
      * @param array<int, string> $productTypes productId => event/interaction type
+     *
      * @return array<int, int> productId => strongest tier
      */
     private function reduceToTiers(array $productTypes): array
@@ -155,6 +158,7 @@ class RecommendationBuilderService
         foreach ($productTypes as $productId => $type) {
             $tiers[$productId] = max($tiers[$productId] ?? 0, $this->tier($type));
         }
+
         return $tiers;
     }
 
@@ -170,11 +174,13 @@ class RecommendationBuilderService
     private function pairWeight(int $tierA, int $tierB): float
     {
         $key = $tierA <= $tierB ? "{$tierA}-{$tierB}" : "{$tierB}-{$tierA}";
+
         return self::PAIR_WEIGHTS[$key] ?? 1.0;
     }
 
     /**
      * @param array<int, array<int, int>> $groups
+     *
      * @return array<int, array<int, float>> [lowerProductId][higherProductId] => score
      */
     private function accumulateBehavioral(array $groups): array
@@ -184,8 +190,8 @@ class RecommendationBuilderService
         foreach ($groups as $tiers) {
             $productIds = array_keys($tiers);
             $count = count($productIds);
-            for ($i = 0; $i < $count; $i++) {
-                for ($j = $i + 1; $j < $count; $j++) {
+            for ($i = 0; $i < $count; ++$i) {
+                for ($j = $i + 1; $j < $count; ++$j) {
                     $a = $productIds[$i];
                     $b = $productIds[$j];
                     [$lo, $hi] = $a < $b ? [$a, $b] : [$b, $a];
@@ -205,6 +211,7 @@ class RecommendationBuilderService
      * keeps this proportional to cluster sizes instead of catalog size.
      *
      * @param Product[] $products
+     *
      * @return array<int, array<int, float>> [lowerProductId][higherProductId] => score
      */
     private function collectContentCandidates(array $products): array
@@ -214,8 +221,8 @@ class RecommendationBuilderService
         $content = [];
         $scoreBucket = function (array $bucket) use (&$content) {
             $count = count($bucket);
-            for ($i = 0; $i < $count; $i++) {
-                for ($j = $i + 1; $j < $count; $j++) {
+            for ($i = 0; $i < $count; ++$i) {
+                for ($j = $i + 1; $j < $count; ++$j) {
                     $a = $bucket[$i];
                     $b = $bucket[$j];
                     $aId = $a->getId();
@@ -255,7 +262,8 @@ class RecommendationBuilderService
      * and so never being recommendable to anyone.
      *
      * @param array<int, array<int, float>> $merged
-     * @param Product[] $products
+     * @param Product[]                     $products
+     *
      * @return array<int, array{productId: int, relatedProductId: int, score: float, type: string}>
      */
     private function buildTopKRows(array $merged, array $products, string $type): array

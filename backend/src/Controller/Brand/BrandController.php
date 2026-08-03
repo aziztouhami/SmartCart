@@ -19,7 +19,8 @@ class BrandController extends AbstractController
 {
     public function __construct(
         private BrandRepository $brandRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(
@@ -37,15 +38,15 @@ class BrandController extends AbstractController
     )]
     public function list(Request $request): JsonResponse
     {
-        $page  = max(1, (int) $request->query->get('page', 1));
+        $page = max(1, (int) $request->query->get('page', 1));
         $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
 
         $brands = $this->brandRepository->findAllPaginated($page, $limit);
-        $total  = $this->brandRepository->countAll();
+        $total = $this->brandRepository->countAll();
 
         $paginated = PaginatedResponse::create(
             data: array_map(
-                fn($b) => BrandListItem::fromEntity($b, $this->brandRepository->getStats($b)),
+                fn ($b) => BrandListItem::fromEntity($b, $this->brandRepository->getStats($b)),
                 $brands
             ),
             total: $total,

@@ -118,6 +118,7 @@ class GuestEventRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[(int) $row['productId']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 

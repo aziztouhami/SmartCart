@@ -15,6 +15,7 @@ class ProductActivity
         $dto = new self();
         $dto->viewingNow = $data['viewingNow'];
         $dto->inCarts = $data['inCarts'];
+
         return $dto;
     }
 }

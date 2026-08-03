@@ -86,9 +86,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $qb = $this->createQueryBuilder('u')->orderBy('u.createdAt', 'DESC');
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $qb->andWhere('u.email LIKE :search OR u.firstName LIKE :search OR u.lastName LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%'.$search.'%');
         }
 
         return $qb
@@ -127,9 +127,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $qb = $this->createQueryBuilder('u')->select('COUNT(u.id)');
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $qb->andWhere('u.email LIKE :search OR u.firstName LIKE :search OR u.lastName LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%'.$search.'%');
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult();

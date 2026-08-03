@@ -15,11 +15,13 @@ class ContentRecommendationService
 {
     public function __construct(
         private ContentSimilarityService $contentSimilarity,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param array<int, float> $userRatings seed productId => tasteScore (this user only)
+     * @param array<int, float>   $userRatings  seed productId => tasteScore (this user only)
      * @param array<int, Product> $productsById whole catalog, keyed by id
+     *
      * @return array<int, float> candidateProductId => content score
      */
     public function predictForUser(array $userRatings, array $productsById): array

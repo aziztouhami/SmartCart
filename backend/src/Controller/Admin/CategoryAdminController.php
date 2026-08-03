@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Category\CategoryTree;
 use App\DTO\Category\CreateCategoryRequest;
 use App\DTO\Category\UpdateCategoryRequest;
@@ -14,8 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/categories', name: 'api_admin_categories_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -25,9 +24,9 @@ class CategoryAdminController extends AbstractController
     public function __construct(
         private CategoryRepository $categoryRepository,
         private CategoryService $categoryService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Create a new category (optionally under a parent).
@@ -58,17 +57,7 @@ class CategoryAdminController extends AbstractController
     )]
     public function create(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateCategoryRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateCategoryRequest::class);
         $category = $this->categoryService->create($dto);
 
         return $this->json(CategoryTree::fromEntity($category), Response::HTTP_CREATED);
@@ -108,18 +97,7 @@ class CategoryAdminController extends AbstractController
         }
 
         $rawData = json_decode($request->getContent(), true) ?? [];
-
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateCategoryRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateCategoryRequest::class);
         $category = $this->categoryService->update($category, $dto, $rawData);
 
         return $this->json(CategoryTree::fromEntity($category));

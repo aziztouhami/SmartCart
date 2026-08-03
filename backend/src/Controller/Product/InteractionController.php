@@ -2,6 +2,8 @@
 
 namespace App\Controller\Product;
 
+use App\Domain\Http\RequestDtoParser;
+use App\DTO\Product\TrackInteractionRequest;
 use App\Entity\User;
 use App\Repository\ProductRepository;
 use App\Service\InteractionService;
@@ -18,7 +20,9 @@ class InteractionController extends AbstractController
     public function __construct(
         private ProductRepository $productRepository,
         private InteractionService $interactionService,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Record a user interaction with a product (view, cart add, purchase, rating).
@@ -69,19 +73,12 @@ class InteractionController extends AbstractController
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data  = json_decode($request->getContent(), true) ?? [];
-        $type  = $data['type'] ?? '';
-        $value = isset($data['value']) ? (int) $data['value'] : null;
-
-        try {
-            $interaction = $this->interactionService->track($user, $product, $type, $value);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
+        $dto = $this->dtoParser->parse($request, TrackInteractionRequest::class);
+        $interaction = $this->interactionService->track($user, $product, $dto->type, $dto->value);
 
         return $this->json([
-            'id'        => $interaction->getId(),
-            'type'      => $interaction->getType(),
+            'id' => $interaction->getId(),
+            'type' => $interaction->getType(),
             'productId' => $product->getId(),
         ], Response::HTTP_CREATED);
     }

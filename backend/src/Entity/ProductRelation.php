@@ -65,6 +65,7 @@ class ProductRelation
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -76,6 +77,7 @@ class ProductRelation
     public function setRelatedProduct(?Product $relatedProduct): self
     {
         $this->relatedProduct = $relatedProduct;
+
         return $this;
     }
 
@@ -87,6 +89,7 @@ class ProductRelation
     public function setScore(float $score): self
     {
         $this->score = $score;
+
         return $this;
     }
 
@@ -103,6 +106,7 @@ class ProductRelation
     public function setType(string $type): self
     {
         $this->type = $type;
+
         return $this;
     }
 }

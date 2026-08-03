@@ -59,6 +59,7 @@ class Order
     public function setStatus(string $status): self
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -70,6 +71,7 @@ class Order
     public function setTotalAmount(string $totalAmount): self
     {
         $this->totalAmount = $totalAmount;
+
         return $this;
     }
 
@@ -81,6 +83,7 @@ class Order
     public function setShippingAddress(?string $shippingAddress): self
     {
         $this->shippingAddress = $shippingAddress;
+
         return $this;
     }
 
@@ -92,6 +95,7 @@ class Order
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -103,6 +107,7 @@ class Order
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -114,6 +119,7 @@ class Order
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -131,6 +137,7 @@ class Order
             $this->orderItems->add($orderItem);
             $orderItem->setOrder($this);
         }
+
         return $this;
     }
 
@@ -141,6 +148,7 @@ class Order
                 $orderItem->setOrder(null);
             }
         }
+
         return $this;
     }
 }

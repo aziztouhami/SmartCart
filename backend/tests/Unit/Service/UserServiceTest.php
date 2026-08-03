@@ -31,6 +31,15 @@ class UserServiceTest extends TestCase
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
         $this->mailService = $this->createMock(MailService::class);
+        // Mirrors MailService::sendSafely()'s real try/catch — without this, the
+        // mock's sendSafely() is a no-op and the callback (the actual
+        // sendXxxEmail assertion target) never runs.
+        $this->mailService->method('sendSafely')->willReturnCallback(function (callable $send) {
+            try {
+                $send();
+            } catch (\Throwable) {
+            }
+        });
 
         $this->service = new UserService(
             $this->userRepository,

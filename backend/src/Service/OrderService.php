@@ -12,9 +12,9 @@ use Doctrine\ORM\EntityManagerInterface;
 class OrderService
 {
     private const TRANSITIONS = [
-        'pending'   => ['confirmed', 'cancelled'],
+        'pending' => ['confirmed', 'cancelled'],
         'confirmed' => ['shipped', 'cancelled'],
-        'shipped'   => ['delivered'],
+        'shipped' => ['delivered'],
         'delivered' => [],
         'cancelled' => [],
     ];
@@ -25,7 +25,8 @@ class OrderService
         private EntityManagerInterface $em,
         private MailService $mailService,
         private InteractionService $interactionService,
-    ) {}
+    ) {
+    }
 
     public function checkout(User $user, CheckoutRequest $dto): Order
     {
@@ -34,25 +35,25 @@ class OrderService
             throw new \RuntimeException('Your cart is empty', 400);
         }
 
-        if ($dto->addressId !== null) {
+        if (null !== $dto->addressId) {
             $address = $this->addressRepository->find($dto->addressId);
             if (!$address || $address->getUser()->getId() !== $user->getId()) {
                 throw new \RuntimeException('Address not found', 404);
             }
             $shippingAddress = json_encode([
-                'label'        => $address->getLabel(),
-                'street'       => $address->getStreet(),
-                'city'         => $address->getCity(),
-                'postalCode'   => $address->getPostalCode(),
-                'country'      => $address->getCountry(),
+                'label' => $address->getLabel(),
+                'street' => $address->getStreet(),
+                'city' => $address->getCity(),
+                'postalCode' => $address->getPostalCode(),
+                'country' => $address->getCountry(),
                 'contactPhone' => $dto->contactPhone,
             ]);
         } elseif ($dto->street && $dto->city && $dto->country) {
             $shippingAddress = json_encode([
-                'street'       => $dto->street,
-                'city'         => $dto->city,
-                'postalCode'   => $dto->postalCode,
-                'country'      => $dto->country,
+                'street' => $dto->street,
+                'city' => $dto->city,
+                'postalCode' => $dto->postalCode,
+                'country' => $dto->country,
                 'contactPhone' => $dto->contactPhone,
             ]);
         } else {
@@ -88,7 +89,7 @@ class OrderService
      */
     public function cancelOwnOrder(Order $order): Order
     {
-        if ($order->getStatus() !== 'pending') {
+        if ('pending' !== $order->getStatus()) {
             throw new \RuntimeException('Only pending orders can be cancelled', 400);
         }
 
@@ -101,10 +102,7 @@ class OrderService
         $allowed = self::TRANSITIONS[$current] ?? [];
 
         if (!in_array($newStatus, $allowed, true)) {
-            throw new \RuntimeException(
-                "Cannot move order from '{$current}' to '{$newStatus}'. Allowed: " . implode(', ', $allowed),
-                400
-            );
+            throw new \RuntimeException("Cannot move order from '{$current}' to '{$newStatus}'. Allowed: ".implode(', ', $allowed), 400);
         }
 
         $order->setStatus($newStatus);
@@ -112,9 +110,9 @@ class OrderService
         $this->em->flush();
 
         $this->mailService->sendSafely(function () use ($order, $newStatus) {
-            if ($newStatus === 'shipped') {
+            if ('shipped' === $newStatus) {
                 $this->mailService->sendOrderShipped($order);
-            } elseif ($newStatus === 'delivered') {
+            } elseif ('delivered' === $newStatus) {
                 $this->mailService->sendOrderDelivered($order);
             }
         });

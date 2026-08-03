@@ -22,9 +22,10 @@ class CategoryTree
         $dto->image = $category->getImage();
         $dto->seasonalMonths = $category->getSeasonalMonths();
         $dto->children = array_map(
-            fn(Category $child) => self::fromEntity($child),
+            fn (Category $child) => self::fromEntity($child),
             $category->getChildren()->toArray()
         );
+
         return $dto;
     }
 }

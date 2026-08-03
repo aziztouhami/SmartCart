@@ -11,7 +11,8 @@ class BrandService
 {
     public function __construct(
         private EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function create(CreateBrandRequest $dto): Brand
     {
@@ -31,20 +32,20 @@ class BrandService
 
     /**
      * @param array<string, mixed> $rawData decoded request body — used to detect explicit
-     *        null for image (key present but null, meaning "remove it") vs. the key being absent
+     *                                      null for image (key present but null, meaning "remove it") vs. the key being absent
      */
     public function update(Brand $brand, UpdateBrandRequest $dto, array $rawData = []): Brand
     {
-        if ($dto->name !== null) {
+        if (null !== $dto->name) {
             $brand->setName($dto->name);
         }
         if (array_key_exists('image', $rawData)) {
             $brand->setImage($dto->image);
         }
-        if ($dto->description !== null) {
+        if (null !== $dto->description) {
             $brand->setDescription($dto->description);
         }
-        if ($dto->joinedAt !== null) {
+        if (null !== $dto->joinedAt) {
             $brand->setJoinedAt(new \DateTimeImmutable($dto->joinedAt));
         }
 

@@ -32,13 +32,13 @@ class RecommendationAdminControllerTest extends WebTestCase
         $this->em->createQuery('DELETE FROM App\Entity\User')->execute();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName('Widget');
-        $product->setSlug('widget-' . uniqid());
+        $product->setSlug('widget-'.uniqid());
         $product->setPrice('10.00');
         $product->setStock(5);
         $product->setCategory($category);
@@ -64,7 +64,7 @@ class RecommendationAdminControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken];
     }
 
     public function testStatusForbiddenForNonAdmin(): void

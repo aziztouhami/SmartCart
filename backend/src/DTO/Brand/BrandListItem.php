@@ -20,16 +20,17 @@ class BrandListItem
     public static function fromEntity(Brand $brand, array $stats): self
     {
         $dto = new self();
-        $dto->id           = $brand->getId();
-        $dto->name         = $brand->getName();
-        $dto->image        = $brand->getImage();
-        $dto->description  = $brand->getDescription();
-        $dto->joinedAt     = $brand->getJoinedAt()->format(\DateTimeInterface::ATOM);
-        $dto->createdAt    = $brand->getCreatedAt()->format(\DateTimeInterface::ATOM);
+        $dto->id = $brand->getId();
+        $dto->name = $brand->getName();
+        $dto->image = $brand->getImage();
+        $dto->description = $brand->getDescription();
+        $dto->joinedAt = $brand->getJoinedAt()->format(\DateTimeInterface::ATOM);
+        $dto->createdAt = $brand->getCreatedAt()->format(\DateTimeInterface::ATOM);
         $dto->productCount = $stats['productCount'];
-        $dto->soldCount    = $stats['soldCount'];
-        $dto->revenue      = $stats['revenue'];
-        $dto->avgRating    = $stats['avgRating'];
+        $dto->soldCount = $stats['soldCount'];
+        $dto->revenue = $stats['revenue'];
+        $dto->avgRating = $stats['avgRating'];
+
         return $dto;
     }
 }

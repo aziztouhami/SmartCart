@@ -31,7 +31,8 @@ class GuestEventServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $service = new GuestEventService($em);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(400);
 
         $service->track('session-123', new Product(), 'bogus-type');
     }

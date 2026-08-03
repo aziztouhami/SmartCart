@@ -14,7 +14,8 @@ class AddressService
     public function __construct(
         private AddressRepository $addressRepository,
         private EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function create(User $user, CreateAddressRequest $dto): Address
     {
@@ -41,19 +42,33 @@ class AddressService
 
     public function update(Address $address, UpdateAddressRequest $dto, User $user): Address
     {
-        if ($dto->label !== null)      $address->setLabel($dto->label);
-        if ($dto->street !== null)     $address->setStreet($dto->street);
-        if ($dto->city !== null)       $address->setCity($dto->city);
-        if ($dto->postalCode !== null) $address->setPostalCode($dto->postalCode);
-        if ($dto->country !== null)    $address->setCountry($dto->country);
-        if ($dto->isDefault === true) {
+        if (null !== $dto->label) {
+            $address->setLabel($dto->label);
+        }
+        if (null !== $dto->street) {
+            $address->setStreet($dto->street);
+        }
+        if (null !== $dto->city) {
+            $address->setCity($dto->city);
+        }
+        if (null !== $dto->postalCode) {
+            $address->setPostalCode($dto->postalCode);
+        }
+        if (null !== $dto->country) {
+            $address->setCountry($dto->country);
+        }
+        if (true === $dto->isDefault) {
             $this->addressRepository->clearDefaultForUser($user);
             $address->setIsDefault(true);
-        } elseif ($dto->isDefault === false) {
+        } elseif (false === $dto->isDefault) {
             $address->setIsDefault(false);
         }
-        if ($dto->lat !== null) $address->setLatitude($dto->lat);
-        if ($dto->lng !== null) $address->setLongitude($dto->lng);
+        if (null !== $dto->lat) {
+            $address->setLatitude($dto->lat);
+        }
+        if (null !== $dto->lng) {
+            $address->setLongitude($dto->lng);
+        }
 
         $this->em->flush();
 

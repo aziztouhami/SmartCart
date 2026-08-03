@@ -48,6 +48,7 @@ class OrderItem
     public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -59,6 +60,7 @@ class OrderItem
     public function setPrice(string $price): self
     {
         $this->price = $price;
+
         return $this;
     }
 
@@ -70,6 +72,7 @@ class OrderItem
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -81,6 +84,7 @@ class OrderItem
     public function setOrder(?Order $order): self
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -92,6 +96,7 @@ class OrderItem
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 }

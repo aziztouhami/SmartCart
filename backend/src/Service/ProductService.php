@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\DTO\Product\CreateProductRequest;
 use App\DTO\Product\UpdateProductRequest;
+use App\DTO\Product\UpdateStockRequest;
 use App\Entity\Product;
 use App\Repository\BrandRepository;
 use App\Repository\CategoryRepository;
@@ -19,7 +20,8 @@ class ProductService
         private ProductTypeService $productTypeService,
         private EntityManagerInterface $em,
         private SlugService $slugService,
-    ) {}
+    ) {
+    }
 
     public function create(CreateProductRequest $dto): Product
     {
@@ -40,7 +42,7 @@ class ProductService
         $product->setImages($dto->images);
         $product->setSlug($this->slugService->generateProductSlug($dto->name));
 
-        if (property_exists($dto, 'brandId') && $dto->brandId !== null) {
+        if (property_exists($dto, 'brandId') && null !== $dto->brandId) {
             $brand = $this->brandRepository->find($dto->brandId);
             if (!$brand) {
                 throw new \RuntimeException('Brand not found', 404);
@@ -48,7 +50,7 @@ class ProductService
             $product->setBrand($brand);
         }
 
-        if ($dto->productTypeId !== null) {
+        if (null !== $dto->productTypeId) {
             $type = $this->productTypeRepository->find($dto->productTypeId);
             if (!$type) {
                 throw new \RuntimeException('Product type not found', 404);
@@ -65,23 +67,23 @@ class ProductService
 
     public function update(Product $product, UpdateProductRequest $dto): Product
     {
-        if ($dto->name !== null) {
+        if (null !== $dto->name) {
             $product->setName($dto->name);
             $product->setSlug($this->slugService->generateProductSlug($dto->name, $product->getId()));
         }
-        if ($dto->price !== null) {
+        if (null !== $dto->price) {
             $product->setPrice((string) $dto->price);
         }
-        if ($dto->stock !== null) {
+        if (null !== $dto->stock) {
             $product->setStock($dto->stock);
         }
-        if ($dto->description !== null) {
+        if (null !== $dto->description) {
             $product->setDescription($dto->description);
         }
-        if ($dto->images !== null) {
+        if (null !== $dto->images) {
             $product->setImages($dto->images);
         }
-        if ($dto->categoryId !== null) {
+        if (null !== $dto->categoryId) {
             $category = $this->categoryRepository->find($dto->categoryId);
             if (!$category) {
                 throw new \RuntimeException('Category not found', 404);
@@ -92,17 +94,17 @@ class ProductService
             $product->setCategory($category);
         }
 
-        if (property_exists($dto, 'brandId') && $dto->brandId !== null) {
+        if (property_exists($dto, 'brandId') && null !== $dto->brandId) {
             $brand = $this->brandRepository->find($dto->brandId);
             if (!$brand) {
                 throw new \RuntimeException('Brand not found', 404);
             }
             $product->setBrand($brand);
-        } elseif (property_exists($dto, 'brandId') && $dto->brandId === null && method_exists($product, 'setBrand')) {
+        } elseif (property_exists($dto, 'brandId') && null === $dto->brandId && method_exists($product, 'setBrand')) {
             $product->setBrand(null);
         }
 
-        if ($dto->productTypeId !== null) {
+        if (null !== $dto->productTypeId) {
             $type = $this->productTypeRepository->find($dto->productTypeId);
             if (!$type) {
                 throw new \RuntimeException('Product type not found', 404);
@@ -110,7 +112,7 @@ class ProductService
             $product->setProductType($type);
         }
 
-        if ($dto->attributes !== null) {
+        if (null !== $dto->attributes) {
             $type = $product->getProductType();
             if (!$type) {
                 throw new \RuntimeException('Assign a product type before setting its features', 400);
@@ -124,16 +126,15 @@ class ProductService
         return $product;
     }
 
-    public function updateStock(Product $product, array $data): Product
+    public function updateStock(Product $product, UpdateStockRequest $dto): Product
     {
-        if (array_key_exists('quantity', $data)) {
-            $qty = (int) $data['quantity'];
-            if ($qty < 0) {
+        if (null !== $dto->quantity) {
+            if ($dto->quantity < 0) {
                 throw new \RuntimeException('Stock cannot be negative', 400);
             }
-            $product->setStock($qty);
-        } elseif (array_key_exists('adjustment', $data)) {
-            $newStock = $product->getStock() + (int) $data['adjustment'];
+            $product->setStock($dto->quantity);
+        } elseif (null !== $dto->adjustment) {
+            $newStock = $product->getStock() + $dto->adjustment;
             if ($newStock < 0) {
                 throw new \RuntimeException('Adjustment would result in negative stock', 400);
             }

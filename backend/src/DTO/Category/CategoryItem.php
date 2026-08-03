@@ -22,6 +22,7 @@ class CategoryItem
         $dto->image = $category->getImage();
         $dto->parentId = $category->getParent()?->getId();
         $dto->productCount = $productCount;
+
         return $dto;
     }
 }

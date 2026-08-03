@@ -47,7 +47,7 @@ class BrandControllerTest extends WebTestCase
     {
         $brand = $this->createBrand('Acme');
 
-        $this->client->request('GET', '/api/brands/' . $brand->getId());
+        $this->client->request('GET', '/api/brands/'.$brand->getId());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

@@ -105,6 +105,8 @@ class AuthControllerTest extends WebTestCase
         ]));
 
         $this->assertResponseStatusCodeSame(403);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertSame('EMAIL_NOT_VERIFIED', $data['code']);
     }
 
     public function testMeRequiresAuthentication(): void
@@ -124,7 +126,7 @@ class AuthControllerTest extends WebTestCase
         ]));
         $token = json_decode($this->client->getResponse()->getContent(), true)['token'];
 
-        $this->client->request('GET', '/api/auth/me', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/auth/me', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

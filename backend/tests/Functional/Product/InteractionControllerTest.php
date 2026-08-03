@@ -30,13 +30,13 @@ class InteractionControllerTest extends WebTestCase
         $this->em->createQuery('DELETE FROM App\Entity\User')->execute();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $this->product = new Product();
         $this->product->setName('Widget');
-        $this->product->setSlug('widget-' . uniqid());
+        $this->product->setSlug('widget-'.uniqid());
         $this->product->setPrice('10.00');
         $this->product->setStock(5);
         $this->product->setCategory($category);
@@ -61,12 +61,12 @@ class InteractionControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->token, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token, 'CONTENT_TYPE' => 'application/json'];
     }
 
     public function testTrackRequiresAuthentication(): void
     {
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/interact', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/interact', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'type' => 'view',
         ]));
 
@@ -84,7 +84,7 @@ class InteractionControllerTest extends WebTestCase
 
     public function testTrackRecordsViewInteraction(): void
     {
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/interact', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/interact', server: $this->headers(), content: json_encode([
             'type' => 'view',
         ]));
 
@@ -96,7 +96,7 @@ class InteractionControllerTest extends WebTestCase
 
     public function testTrackRejectsInvalidType(): void
     {
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/interact', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/interact', server: $this->headers(), content: json_encode([
             'type' => 'bogus-type',
         ]));
 

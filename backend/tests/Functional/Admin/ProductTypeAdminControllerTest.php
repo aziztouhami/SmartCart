@@ -51,14 +51,14 @@ class ProductTypeAdminControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken, 'CONTENT_TYPE' => 'application/json'];
     }
 
     private function createType(string $name = 'Smartwatch'): ProductType
     {
         $type = new ProductType();
         $type->setName($name);
-        $type->setSlug(strtolower($name) . '-' . uniqid());
+        $type->setSlug(strtolower($name).'-'.uniqid());
         $this->em->persist($type);
         $this->em->flush();
 
@@ -120,7 +120,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
     {
         $type = $this->createType('Old Name');
 
-        $this->client->request('PUT', '/api/admin/product-types/' . $type->getId(), server: $this->headers(), content: json_encode([
+        $this->client->request('PUT', '/api/admin/product-types/'.$type->getId(), server: $this->headers(), content: json_encode([
             'name' => 'New Name',
         ]));
 
@@ -142,7 +142,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
     {
         $type = $this->createType();
 
-        $this->client->request('POST', '/api/admin/product-types/' . $type->getId() . '/attributes', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/admin/product-types/'.$type->getId().'/attributes', server: $this->headers(), content: json_encode([
             'name' => 'Strap Material',
             'dataType' => 'text',
         ]));
@@ -163,7 +163,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
         $this->em->persist($attribute);
         $this->em->flush();
 
-        $this->client->request('POST', '/api/admin/product-types/' . $type->getId() . '/attributes', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/admin/product-types/'.$type->getId().'/attributes', server: $this->headers(), content: json_encode([
             'name' => 'Color',
             'dataType' => 'text',
         ]));
@@ -182,7 +182,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
         $this->em->persist($attribute);
         $this->em->flush();
 
-        $this->client->request('DELETE', '/api/admin/product-types/' . $type->getId() . '/attributes/' . $attribute->getId(), server: $this->headers());
+        $this->client->request('DELETE', '/api/admin/product-types/'.$type->getId().'/attributes/'.$attribute->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -193,7 +193,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
     {
         $type = $this->createType();
 
-        $this->client->request('DELETE', '/api/admin/product-types/' . $type->getId() . '/attributes/999999', server: $this->headers());
+        $this->client->request('DELETE', '/api/admin/product-types/'.$type->getId().'/attributes/999999', server: $this->headers());
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -202,7 +202,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
     {
         $type = $this->createType();
 
-        $this->client->request('DELETE', '/api/admin/product-types/' . $type->getId(), server: $this->headers());
+        $this->client->request('DELETE', '/api/admin/product-types/'.$type->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(204);
     }
@@ -212,13 +212,13 @@ class ProductTypeAdminControllerTest extends WebTestCase
         $type = $this->createType();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName('Widget');
-        $product->setSlug('widget-' . uniqid());
+        $product->setSlug('widget-'.uniqid());
         $product->setPrice('10.00');
         $product->setStock(5);
         $product->setCategory($category);
@@ -226,7 +226,7 @@ class ProductTypeAdminControllerTest extends WebTestCase
         $this->em->persist($product);
         $this->em->flush();
 
-        $this->client->request('DELETE', '/api/admin/product-types/' . $type->getId(), server: $this->headers());
+        $this->client->request('DELETE', '/api/admin/product-types/'.$type->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(409);
     }

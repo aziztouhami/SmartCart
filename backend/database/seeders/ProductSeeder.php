@@ -17,149 +17,151 @@ class ProductSeeder extends Fixture implements DependentFixtureInterface
     private const BRAND_IMAGES_BASE_URL = 'http://localhost:8000/uploads/brands';
 
     private const BRAND_IMAGE_FILES = [
-        'apple'      => 'apple.png',
-        'samsung'    => 'samsung.png',
-        'xiaomi'     => 'xiaomi.png',
-        'lenovo'     => 'lenovo.png',
-        'hp'         => 'hp.png',
-        'asus'       => 'asus.jpg',
-        'sony'       => 'sony.png',
-        'levis'      => 'levi-s.png',
-        'nike'       => 'nike.jpg',
-        'mango'      => 'mango.png',
-        'adidas'     => 'adidas.png',
-        'casio'      => 'casio.jpg',
-        'seiko'      => 'seiko.png',
-        'ikea'       => 'ikea.png',
-        'philips'    => 'philips.png',
-        'moulinex'   => 'moulinex.png',
-        'cerave'     => 'cerave.png',
+        'apple' => 'apple.png',
+        'samsung' => 'samsung.png',
+        'xiaomi' => 'xiaomi.png',
+        'lenovo' => 'lenovo.png',
+        'hp' => 'hp.png',
+        'asus' => 'asus.jpg',
+        'sony' => 'sony.png',
+        'levis' => 'levi-s.png',
+        'nike' => 'nike.jpg',
+        'mango' => 'mango.png',
+        'adidas' => 'adidas.png',
+        'casio' => 'casio.jpg',
+        'seiko' => 'seiko.png',
+        'ikea' => 'ikea.png',
+        'philips' => 'philips.png',
+        'moulinex' => 'moulinex.png',
+        'cerave' => 'cerave.png',
         'maybelline' => 'maybelline.jpg',
-        'dior'       => 'dior.png',
-        'rockrider'  => 'rockrider.webp',
-        'ea-sports'  => 'ea-sports.png',
-        'marvel'     => 'marvel.png',
-        'michelin'   => 'michelin.jpg',
-        'pioneer'    => 'pioneer.png',
-        'pringles'   => 'pringles.png',
-        'lavazza'    => 'lavazza.png',
-        'lipton'     => 'lipton.png',
-        'pedigree'   => 'pedigree.png',
-        'whiskas'    => 'whiskas.png',
+        'dior' => 'dior.png',
+        'rockrider' => 'rockrider.webp',
+        'ea-sports' => 'ea-sports.png',
+        'marvel' => 'marvel.png',
+        'michelin' => 'michelin.jpg',
+        'pioneer' => 'pioneer.png',
+        'pringles' => 'pringles.png',
+        'lavazza' => 'lavazza.png',
+        'lipton' => 'lipton.png',
+        'pedigree' => 'pedigree.png',
+        'whiskas' => 'whiskas.png',
     ];
 
+    // Number of image files available per product slug, named "{slug}-1.{ext}", "{slug}-2.{ext}", ...
+    // in public/uploads/products/. A slug absent from this map has no seeded image.
     private const IMAGE_EXTENSIONS = [
-        '5-sports-automatic' => 'jpeg',
-        '501-original-jeans' => 'jpg',
-        'adjustable-dumbbell-set-20kg' => 'jpg',
-        'adult-cat-food-1-9kg' => 'jpg',
-        'adult-dog-food-3kg' => 'jpg',
-        'air-force-1' => 'jpg',
-        'air-fryer-essential-xl' => 'jpg',
-        'airpods-pro-2nd-gen' => 'jpg',
-        'al-rihla-football' => 'jpg',
-        'blendforce-blender' => 'png',
-        'car-floor-mats-set' => 'jpg',
-        'clean-code' => 'jpg',
-        'decorative-wall-mirror' => 'jpg',
-        'edifice-efv-100d' => 'png',
-        'fc-26-ps5' => 'jpg',
-        'fit-me-foundation' => 'jpeg',
-        'galaxy-s24-128gb' => 'jpg',
-        'galaxy-watch-7' => 'jpg',
-        'grand-court-2-0' => 'jpg',
-        'ideapad-slim-3' => 'jpg',
-        'iphone-15-128gb' => 'jpg',
-        'linnmon-desk' => 'jpg',
-        'malm-bed-frame' => 'jpg',
-        'moisturizing-cream-340g' => 'png',
-        'original-crisps-165g' => 'png',
-        'pavilion-15' => 'jpg',
-        'qualita-rossa-ground-coffee-250g' => 'jpg',
-        'redmi-note-13-pro' => 'jpg',
-        'sauvage-eau-de-toilette-100ml' => 'jpg',
-        'spider-man-figure-30cm' => 'jpg',
-        'sportswear-club-t-shirt' => 'jpg',
-        'st100-mountain-bike' => 'jpg',
-        'the-alchemist' => 'jpeg',
-        'vivobook-15' => 'jpg',
-        'watch-series-9' => 'jpg',
-        'wh-1000xm5' => 'jpg',
-        'yellow-label-tea-100-bags' => 'jpg',
+        '5-sports-automatic' => ['png'],
+        '501-original-jeans' => ['jpg', 'jpg'],
+        'adjustable-dumbbell-set-20kg' => ['jpg'],
+        'adult-cat-food-1-9kg' => ['avif', 'avif', 'avif'],
+        'adult-dog-food-3kg' => ['png'],
+        'air-force-1' => ['jpg'],
+        'air-fryer-essential-xl' => ['webp'],
+        'airpods-pro-2nd-gen' => ['avif'],
+        'al-rihla-football' => ['avif', 'avif', 'avif', 'avif'],
+        'blendforce-blender' => ['webp'],
+        'car-floor-mats-set' => ['webp', 'jpg'],
+        'clean-code' => ['webp'],
+        'decorative-wall-mirror' => ['png'],
+        'edifice-efv-100d' => ['avif'],
+        'fc-26-ps5' => ['webp'],
+        'fit-me-foundation' => ['avif'],
+        'galaxy-s24-128gb' => ['avif'],
+        'galaxy-watch-7' => ['avif'],
+        'grand-court-2-0' => ['avif', 'jpg'],
+        'ideapad-slim-3' => ['webp', 'png', 'png'],
+        'iphone-15-128gb' => ['jpg'],
+        'linnmon-desk' => ['avif'],
+        'malm-bed-frame' => ['avif'],
+        'moisturizing-cream-340g' => ['jpg'],
+        'original-crisps-165g' => ['webp'],
+        'pavilion-15' => ['avif', 'avif', 'avif'],
+        'qualita-rossa-ground-coffee-250g' => ['png', 'webp'],
+        'redmi-note-13-pro' => ['jpg'],
+        'sauvage-eau-de-toilette-100ml' => ['jpg', 'webp'],
+        'spider-man-figure-30cm' => ['jpg', 'webp'],
+        'sportswear-club-t-shirt' => ['webp'],
+        'st100-mountain-bike' => ['jpeg', 'jpeg'],
+        'the-alchemist' => ['webp', 'jpg'],
+        'vivobook-15' => ['webp', 'webp', 'webp', 'webp', 'webp', 'webp'],
+        'watch-series-9' => ['jpg'],
+        'wh-1000xm5' => ['webp'],
+        'yellow-label-tea-100-bags' => ['webp'],
     ];
 
     private const BRAND_DESCRIPTIONS = [
-        'apple'      => 'American technology company known for the iPhone, Mac, and a design-first approach to consumer electronics.',
-        'samsung'    => 'South Korean electronics giant making smartphones, TVs, and home appliances for markets worldwide.',
-        'xiaomi'     => 'Chinese consumer electronics brand offering high-spec smartphones and gadgets at competitive prices.',
-        'lenovo'     => 'Global computer manufacturer recognized for reliable laptops built for work and everyday use.',
-        'hp'         => 'Long-standing American computer and printer maker offering laptops for home, business, and gaming.',
-        'asus'       => 'Taiwanese electronics company known for performance-driven laptops and computer hardware.',
-        'sony'       => 'Japanese electronics and entertainment company renowned for premium audio and imaging technology.',
-        'levis'      => 'Iconic American denim brand and inventor of the blue jean, in production since 1853.',
-        'nike'       => 'Global sportswear leader supplying footwear, apparel, and equipment for athletes everywhere.',
-        'mango'      => 'Spanish fashion brand offering contemporary, Mediterranean-inspired clothing for women and men.',
-        'adidas'     => 'German sportswear company delivering performance footwear and apparel across sports and street style.',
-        'casio'      => 'Japanese electronics maker famous for durable, affordable watches and calculators.',
-        'seiko'      => 'Japanese watchmaker with a century-long legacy of precision and innovative timekeeping.',
-        'ikea'       => 'Swedish furniture retailer known for affordable, functional, flat-pack home furnishings.',
-        'philips'    => 'Dutch electronics company producing dependable home appliances and personal care devices.',
-        'moulinex'   => 'French kitchen appliance brand trusted for blenders, mixers, and everyday cooking tools.',
-        'cerave'     => 'Dermatologist-developed skincare brand formulated with ceramides to restore the skin barrier.',
+        'apple' => 'American technology company known for the iPhone, Mac, and a design-first approach to consumer electronics.',
+        'samsung' => 'South Korean electronics giant making smartphones, TVs, and home appliances for markets worldwide.',
+        'xiaomi' => 'Chinese consumer electronics brand offering high-spec smartphones and gadgets at competitive prices.',
+        'lenovo' => 'Global computer manufacturer recognized for reliable laptops built for work and everyday use.',
+        'hp' => 'Long-standing American computer and printer maker offering laptops for home, business, and gaming.',
+        'asus' => 'Taiwanese electronics company known for performance-driven laptops and computer hardware.',
+        'sony' => 'Japanese electronics and entertainment company renowned for premium audio and imaging technology.',
+        'levis' => 'Iconic American denim brand and inventor of the blue jean, in production since 1853.',
+        'nike' => 'Global sportswear leader supplying footwear, apparel, and equipment for athletes everywhere.',
+        'mango' => 'Spanish fashion brand offering contemporary, Mediterranean-inspired clothing for women and men.',
+        'adidas' => 'German sportswear company delivering performance footwear and apparel across sports and street style.',
+        'casio' => 'Japanese electronics maker famous for durable, affordable watches and calculators.',
+        'seiko' => 'Japanese watchmaker with a century-long legacy of precision and innovative timekeeping.',
+        'ikea' => 'Swedish furniture retailer known for affordable, functional, flat-pack home furnishings.',
+        'philips' => 'Dutch electronics company producing dependable home appliances and personal care devices.',
+        'moulinex' => 'French kitchen appliance brand trusted for blenders, mixers, and everyday cooking tools.',
+        'cerave' => 'Dermatologist-developed skincare brand formulated with ceramides to restore the skin barrier.',
         'maybelline' => 'American cosmetics brand offering accessible, trend-driven makeup for every look.',
-        'dior'       => 'French luxury house celebrated for haute couture fashion and iconic fragrances.',
-        'rockrider'  => "Decathlon's in-house mountain bike brand, built for trail riders of every level.",
-        'ea-sports'  => 'Video game label specializing in realistic, officially licensed sports simulations.',
-        'marvel'     => 'American entertainment brand behind iconic superheroes and collectible action figures.',
-        'michelin'   => 'French tyre manufacturer also producing durable automotive accessories and travel guides.',
-        'pioneer'    => 'Japanese electronics brand specializing in car audio and multimedia systems.',
-        'pringles'   => 'American snack brand known for its distinctively stackable, canned potato crisps.',
-        'lavazza'    => 'Italian coffee roaster crafting rich espresso and ground coffee blends since 1895.',
-        'lipton'     => 'World-renowned tea brand offering classic black teas and refreshing blends.',
-        'pedigree'   => 'Trusted pet food brand formulating complete, balanced nutrition for dogs.',
-        'whiskas'    => 'Popular pet food brand providing balanced, tasty nutrition for cats of every age.',
+        'dior' => 'French luxury house celebrated for haute couture fashion and iconic fragrances.',
+        'rockrider' => "Decathlon's in-house mountain bike brand, built for trail riders of every level.",
+        'ea-sports' => 'Video game label specializing in realistic, officially licensed sports simulations.',
+        'marvel' => 'American entertainment brand behind iconic superheroes and collectible action figures.',
+        'michelin' => 'French tyre manufacturer also producing durable automotive accessories and travel guides.',
+        'pioneer' => 'Japanese electronics brand specializing in car audio and multimedia systems.',
+        'pringles' => 'American snack brand known for its distinctively stackable, canned potato crisps.',
+        'lavazza' => 'Italian coffee roaster crafting rich espresso and ground coffee blends since 1895.',
+        'lipton' => 'World-renowned tea brand offering classic black teas and refreshing blends.',
+        'pedigree' => 'Trusted pet food brand formulating complete, balanced nutrition for dogs.',
+        'whiskas' => 'Popular pet food brand providing balanced, tasty nutrition for cats of every age.',
     ];
 
     public function load(ObjectManager $manager): void
     {
         // ── Brands ────────────────────────────────────────────────────────────
         $brandNames = [
-            'apple'      => 'Apple',
-            'samsung'    => 'Samsung',
-            'xiaomi'     => 'Xiaomi',
-            'lenovo'     => 'Lenovo',
-            'hp'         => 'HP',
-            'asus'       => 'ASUS',
-            'sony'       => 'Sony',
-            'levis'      => "Levi's",
-            'nike'       => 'Nike',
-            'mango'      => 'Mango',
-            'adidas'     => 'Adidas',
-            'casio'      => 'Casio',
-            'seiko'      => 'Seiko',
-            'ikea'       => 'IKEA',
-            'philips'    => 'Philips',
-            'moulinex'   => 'Moulinex',
-            'cerave'     => 'CeraVe',
+            'apple' => 'Apple',
+            'samsung' => 'Samsung',
+            'xiaomi' => 'Xiaomi',
+            'lenovo' => 'Lenovo',
+            'hp' => 'HP',
+            'asus' => 'ASUS',
+            'sony' => 'Sony',
+            'levis' => "Levi's",
+            'nike' => 'Nike',
+            'mango' => 'Mango',
+            'adidas' => 'Adidas',
+            'casio' => 'Casio',
+            'seiko' => 'Seiko',
+            'ikea' => 'IKEA',
+            'philips' => 'Philips',
+            'moulinex' => 'Moulinex',
+            'cerave' => 'CeraVe',
             'maybelline' => 'Maybelline',
-            'dior'       => 'Dior',
-            'rockrider'  => 'Rockrider',
-            'ea-sports'  => 'EA Sports',
-            'marvel'     => 'Marvel',
-            'michelin'   => 'Michelin',
-            'pioneer'    => 'Pioneer',
-            'pringles'   => 'Pringles',
-            'lavazza'    => 'Lavazza',
-            'lipton'     => 'Lipton',
-            'pedigree'   => 'Pedigree',
-            'whiskas'    => 'Whiskas',
+            'dior' => 'Dior',
+            'rockrider' => 'Rockrider',
+            'ea-sports' => 'EA Sports',
+            'marvel' => 'Marvel',
+            'michelin' => 'Michelin',
+            'pioneer' => 'Pioneer',
+            'pringles' => 'Pringles',
+            'lavazza' => 'Lavazza',
+            'lipton' => 'Lipton',
+            'pedigree' => 'Pedigree',
+            'whiskas' => 'Whiskas',
         ];
 
         $brands = [];
         foreach ($brandNames as $key => $name) {
             $brand = new Brand();
             $brand->setName($name);
-            $brand->setImage(self::BRAND_IMAGES_BASE_URL . '/' . self::BRAND_IMAGE_FILES[$key]);
+            $brand->setImage(self::BRAND_IMAGES_BASE_URL.'/'.self::BRAND_IMAGE_FILES[$key]);
             $brand->setDescription(self::BRAND_DESCRIPTIONS[$key] ?? null);
             $brand->setJoinedAt(new \DateTimeImmutable());
             $manager->persist($brand);
@@ -280,13 +282,18 @@ class ProductSeeder extends Fixture implements DependentFixtureInterface
             $product->setPrice($price);
             $product->setStock($stock);
             $product->setDescription($description);
-            $product->setCategory($this->getReference('category-' . $categorySlug, Category::class));
-            $product->setImages([self::IMAGES_BASE_URL . '/' . $slug . '.' . self::IMAGE_EXTENSIONS[$slug]]);
-            if ($brandKey !== null) {
+            $product->setCategory($this->getReference('category-'.$categorySlug, Category::class));
+
+            $images = [];
+            foreach (self::IMAGE_EXTENSIONS[$slug] ?? [] as $i => $ext) {
+                $images[] = self::IMAGES_BASE_URL.'/'.$slug.'-'.($i + 1).'.'.$ext;
+            }
+            $product->setImages($images);
+            if (null !== $brandKey) {
                 $product->setBrand($brands[$brandKey]);
             }
-            if ($typeKey !== null) {
-                $product->setProductType($this->getReference('product-type-' . $typeKey, ProductType::class));
+            if (null !== $typeKey) {
+                $product->setProductType($this->getReference('product-type-'.$typeKey, ProductType::class));
                 $product->setAttributes($attributes);
             }
 
@@ -306,6 +313,7 @@ class ProductSeeder extends Fixture implements DependentFixtureInterface
         $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
         $text = strtolower($text);
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+
         return trim($text, '-');
     }
 }

@@ -34,7 +34,8 @@ class InteractionServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $service = new InteractionService($em);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(400);
 
         $service->track(new User(), new Product(), 'bogus-type', null);
     }

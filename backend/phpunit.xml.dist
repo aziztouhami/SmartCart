@@ -7,7 +7,26 @@
     <php>
         <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
-        <server name="APP_ENV" value="test" force="true" />
+        <!--
+            These must be <env> (not <server>) with force="true": docker-compose.yml injects
+            APP_ENV/APP_DEBUG/DATABASE_URL/MAILER_DSN as real container environment variables
+            for the backend service, and Dotenv correctly never lets .env.test's file values
+            override a real external env var — so without forcing them here, functional tests
+            silently ran against the dev database instead of the isolated test one.
+        -->
+        <env name="KERNEL_CLASS" value="App\Kernel" force="true" />
+        <env name="APP_ENV" value="test" force="true" />
+        <env name="APP_DEBUG" value="0" force="true" />
+        <env name="DATABASE_URL" value="postgresql://scu:scp@postgres:5432/scdb_test?serverVersion=15&amp;charset=utf8" force="true" />
+        <env name="MAILER_DSN" value="null://null" force="true" />
+        <!--
+            Same principle as MAILER_DSN above: tests must be deterministic
+            regardless of what a developer has configured in the root .env for
+            their own manual Ollama testing. Forcing this blank keeps the
+            AnalyticsAdminController "AI not configured" 503 tests reliable
+            even when a real OLLAMA_MODEL is set for local dev use.
+        -->
+        <env name="OLLAMA_MODEL" value="" force="true" />
         <server name="SHELL_VERBOSITY" value="-1" />
     </php>
 

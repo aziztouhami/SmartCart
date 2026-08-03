@@ -49,34 +49,121 @@ class Address
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getLabel(): ?string { return $this->label; }
-    public function setLabel(string $label): self { $this->label = $label; return $this; }
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
 
-    public function getStreet(): ?string { return $this->street; }
-    public function setStreet(string $street): self { $this->street = $street; return $this; }
+    public function setLabel(string $label): self
+    {
+        $this->label = $label;
 
-    public function getCity(): ?string { return $this->city; }
-    public function setCity(string $city): self { $this->city = $city; return $this; }
+        return $this;
+    }
 
-    public function getPostalCode(): ?string { return $this->postalCode; }
-    public function setPostalCode(?string $postalCode): self { $this->postalCode = $postalCode; return $this; }
+    public function getStreet(): ?string
+    {
+        return $this->street;
+    }
 
-    public function getCountry(): ?string { return $this->country; }
-    public function setCountry(string $country): self { $this->country = $country; return $this; }
+    public function setStreet(string $street): self
+    {
+        $this->street = $street;
 
-    public function isDefault(): bool { return $this->isDefault; }
-    public function setIsDefault(bool $isDefault): self { $this->isDefault = $isDefault; return $this; }
+        return $this;
+    }
 
-    public function getLatitude(): ?float { return $this->latitude; }
-    public function setLatitude(?float $latitude): self { $this->latitude = $latitude; return $this; }
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
 
-    public function getLongitude(): ?float { return $this->longitude; }
-    public function setLongitude(?float $longitude): self { $this->longitude = $longitude; return $this; }
+    public function setCity(string $city): self
+    {
+        $this->city = $city;
 
-    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+        return $this;
+    }
 
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
+    public function getPostalCode(): ?string
+    {
+        return $this->postalCode;
+    }
+
+    public function setPostalCode(?string $postalCode): self
+    {
+        $this->postalCode = $postalCode;
+
+        return $this;
+    }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(string $country): self
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function isDefault(): bool
+    {
+        return $this->isDefault;
+    }
+
+    public function setIsDefault(bool $isDefault): self
+    {
+        $this->isDefault = $isDefault;
+
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?float $latitude): self
+    {
+        $this->latitude = $latitude;
+
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?float $longitude): self
+    {
+        $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 }

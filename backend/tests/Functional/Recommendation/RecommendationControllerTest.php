@@ -29,13 +29,13 @@ class RecommendationControllerTest extends WebTestCase
     private function createProduct(string $name, int $stock = 5): Product
     {
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $product = new Product();
         $product->setName($name);
-        $product->setSlug('product-' . uniqid());
+        $product->setSlug('product-'.uniqid());
         $product->setPrice('10.00');
         $product->setStock($stock);
         $product->setCategory($category);
@@ -58,7 +58,7 @@ class RecommendationControllerTest extends WebTestCase
     {
         $product = $this->createProduct('Widget');
 
-        $this->client->request('GET', '/api/recommendations/product/' . $product->getId());
+        $this->client->request('GET', '/api/recommendations/product/'.$product->getId());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

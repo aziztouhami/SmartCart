@@ -22,6 +22,7 @@ class SeasonalBoostService
         }
 
         $currentMonth = (int) ($now ?? new \DateTimeImmutable())->format('n');
+
         return in_array($currentMonth, $months, true);
     }
 }

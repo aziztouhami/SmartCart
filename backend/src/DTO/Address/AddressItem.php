@@ -30,6 +30,7 @@ class AddressItem
         $dto->lat = $address->getLatitude();
         $dto->lng = $address->getLongitude();
         $dto->createdAt = $address->getCreatedAt()->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

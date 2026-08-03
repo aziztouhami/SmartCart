@@ -22,6 +22,7 @@ class OrderListItem
         $dto->itemCount = $order->getOrderItems()->count();
         $dto->createdAt = $order->getCreatedAt()->format(\DateTimeInterface::ATOM);
         $dto->updatedAt = $order->getUpdatedAt()?->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

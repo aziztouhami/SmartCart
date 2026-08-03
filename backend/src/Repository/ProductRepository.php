@@ -40,7 +40,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find products by category
+     * Find products by category.
      */
     public function findByCategory(int $categoryId, int $limit = 10, int $offset = 0): array
     {
@@ -55,13 +55,13 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search products by name or description
+     * Search products by name or description.
      */
     public function search(string $query, int $limit = 10): array
     {
         return $this->createQueryBuilder('p')
             ->where('p.name LIKE :query OR p.description LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
+            ->setParameter('query', '%'.$query.'%')
             ->setMaxResults($limit)
             ->orderBy('p.createdAt', 'DESC')
             ->getQuery()
@@ -76,6 +76,7 @@ class ProductRepository extends ServiceEntityRepository
      * keywords, so this deliberately uses OR across both words and fields.
      *
      * @param string[] $keywords
+     *
      * @return Product[]
      */
     public function findByAnyKeyword(array $keywords, int $limit = 6): array
@@ -97,7 +98,7 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($keywords as $i => $word) {
             $key = "kw{$i}";
             $orConditions[] = "LOWER(p.name) LIKE :{$key} OR LOWER(p.description) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}";
-            $qb->setParameter($key, '%' . mb_strtolower($word) . '%');
+            $qb->setParameter($key, '%'.mb_strtolower($word).'%');
         }
         $qb->andWhere(implode(' OR ', $orConditions));
 
@@ -112,6 +113,7 @@ class ProductRepository extends ServiceEntityRepository
      * Used by the chatbot's contextual fallback search.
      *
      * @param int[] $categoryIds
+     *
      * @return Product[]
      */
     public function findByCategoryIds(array $categoryIds, int $limit = 6): array
@@ -129,7 +131,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find products in stock
+     * Find products in stock.
      */
     public function findInStock(int $limit = 10, int $offset = 0): array
     {
@@ -145,10 +147,10 @@ class ProductRepository extends ServiceEntityRepository
     private const ALLOWED_SORTS = ['name', 'price', 'createdAt', 'rating', 'popularity'];
 
     /**
-     * Find products with optional filters, sorting and pagination
+     * Find products with optional filters, sorting and pagination.
      *
      * @param array<string, string>|null $attributes feature filters, keyed by
-     *        ProductTypeAttribute slug (e.g. ['color' => 'Black', 'ram' => '8GB'])
+     *                                               ProductTypeAttribute slug (e.g. ['color' => 'Black', 'ram' => '8GB'])
      */
     public function findWithFilters(
         ?string $search = null,
@@ -167,9 +169,9 @@ class ProductRepository extends ServiceEntityRepository
         $qb = $this->buildFilterQuery($search, $categoryId, $minPrice, $maxPrice, $inStock, $brandId, $productTypeId, $attributes);
 
         $sortBy = in_array($sortBy, self::ALLOWED_SORTS, true) ? $sortBy : 'createdAt';
-        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+        $sortOrder = 'ASC' === strtoupper($sortOrder) ? 'ASC' : 'DESC';
 
-        if ($sortBy === 'rating') {
+        if ('rating' === $sortBy) {
             // COALESCE to 0 so unrated products sort as "worst" rather than
             // landing first under DESC (Postgres puts NULLs first by default
             // on DESC, which would otherwise outrank every 5-star product).
@@ -177,7 +179,7 @@ class ProductRepository extends ServiceEntityRepository
                 ->addSelect('COALESCE(AVG(rv.rating), 0) AS HIDDEN avgRating')
                 ->groupBy('p.id, c.id, b.id, t.id')
                 ->orderBy('avgRating', $sortOrder);
-        } elseif ($sortBy === 'popularity') {
+        } elseif ('popularity' === $sortBy) {
             // Total units across all order rows regardless of status — a
             // rough "most popular" signal, not the precise revenue-grade
             // figure getTopSelling() computes for admin reporting.
@@ -186,7 +188,7 @@ class ProductRepository extends ServiceEntityRepository
                 ->groupBy('p.id, c.id, b.id, t.id')
                 ->orderBy('totalSold', $sortOrder);
         } else {
-            $qb->orderBy('p.' . $sortBy, $sortOrder);
+            $qb->orderBy('p.'.$sortBy, $sortOrder);
         }
 
         return $qb
@@ -197,7 +199,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count products matching the same filters (for pagination metadata)
+     * Count products matching the same filters (for pagination metadata).
      *
      * @param array<string, string>|null $attributes
      */
@@ -241,13 +243,13 @@ class ProductRepository extends ServiceEntityRepository
             ->addSelect(
                 'CASE WHEN LOWER(p.name) LIKE :sw THEN 1 WHEN LOWER(p.name) LIKE :co THEN 2 ELSE 3 END AS HIDDEN tier'
             )
-            ->setParameter('sw', $lower . '%')
-            ->setParameter('co', '%' . $lower . '%');
+            ->setParameter('sw', $lower.'%')
+            ->setParameter('co', '%'.$lower.'%');
 
         foreach ($words as $i => $word) {
-            $key = 'w' . $i;
+            $key = 'w'.$i;
             $qb->andWhere("LOWER(p.name) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}")
-               ->setParameter($key, '%' . $word . '%');
+               ->setParameter($key, '%'.$word.'%');
         }
 
         $products = $qb
@@ -262,17 +264,17 @@ class ProductRepository extends ServiceEntityRepository
         $limits = ['nameStart' => 5, 'nameContains' => 4, 'byBrand' => 3, 'byCategory' => 3];
 
         foreach ($products as $product) {
-            $name  = mb_strtolower($product->getName() ?? '');
-            $brand = $product->getBrand()    ? mb_strtolower($product->getBrand()->getName()    ?? '') : '';
-            $cat   = $product->getCategory() ? mb_strtolower($product->getCategory()->getName() ?? '') : '';
+            $name = mb_strtolower($product->getName() ?? '');
+            $brand = $product->getBrand() ? mb_strtolower($product->getBrand()->getName() ?? '') : '';
+            $cat = $product->getCategory() ? mb_strtolower($product->getCategory()->getName() ?? '') : '';
 
             if (str_starts_with($name, $lower)) {
                 $key = 'nameStart';
             } elseif (str_contains($name, $lower)) {
                 $key = 'nameContains';
-            } elseif ($brand !== '' && str_contains($brand, $lower)) {
+            } elseif ('' !== $brand && str_contains($brand, $lower)) {
                 $key = 'byBrand';
-            } elseif ($cat !== '' && str_contains($cat, $lower)) {
+            } elseif ('' !== $cat && str_contains($cat, $lower)) {
                 $key = 'byCategory';
             } else {
                 // multi-word query matched across different fields — put in nameContains
@@ -306,44 +308,44 @@ class ProductRepository extends ServiceEntityRepository
             ->leftJoin('p.productType', 't')
             ->addSelect('p, c, b, t');
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $words = array_values(array_filter(preg_split('/\s+/', trim($search))));
             if (!empty($words)) {
                 foreach ($words as $i => $word) {
-                    $key = 'sw' . $i;
+                    $key = 'sw'.$i;
                     $qb->andWhere(
                         "LOWER(p.name) LIKE :{$key} OR LOWER(c.name) LIKE :{$key} OR LOWER(b.name) LIKE :{$key}"
-                    )->setParameter($key, '%' . mb_strtolower($word) . '%');
+                    )->setParameter($key, '%'.mb_strtolower($word).'%');
                 }
             }
         }
 
-        if ($categoryId !== null) {
+        if (null !== $categoryId) {
             // Match products directly in the category OR in any child of the category
             $qb->andWhere('p.category = :cid OR IDENTITY(c.parent) = :cid')
                 ->setParameter('cid', $categoryId);
         }
 
-        if ($minPrice !== null) {
+        if (null !== $minPrice) {
             $qb->andWhere('p.price >= :minPrice')
                 ->setParameter('minPrice', $minPrice);
         }
 
-        if ($maxPrice !== null) {
+        if (null !== $maxPrice) {
             $qb->andWhere('p.price <= :maxPrice')
                 ->setParameter('maxPrice', $maxPrice);
         }
 
-        if ($inStock === true) {
+        if (true === $inStock) {
             $qb->andWhere('p.stock > 0');
         }
 
-        if ($brandId !== null) {
+        if (null !== $brandId) {
             $qb->andWhere('p.brand = :brandId')
                 ->setParameter('brandId', $brandId);
         }
 
-        if ($productTypeId !== null) {
+        if (null !== $productTypeId) {
             $qb->andWhere('p.productType = :productTypeId')
                 ->setParameter('productTypeId', $productTypeId);
         }
@@ -368,6 +370,7 @@ class ProductRepository extends ServiceEntityRepository
      * pagination/sorting/joins work normally on the result.
      *
      * @param array<string, string> $attributes
+     *
      * @return int[]
      */
     private function findIdsMatchingAttributes(array $attributes): array
@@ -383,11 +386,11 @@ class ProductRepository extends ServiceEntityRepository
             $conditions[] = "attributes->>:{$key} = :{$valKey}";
             $params[$key] = $slug;
             $params[$valKey] = (string) $value;
-            $i++;
+            ++$i;
         }
 
         $rows = $conn->fetchAllAssociative(
-            'SELECT id FROM product WHERE ' . implode(' AND ', $conditions),
+            'SELECT id FROM product WHERE '.implode(' AND ', $conditions),
             $params
         );
 
@@ -441,7 +444,7 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($brandScope as $product) {
             if ($brand = $product->getBrand()) {
                 $brandCounts[$brand->getId()] ??= ['id' => $brand->getId(), 'name' => $brand->getName(), 'count' => 0];
-                $brandCounts[$brand->getId()]['count']++;
+                ++$brandCounts[$brand->getId()]['count'];
             }
         }
 
@@ -450,7 +453,7 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($typeScope as $product) {
             if ($type = $product->getProductType()) {
                 $typeCounts[$type->getId()] ??= ['id' => $type->getId(), 'name' => $type->getName(), 'slug' => $type->getSlug(), 'count' => 0];
-                $typeCounts[$type->getId()]['count']++;
+                ++$typeCounts[$type->getId()]['count'];
                 $typesInScope[$type->getId()] = $type;
             }
         }
@@ -475,6 +478,7 @@ class ProductRepository extends ServiceEntityRepository
                 $values[] = ['value' => $value, 'count' => $count];
             }
             usort($values, fn ($a, $b) => $b['count'] <=> $a['count']);
+
             return $values;
         };
 
@@ -495,7 +499,7 @@ class ProductRepository extends ServiceEntityRepository
                     continue;
                 }
                 $value = $product->getAttributes()[$slug] ?? null;
-                if ($value === null) {
+                if (null === $value) {
                     continue;
                 }
                 $stringValue = is_bool($value) ? ($value ? 'true' : 'false') : (string) $value;
@@ -609,6 +613,7 @@ class ProductRepository extends ServiceEntityRepository
      * batched into a single query instead of one COUNT per root).
      *
      * @param int[] $rootCategoryIds
+     *
      * @return array<int, int> rootCategoryId => product count
      */
     public function countByCategoryIds(array $rootCategoryIds): array
@@ -630,6 +635,7 @@ class ProductRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[(int) $row['rootId']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 

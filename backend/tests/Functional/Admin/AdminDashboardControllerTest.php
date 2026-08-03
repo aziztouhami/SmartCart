@@ -46,7 +46,7 @@ class AdminDashboardControllerTest extends WebTestCase
     {
         $token = $this->tokenFor('plain@example.com', ['ROLE_USER']);
 
-        $this->client->request('GET', '/api/admin/dashboard', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/admin/dashboard', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -55,7 +55,7 @@ class AdminDashboardControllerTest extends WebTestCase
     {
         $token = $this->tokenFor('admin@example.com', ['ROLE_ADMIN']);
 
-        $this->client->request('GET', '/api/admin/dashboard', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/admin/dashboard', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -71,7 +71,7 @@ class AdminDashboardControllerTest extends WebTestCase
     {
         $token = $this->tokenFor('admin2@example.com', ['ROLE_ADMIN']);
 
-        $this->client->request('GET', '/api/admin/dashboard?lowStockThreshold=100', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('GET', '/api/admin/dashboard?lowStockThreshold=100', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(200);
     }

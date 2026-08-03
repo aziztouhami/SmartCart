@@ -60,6 +60,7 @@ class PromotionRepository extends ServiceEntityRepository
      * resolving precedence (product-specific > brand-wide > store-wide).
      *
      * @param Product[] $products
+     *
      * @return array<int, Promotion>
      */
     public function findActiveForProducts(array $products): array
@@ -74,14 +75,14 @@ class PromotionRepository extends ServiceEntityRepository
         }
 
         $byProduct = [];
-        $byBrand   = [];
+        $byBrand = [];
         $storeWide = null;
         foreach ($active as $promo) {
-            if ($promo->getType() === Promotion::TYPE_PRODUCT && $promo->getProduct()) {
+            if (Promotion::TYPE_PRODUCT === $promo->getType() && $promo->getProduct()) {
                 $byProduct[$promo->getProduct()->getId()] ??= $promo;
-            } elseif ($promo->getType() === Promotion::TYPE_BRAND && $promo->getBrand()) {
+            } elseif (Promotion::TYPE_BRAND === $promo->getType() && $promo->getBrand()) {
                 $byBrand[$promo->getBrand()->getId()] ??= $promo;
-            } elseif ($promo->getType() === Promotion::TYPE_ALL) {
+            } elseif (Promotion::TYPE_ALL === $promo->getType()) {
                 $storeWide ??= $promo;
             }
         }
@@ -102,6 +103,7 @@ class PromotionRepository extends ServiceEntityRepository
     public function findActiveForProduct(Product $product): ?Promotion
     {
         $map = $this->findActiveForProducts([$product]);
+
         return $map[$product->getId()] ?? null;
     }
 

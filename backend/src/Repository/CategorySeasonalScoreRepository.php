@@ -58,6 +58,7 @@ class CategorySeasonalScoreRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $map[(int) $row['categoryId']][(int) $row['month']] = (float) $row['score'];
         }
+
         return $map;
     }
 }

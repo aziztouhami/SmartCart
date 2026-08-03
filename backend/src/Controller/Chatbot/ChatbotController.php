@@ -2,6 +2,7 @@
 
 namespace App\Controller\Chatbot;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Chatbot\ChatMessageRequest;
 use App\Service\Chatbot\ChatbotService;
 use OpenApi\Attributes as OA;
@@ -10,8 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/chatbot', name: 'api_chatbot_')]
 #[OA\Tag(name: 'Chatbot', description: 'Shop assistant chatbot, grounded on the product catalogue (Llama 3.3 70B via Groq)')]
@@ -19,9 +18,9 @@ class ChatbotController extends AbstractController
 {
     public function __construct(
         private ChatbotService $chatbotService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     #[Route('/message', name: 'message', methods: ['POST'])]
     #[OA\Post(
@@ -60,20 +59,11 @@ class ChatbotController extends AbstractController
     public function message(Request $request): JsonResponse
     {
         $sessionId = trim((string) $request->headers->get('X-Session-Id'));
-        if ($sessionId === '') {
+        if ('' === $sessionId) {
             return $this->json(['error' => 'X-Session-Id header is required'], Response::HTTP_BAD_REQUEST);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), ChatMessageRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
+        $dto = $this->dtoParser->parse($request, ChatMessageRequest::class);
 
         if ($this->chatbotService->isRateLimited($sessionId)) {
             return $this->json(

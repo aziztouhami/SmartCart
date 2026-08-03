@@ -18,6 +18,7 @@ class PaginatedResponse
         $dto->page = $page;
         $dto->limit = $limit;
         $dto->totalPages = $limit > 0 ? (int) ceil($total / $limit) : 0;
+
         return $dto;
     }
 }

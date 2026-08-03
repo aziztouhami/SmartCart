@@ -19,7 +19,7 @@ services:
     arguments:
       $tokenTtl: '%env(int:JWT_EXPIRATION)%'
 
-  App\Controller\Auth\AuthController:
+  App\Service\GoogleAuthService:
     arguments:
       $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
 
@@ -41,7 +41,13 @@ services:
       $apiKey: '%env(GROQ_API_KEY)%'
       $model: '%env(GROQ_MODEL)%'
 
-  App\Service\Chatbot\ChatbotService:
+  App\Service\Ai\OllamaClientService:
+    arguments:
+      $baseUrl: '%env(OLLAMA_BASE_URL)%'
+      $model: '%env(OLLAMA_MODEL)%'
+      $timeout: '%env(int:OLLAMA_TIMEOUT)%'
+
+  App\Service\Chatbot\ChatPromptDataBuilder:
     arguments:
       $siteName: '%env(APP_NAME)%'
 

@@ -2,7 +2,8 @@
 
 namespace App\Controller\Admin;
 
-use App\DTO\Product\ProductListItem;
+use App\DTO\Admin\BehaviorOverview;
+use App\DTO\Admin\ProductInsights;
 use App\Repository\InteractionRepository;
 use App\Repository\ProductRepository;
 use OpenApi\Attributes as OA;
@@ -20,7 +21,8 @@ class AdminStatsController extends AbstractController
     public function __construct(
         private InteractionRepository $interactionRepository,
         private ProductRepository $productRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Global breakdown of user interactions + top products per interaction type.
@@ -35,24 +37,13 @@ class AdminStatsController extends AbstractController
     )]
     public function behaviors(): JsonResponse
     {
-        $overview    = $this->interactionRepository->getInteractionTypeBreakdown();
-        $topViewed   = $this->interactionRepository->getTopProductsByType('view', 5);
-        $topCarted   = $this->interactionRepository->getTopProductsByType('cart', 5);
-        $topBought   = $this->interactionRepository->getTopProductsByType('purchase', 5);
-        $topRated    = $this->interactionRepository->getTopProductsByType('rating', 5);
+        $overview = $this->interactionRepository->getInteractionTypeBreakdown();
+        $topViewed = $this->interactionRepository->getTopProductsByType('view', 5);
+        $topCarted = $this->interactionRepository->getTopProductsByType('cart', 5);
+        $topBought = $this->interactionRepository->getTopProductsByType('purchase', 5);
+        $topRated = $this->interactionRepository->getTopProductsByType('rating', 5);
 
-        return $this->json([
-            'overview' => [
-                'views'     => $overview['view'],
-                'cartAdds'  => $overview['cart'],
-                'purchases' => $overview['purchase'],
-                'ratings'   => $overview['rating'],
-            ],
-            'topViewed'      => array_map(fn($p) => ProductListItem::fromEntity($p), $topViewed),
-            'topAddedToCart' => array_map(fn($p) => ProductListItem::fromEntity($p), $topCarted),
-            'topPurchased'   => array_map(fn($p) => ProductListItem::fromEntity($p), $topBought),
-            'topRated'       => array_map(fn($p) => ProductListItem::fromEntity($p), $topRated),
-        ]);
+        return $this->json(BehaviorOverview::build($overview, $topViewed, $topCarted, $topBought, $topRated));
     }
 
     /**
@@ -77,20 +68,10 @@ class AdminStatsController extends AbstractController
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $interactionCounts  = $this->interactionRepository->getProductInteractionCounts($product);
-        $boughtWith         = $this->interactionRepository->getCoInteractedProducts($product, 'purchase', 5);
-        $viewedWith         = $this->interactionRepository->getCoInteractedProducts($product, 'view', 5);
+        $interactionCounts = $this->interactionRepository->getProductInteractionCounts($product);
+        $boughtWith = $this->interactionRepository->getCoInteractedProducts($product, 'purchase', 5);
+        $viewedWith = $this->interactionRepository->getCoInteractedProducts($product, 'view', 5);
 
-        return $this->json([
-            'product'      => ProductListItem::fromEntity($product),
-            'interactions' => [
-                'views'     => $interactionCounts['view'],
-                'cartAdds'  => $interactionCounts['cart'],
-                'purchases' => $interactionCounts['purchase'],
-                'ratings'   => $interactionCounts['rating'],
-            ],
-            'frequentlyBoughtWith' => array_map(fn($p) => ProductListItem::fromEntity($p), $boughtWith),
-            'frequentlyViewedWith' => array_map(fn($p) => ProductListItem::fromEntity($p), $viewedWith),
-        ]);
+        return $this->json(ProductInsights::build($product, $interactionCounts, $boughtWith, $viewedWith));
     }
 }

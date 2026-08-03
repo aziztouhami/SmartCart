@@ -18,7 +18,8 @@ class ImageController extends AbstractController
 {
     public function __construct(
         private FileUploadService $fileUploadService,
-    ) {}
+    ) {
+    }
 
     #[Route('/upload', name: 'api_upload', methods: ['POST'])]
     #[OA\Post(
@@ -54,7 +55,7 @@ class ImageController extends AbstractController
         );
 
         return $this->json(
-            ['url' => $request->getSchemeAndHttpHost() . $relativeUrl],
+            ['url' => $request->getSchemeAndHttpHost().$relativeUrl],
             Response::HTTP_CREATED
         );
     }

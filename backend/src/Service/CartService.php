@@ -23,7 +23,8 @@ class CartService
         private PromotionRepository $promotionRepository,
         private EntityManagerInterface $em,
         private InteractionService $interactionService,
-    ) {}
+    ) {
+    }
 
     public function getCart(User $user): ?Order
     {
@@ -132,7 +133,7 @@ class CartService
     {
         $cart = $this->orderRepository->findCartByUser($user) ?? $this->createCart($user);
 
-        if ($dto->strategy === 'replace') {
+        if ('replace' === $dto->strategy) {
             foreach ($cart->getOrderItems() as $item) {
                 $this->em->remove($item);
             }
@@ -185,6 +186,7 @@ class CartService
         $cart->setStatus('cart');
         $cart->setTotalAmount('0.00');
         $this->em->persist($cart);
+
         return $cart;
     }
 

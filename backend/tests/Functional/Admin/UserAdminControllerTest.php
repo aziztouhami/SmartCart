@@ -47,7 +47,7 @@ class UserAdminControllerTest extends WebTestCase
 
     private function headers(string $token): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $token];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$token];
     }
 
     public function testListForbiddenForNonAdmin(): void
@@ -99,7 +99,7 @@ class UserAdminControllerTest extends WebTestCase
         $this->em->persist($target);
         $this->em->flush();
 
-        $this->client->request('GET', '/api/admin/users/' . $target->getId(), server: $this->headers($this->adminToken));
+        $this->client->request('GET', '/api/admin/users/'.$target->getId(), server: $this->headers($this->adminToken));
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -119,7 +119,7 @@ class UserAdminControllerTest extends WebTestCase
         $this->em->persist($target);
         $this->em->flush();
 
-        $this->client->request('PUT', '/api/admin/users/' . $target->getId() . '/role', server: array_merge($this->headers($this->adminToken), ['CONTENT_TYPE' => 'application/json']), content: json_encode([
+        $this->client->request('PUT', '/api/admin/users/'.$target->getId().'/role', server: array_merge($this->headers($this->adminToken), ['CONTENT_TYPE' => 'application/json']), content: json_encode([
             'isAdmin' => true,
         ]));
 

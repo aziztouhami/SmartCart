@@ -8,6 +8,8 @@ use App\DTO\Product\UpdateProductTypeRequest;
 use App\Entity\Product;
 use App\Entity\ProductType;
 use App\Entity\ProductTypeAttribute;
+use App\Prompts\ProductType\ProductAttributesPrompt;
+use App\Service\Ai\GroqClientService;
 use App\Service\ProductTypeService;
 use App\Service\SlugService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +30,12 @@ class ProductTypeServiceTest extends TestCase
             fn (string $text) => strtolower(str_replace(' ', '-', $text))
         );
 
-        $this->service = new ProductTypeService($this->em, $this->slugService);
+        $this->service = new ProductTypeService(
+            $this->em,
+            $this->slugService,
+            $this->createMock(GroqClientService::class),
+            $this->createMock(ProductAttributesPrompt::class),
+        );
     }
 
     public function testCreateBuildsTypeWithAttributes(): void

@@ -51,6 +51,7 @@ class ProductType
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -62,6 +63,7 @@ class ProductType
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -84,6 +86,7 @@ class ProductType
             $this->attributes->add($attribute);
             $attribute->setProductType($this);
         }
+
         return $this;
     }
 
@@ -94,6 +97,7 @@ class ProductType
                 $attribute->setProductType(null);
             }
         }
+
         return $this;
     }
 

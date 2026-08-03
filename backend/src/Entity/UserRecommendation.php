@@ -58,6 +58,7 @@ class UserRecommendation
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class UserRecommendation
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -80,6 +82,7 @@ class UserRecommendation
     public function setScore(float $score): self
     {
         $this->score = $score;
+
         return $this;
     }
 
@@ -91,6 +94,7 @@ class UserRecommendation
     public function setSource(string $source): self
     {
         $this->source = $source;
+
         return $this;
     }
 

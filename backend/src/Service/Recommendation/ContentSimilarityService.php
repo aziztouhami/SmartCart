@@ -48,12 +48,13 @@ class ContentSimilarityService
 
     public function __construct(
         private LogisticRegressionTrainer $trainer,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param array<int, array<int, int>> $groups behavioral co-occurrence groups
-     *        (same shape RecommendationBuilderService::collectGroups produces)
-     * @param Product[] $products
+     * @param array<int, array<int, int>> $groups   behavioral co-occurrence groups
+     *                                              (same shape RecommendationBuilderService::collectGroups produces)
+     * @param Product[]                   $products
      */
     public function train(array $groups, array $products): void
     {
@@ -68,6 +69,7 @@ class ContentSimilarityService
         if ($positiveCount < self::MIN_POSITIVE_PAIRS_TO_TRAIN) {
             $this->weights = self::DEFAULT_WEIGHTS;
             $this->trained = false;
+
             return;
         }
 
@@ -153,9 +155,9 @@ class ContentSimilarityService
             if (!array_key_exists($slug, $attributesB)) {
                 continue;
             }
-            $considered++;
+            ++$considered;
             if ($attributesA[$slug] === $attributesB[$slug]) {
-                $matches++;
+                ++$matches;
             }
         }
 
@@ -172,6 +174,7 @@ class ContentSimilarityService
      * parent (e.g. "Furniture") instead of having none at all.
      *
      * @param Product[] $products
+     *
      * @return array{category: array<int, Product[]>, parentCategory: array<int, Product[]>, brand: array<int, Product[]>, type: array<int, Product[]>}
      */
     public function bucketByShared(array $products): array
@@ -216,7 +219,7 @@ class ContentSimilarityService
 
         $parentA = $categoryA?->getParent()?->getId() ?? $categoryA?->getId();
         $parentB = $categoryB?->getParent()?->getId() ?? $categoryB?->getId();
-        $sameParentDiffLeaf = !$sameLeaf && $parentA !== null && $parentA === $parentB;
+        $sameParentDiffLeaf = !$sameLeaf && null !== $parentA && $parentA === $parentB;
 
         $sameBrand = $a->getBrand() && $b->getBrand() && $a->getBrand()->getId() === $b->getBrand()->getId();
         $sameType = $a->getProductType() && $b->getProductType()
@@ -235,7 +238,8 @@ class ContentSimilarityService
 
     /**
      * @param array<int, array<int, int>> $groups
-     * @param array<int, Product> $byId
+     * @param array<int, Product>         $byId
+     *
      * @return array{0: array<int, float[]>, 1: array<int, float>, 2: array<int, float>}
      */
     private function buildTrainingSet(array $groups, array $byId): array
@@ -244,8 +248,8 @@ class ContentSimilarityService
         foreach ($groups as $tiers) {
             $ids = array_keys($tiers);
             $count = count($ids);
-            for ($i = 0; $i < $count; $i++) {
-                for ($j = $i + 1; $j < $count; $j++) {
+            for ($i = 0; $i < $count; ++$i) {
+                for ($j = $i + 1; $j < $count; ++$j) {
                     $a = $ids[$i];
                     $b = $ids[$j];
                     [$lo, $hi] = $a < $b ? [$a, $b] : [$b, $a];
@@ -282,7 +286,7 @@ class ContentSimilarityService
             $attempts = 0;
 
             while ($added < $needed && $attempts < $maxAttempts) {
-                $attempts++;
+                ++$attempts;
                 $a = $ids[array_rand($ids)];
                 $b = $ids[array_rand($ids)];
                 if ($a === $b) {
@@ -298,7 +302,7 @@ class ContentSimilarityService
                 $features[] = $this->extractFeatures($byId[$lo], $byId[$hi]);
                 $labels[] = 0.0;
                 $sampleWeights[] = 1.0;
-                $added++;
+                ++$added;
             }
         }
 

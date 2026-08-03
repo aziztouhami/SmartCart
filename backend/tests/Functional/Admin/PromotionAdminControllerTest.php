@@ -31,13 +31,13 @@ class PromotionAdminControllerTest extends WebTestCase
         $this->em->createQuery('DELETE FROM App\Entity\User')->execute();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $this->product = new Product();
         $this->product->setName('Widget');
-        $this->product->setSlug('widget-' . uniqid());
+        $this->product->setSlug('widget-'.uniqid());
         $this->product->setPrice('100.00');
         $this->product->setStock(10);
         $this->product->setCategory($category);
@@ -63,7 +63,7 @@ class PromotionAdminControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken, 'CONTENT_TYPE' => 'application/json'];
     }
 
     public function testCreateForbiddenForNonAdmin(): void
@@ -84,7 +84,7 @@ class PromotionAdminControllerTest extends WebTestCase
         ]));
         $token = json_decode($this->client->getResponse()->getContent(), true)['token'];
 
-        $this->client->request('POST', '/api/admin/promotions', server: ['HTTP_AUTHORIZATION' => 'Bearer ' . $token, 'CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $this->client->request('POST', '/api/admin/promotions', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token, 'CONTENT_TYPE' => 'application/json'], content: json_encode([
             'type' => 'product',
             'productId' => $this->product->getId(),
             'discountType' => 'percentage',
@@ -145,7 +145,7 @@ class PromotionAdminControllerTest extends WebTestCase
         $this->em->persist($promotion);
         $this->em->flush();
 
-        $this->client->request('PATCH', '/api/admin/promotions/' . $promotion->getId() . '/end', server: $this->headers());
+        $this->client->request('PATCH', '/api/admin/promotions/'.$promotion->getId().'/end', server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -171,7 +171,7 @@ class PromotionAdminControllerTest extends WebTestCase
         $this->em->flush();
         $id = $promotion->getId();
 
-        $this->client->request('DELETE', '/api/admin/promotions/' . $id, server: $this->headers());
+        $this->client->request('DELETE', '/api/admin/promotions/'.$id, server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
         $this->assertNull($this->em->getRepository(Promotion::class)->find($id));

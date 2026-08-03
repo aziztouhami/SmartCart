@@ -32,6 +32,15 @@ class OrderServiceTest extends TestCase
         $this->addressRepository = $this->createMock(AddressRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->mailService = $this->createMock(MailService::class);
+        // Mirrors MailService::sendSafely()'s real try/catch — without this, the
+        // mock's sendSafely() is a no-op and the callback (the actual
+        // sendXxxEmail assertion target) never runs.
+        $this->mailService->method('sendSafely')->willReturnCallback(function (callable $send) {
+            try {
+                $send();
+            } catch (\Throwable) {
+            }
+        });
         $this->interactionService = $this->createMock(InteractionService::class);
 
         $this->service = new OrderService(

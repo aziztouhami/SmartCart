@@ -2,8 +2,8 @@
 
 namespace App\Command;
 
-use App\Repository\CategorySeasonalScoreRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\CategorySeasonalScoreRepository;
 use App\Repository\OrderRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -81,7 +81,7 @@ class AnalyzeSeasonalTrendsCommand extends Command
         foreach ($byCategory as $categoryId => $monthCounts) {
             $total = array_sum($monthCounts);
             if ($total < self::MIN_TOTAL_QUANTITY) {
-                $skipped++;
+                ++$skipped;
                 continue;
             }
 
@@ -92,7 +92,7 @@ class AnalyzeSeasonalTrendsCommand extends Command
             $average = $total / 12;
 
             $monthScores = [];
-            for ($month = 1; $month <= 12; $month++) {
+            for ($month = 1; $month <= 12; ++$month) {
                 $monthScores[$month] = round(($monthCounts[$month] ?? 0) / $average, 3);
             }
 

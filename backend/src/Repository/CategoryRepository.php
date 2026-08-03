@@ -48,7 +48,7 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find root categories (with no parent)
+     * Find root categories (with no parent).
      */
     public function findRoots(): array
     {
@@ -60,7 +60,7 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find child categories of a parent
+     * Find child categories of a parent.
      */
     public function findChildren(Category $parent): array
     {

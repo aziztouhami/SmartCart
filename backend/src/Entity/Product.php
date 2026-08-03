@@ -84,6 +84,7 @@ class Product
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -95,6 +96,7 @@ class Product
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -106,6 +108,7 @@ class Product
     public function setPrice(string $price): self
     {
         $this->price = $price;
+
         return $this;
     }
 
@@ -117,6 +120,7 @@ class Product
     public function setStock(int $stock): self
     {
         $this->stock = $stock;
+
         return $this;
     }
 
@@ -128,6 +132,7 @@ class Product
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -139,6 +144,7 @@ class Product
     public function setImages(array $images): self
     {
         $this->images = $images;
+
         return $this;
     }
 
@@ -147,16 +153,18 @@ class Product
         if (!in_array($image, $this->images)) {
             $this->images[] = $image;
         }
+
         return $this;
     }
 
     public function removeImage(string $image): self
     {
         $key = array_search($image, $this->images);
-        if ($key !== false) {
+        if (false !== $key) {
             unset($this->images[$key]);
             $this->images = array_values($this->images);
         }
+
         return $this;
     }
 
@@ -168,6 +176,7 @@ class Product
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -179,6 +188,7 @@ class Product
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -190,6 +200,7 @@ class Product
     public function setCategory(?Category $category): self
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -201,6 +212,7 @@ class Product
     public function setBrand(?Brand $brand): self
     {
         $this->brand = $brand;
+
         return $this;
     }
 
@@ -212,6 +224,7 @@ class Product
     public function setProductType(?ProductType $productType): self
     {
         $this->productType = $productType;
+
         return $this;
     }
 
@@ -227,6 +240,7 @@ class Product
     public function setAttributes(array $attributes): self
     {
         $this->attributes = $attributes;
+
         return $this;
     }
 
@@ -244,6 +258,7 @@ class Product
             $this->orderItems->add($orderItem);
             $orderItem->setProduct($this);
         }
+
         return $this;
     }
 
@@ -254,6 +269,7 @@ class Product
                 $orderItem->setProduct(null);
             }
         }
+
         return $this;
     }
 
@@ -271,6 +287,7 @@ class Product
             $this->reviews->add($review);
             $review->setProduct($this);
         }
+
         return $this;
     }
 
@@ -281,6 +298,7 @@ class Product
                 $review->setProduct(null);
             }
         }
+
         return $this;
     }
 
@@ -298,6 +316,7 @@ class Product
             $this->interactions->add($interaction);
             $interaction->setProduct($this);
         }
+
         return $this;
     }
 
@@ -308,6 +327,7 @@ class Product
                 $interaction->setProduct(null);
             }
         }
+
         return $this;
     }
 }

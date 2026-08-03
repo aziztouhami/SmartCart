@@ -4,47 +4,63 @@ namespace App\Tests\Unit\Recommendation;
 
 use App\Entity\Interaction;
 use App\Entity\Product;
+use App\Entity\ProductRelation;
 use App\Entity\User;
 use App\Repository\ColdStartRecommendationRepository;
-use App\Repository\ProductRelationRepository;
-use App\Repository\UserRecommendationRepository;
-use App\Service\Recommendation\RecommendationServingService;
 use App\Repository\GuestEventRepository;
 use App\Repository\InteractionRepository;
 use App\Repository\OrderRepository;
+use App\Repository\ProductRelationRepository;
 use App\Repository\ProductRepository;
+use App\Service\Recommendation\CachedCollaborativeFilteringModel;
+use App\Service\Recommendation\ContentRecommendationService;
+use App\Service\Recommendation\HybridRecommendationScorer;
+use App\Service\Recommendation\RecommendationBusinessRules;
+use App\Service\Recommendation\RecommendationServingService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 class RecommendationServingServiceTest extends TestCase
 {
     private ProductRelationRepository $productRelationRepository;
-    private UserRecommendationRepository $userRecommendationRepository;
     private ColdStartRecommendationRepository $coldStartRecommendationRepository;
     private ProductRepository $productRepository;
     private InteractionRepository $interactionRepository;
     private GuestEventRepository $guestEventRepository;
     private OrderRepository $orderRepository;
+    private ContentRecommendationService $contentRecommendation;
+    private CachedCollaborativeFilteringModel $cachedCfModel;
+    private HybridRecommendationScorer $hybridScorer;
+    private RecommendationBusinessRules $businessRules;
     private RecommendationServingService $service;
 
     protected function setUp(): void
     {
         $this->productRelationRepository = $this->createMock(ProductRelationRepository::class);
-        $this->userRecommendationRepository = $this->createMock(UserRecommendationRepository::class);
         $this->coldStartRecommendationRepository = $this->createMock(ColdStartRecommendationRepository::class);
         $this->productRepository = $this->createMock(ProductRepository::class);
         $this->interactionRepository = $this->createMock(InteractionRepository::class);
         $this->guestEventRepository = $this->createMock(GuestEventRepository::class);
         $this->orderRepository = $this->createMock(OrderRepository::class);
+        $this->contentRecommendation = $this->createMock(ContentRecommendationService::class);
+        $this->cachedCfModel = $this->createMock(CachedCollaborativeFilteringModel::class);
+        $this->hybridScorer = $this->createMock(HybridRecommendationScorer::class);
+        $this->businessRules = $this->createMock(RecommendationBusinessRules::class);
+
+        $this->productRepository->method('findNewestRanked')->willReturn([]);
+        $this->cachedCfModel->method('get')->willReturn([]);
 
         $this->service = new RecommendationServingService(
             $this->productRelationRepository,
-            $this->userRecommendationRepository,
             $this->coldStartRecommendationRepository,
             $this->productRepository,
             $this->interactionRepository,
             $this->guestEventRepository,
             $this->orderRepository,
+            $this->contentRecommendation,
+            $this->cachedCfModel,
+            $this->hybridScorer,
+            $this->businessRules,
         );
     }
 
@@ -59,43 +75,78 @@ class RecommendationServingServiceTest extends TestCase
         return $product;
     }
 
-    public function testForUserUsesPrecomputedListAndExcludesPurchasedProducts(): void
+    public function testForUserUsesHybridScoringFromInteractionHistory(): void
     {
-        $this->userRecommendationRepository->method('findForUser')->willReturn([
-            ['productId' => 1, 'score' => 5.0],
-            ['productId' => 2, 'score' => 3.0],
-        ]);
-        $this->orderRepository->method('findPurchasedProductIds')->willReturn([2]);
-        $this->productRepository->method('findBy')->willReturn([$this->makeProduct(1)]);
+        $seed = $this->makeProduct(5);
+        $related = $this->makeProduct(6);
 
-        $result = $this->service->forUser(new User(), 8);
-
-        $this->assertCount(1, $result);
-        $this->assertSame(1, $result[0]->getId());
-    }
-
-    public function testForUserFallsBackToLiveLookupFromInteractionHistory(): void
-    {
-        $this->userRecommendationRepository->method('findForUser')->willReturn([]);
-
-        $product = $this->makeProduct(5);
         $interaction = new Interaction();
         $interaction->setType('view');
-        $interaction->setProduct($product);
+        $interaction->setProduct($seed);
         $this->interactionRepository->method('findByUser')->willReturn([$interaction]);
 
-        $this->productRelationRepository->method('findRelationsForProducts')->willReturn([]);
-        $this->productRepository->method('findBy')->willReturn([$product]);
+        $this->productRepository->method('findAll')->willReturn([$seed, $related]);
+        $this->cachedCfModel->expects($this->once())->method('get');
+        $this->hybridScorer->method('score')->willReturn([6 => 2.0, 5 => 0.5]);
+        $this->businessRules->method('apply')->willReturnArgument(0);
+        $this->productRepository->method('findBy')->willReturn([$seed, $related]);
+
+        $result = $this->service->forUser(new User(), 8);
+
+        $this->assertCount(2, $result);
+        $this->assertSame(6, $result[0]->getId());
+    }
+
+    public function testForUserExcludesPurchasedProducts(): void
+    {
+        $seed = $this->makeProduct(5);
+
+        $interaction = new Interaction();
+        $interaction->setType('purchase');
+        $interaction->setProduct($seed);
+        $this->interactionRepository->method('findByUser')->willReturn([$interaction]);
+
+        $this->productRepository->method('findAll')->willReturn([$seed]);
+        $this->hybridScorer->method('score')->willReturn([5 => 3.0]);
+        $this->orderRepository->method('findPurchasedProductIds')->willReturn([5]);
+
+        // The purchased id must already be gone from what reaches business
+        // rules, not just filtered afterward.
+        $this->businessRules->expects($this->once())->method('apply')
+            ->with([], $this->anything())
+            ->willReturn([]);
+
+        $result = $this->service->forUser(new User(), 8);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testForUserAppliesBusinessRulesToHybridScores(): void
+    {
+        $seed = $this->makeProduct(5);
+        $candidate = $this->makeProduct(6);
+
+        $interaction = new Interaction();
+        $interaction->setType('view');
+        $interaction->setProduct($seed);
+        $this->interactionRepository->method('findByUser')->willReturn([$interaction]);
+
+        $this->productRepository->method('findAll')->willReturn([$seed, $candidate]);
+        $this->hybridScorer->method('score')->willReturn([6 => 1.0]);
+        // Business rules is what determines the final ranking here, not the
+        // raw hybrid score — if it were bypassed, this candidate would be
+        // dropped instead of kept.
+        $this->businessRules->method('apply')->willReturn([6 => 5.0]);
+        $this->productRepository->method('findBy')->willReturn([$candidate]);
 
         $result = $this->service->forUser(new User(), 8);
 
         $this->assertCount(1, $result);
-        $this->assertSame(5, $result[0]->getId());
+        $this->assertSame(6, $result[0]->getId());
     }
 
     public function testForUserFallsBackToColdStartWhenNoHistoryAtAll(): void
     {
-        $this->userRecommendationRepository->method('findForUser')->willReturn([]);
         $this->interactionRepository->method('findByUser')->willReturn([]);
 
         $coldProduct = $this->makeProduct(9);
@@ -139,13 +190,10 @@ class RecommendationServingServiceTest extends TestCase
         $this->assertContains(8, $resultIds);
     }
 
-    public function testResolveAndFilterStockExcludesOutOfStockProducts(): void
+    public function testColdStartExcludesOutOfStockProducts(): void
     {
-        $this->userRecommendationRepository->method('findForUser')->willReturn([
-            ['productId' => 1, 'score' => 5.0],
-            ['productId' => 2, 'score' => 3.0],
-        ]);
-        $this->orderRepository->method('findPurchasedProductIds')->willReturn([]);
+        $this->interactionRepository->method('findByUser')->willReturn([]);
+        $this->coldStartRecommendationRepository->method('findTopProductIds')->willReturn([1, 2]);
         $this->productRepository->method('findBy')->willReturn([
             $this->makeProduct(1, 0),
             $this->makeProduct(2, 5),
@@ -157,14 +205,10 @@ class RecommendationServingServiceTest extends TestCase
         $this->assertSame(2, $result[0]->getId());
     }
 
-    public function testResolveAndFilterStockRespectsLimit(): void
+    public function testColdStartRespectsLimit(): void
     {
-        $this->userRecommendationRepository->method('findForUser')->willReturn([
-            ['productId' => 1, 'score' => 5.0],
-            ['productId' => 2, 'score' => 4.0],
-            ['productId' => 3, 'score' => 3.0],
-        ]);
-        $this->orderRepository->method('findPurchasedProductIds')->willReturn([]);
+        $this->interactionRepository->method('findByUser')->willReturn([]);
+        $this->coldStartRecommendationRepository->method('findTopProductIds')->willReturn([1, 2, 3]);
         $this->productRepository->method('findBy')->willReturn([
             $this->makeProduct(1),
             $this->makeProduct(2),
@@ -176,13 +220,19 @@ class RecommendationServingServiceTest extends TestCase
         $this->assertCount(2, $result);
     }
 
-    public function testForProductReturnsSimilarAndComplementaryLists(): void
+    public function testForProductReturnsComplementaryFromBatchAndSimilarFromLiveContentScoring(): void
     {
+        $current = $this->makeProduct(1);
+        $similarCandidate = $this->makeProduct(2);
+        $complementary = $this->makeProduct(3);
+
         $this->productRelationRepository->method('findTopForProduct')
-            ->willReturnMap([
-                [1, 'similar', 16, [2]],
-                [1, 'complementary', 16, [3]],
-            ]);
+            ->with(1, ProductRelation::TYPE_COMPLEMENTARY, 16, $this->anything())
+            ->willReturn([3]);
+
+        $this->productRepository->method('findAll')->willReturn([$current, $similarCandidate]);
+        $this->contentRecommendation->method('predictForUser')->willReturn([2 => 1.0]);
+
         $this->productRepository->method('findBy')->willReturnCallback(
             fn ($criteria) => array_map(fn ($id) => $this->makeProduct($id), $criteria['id'])
         );

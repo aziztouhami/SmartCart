@@ -11,12 +11,19 @@ class InteractionService
 {
     public function __construct(
         private EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function track(User $user, Product $product, string $type, ?int $value): Interaction
     {
         $interaction = new Interaction();
-        $interaction->setType($type);
+
+        try {
+            $interaction->setType($type);
+        } catch (\InvalidArgumentException $e) {
+            throw new \RuntimeException($e->getMessage(), 400);
+        }
+
         $interaction->setValue($value);
         $interaction->setUser($user);
         $interaction->setProduct($product);

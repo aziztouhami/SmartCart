@@ -12,7 +12,8 @@ class SlugService
         private ProductRepository $productRepository,
         private CategoryRepository $categoryRepository,
         private ProductTypeRepository $productTypeRepository,
-    ) {}
+    ) {
+    }
 
     public function generateProductSlug(string $name, ?int $excludeId = null): string
     {
@@ -25,7 +26,7 @@ class SlugService
             if (!$existing || $existing->getId() === $excludeId) {
                 return $slug;
             }
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
     }
 
@@ -40,7 +41,7 @@ class SlugService
             if (!$existing || $existing->getId() === $excludeId) {
                 return $slug;
             }
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
     }
 
@@ -55,7 +56,7 @@ class SlugService
             if (!$existing || $existing->getId() === $excludeId) {
                 return $slug;
             }
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
     }
 
@@ -69,6 +70,7 @@ class SlugService
         // Replace spaces and special chars with hyphens
         $text = preg_replace('/[^\p{L}\p{N}]+/u', '-', $text);
         $text = preg_replace('/-+/', '-', $text);
+
         return trim($text, '-');
     }
 }

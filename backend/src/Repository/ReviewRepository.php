@@ -2,8 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Review;
 use App\Entity\Product;
+use App\Entity\Review;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,7 +37,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find reviews by product
+     * Find reviews by product.
      */
     public function findByProduct(Product $product, int $limit = 10): array
     {
@@ -51,7 +51,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find reviews by user
+     * Find reviews by user.
      */
     public function findByUser(User $user, int $limit = 10): array
     {
@@ -65,7 +65,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Calculate average rating for a product
+     * Calculate average rating for a product.
      */
     public function getAverageRating(Product $product): ?float
     {
@@ -78,7 +78,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count reviews for a product
+     * Count reviews for a product.
      */
     public function countByProduct(Product $product): int
     {
@@ -91,7 +91,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find reviews by rating
+     * Find reviews by rating.
      */
     public function findByRating(int $rating, int $limit = 10): array
     {
@@ -105,7 +105,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Paginated reviews for a product
+     * Paginated reviews for a product.
      */
     public function findByProductPaginated(Product $product, int $page = 1, int $limit = 10): array
     {
@@ -120,7 +120,7 @@ class ReviewRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the review left by a specific user on a product (to prevent duplicates)
+     * Find the review left by a specific user on a product (to prevent duplicates).
      */
     public function findByProductAndUser(Product $product, User $user): ?Review
     {

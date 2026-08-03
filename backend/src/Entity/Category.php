@@ -69,6 +69,7 @@ class Category
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -80,6 +81,7 @@ class Category
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -91,6 +93,7 @@ class Category
     public function setImage(?string $image): self
     {
         $this->image = $image;
+
         return $this;
     }
 
@@ -108,6 +111,7 @@ class Category
     public function setSeasonalMonths(?array $seasonalMonths): self
     {
         $this->seasonalMonths = $seasonalMonths;
+
         return $this;
     }
 
@@ -119,6 +123,7 @@ class Category
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -130,6 +135,7 @@ class Category
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -141,6 +147,7 @@ class Category
     public function setParent(?self $parent): self
     {
         $this->parent = $parent;
+
         return $this;
     }
 
@@ -158,6 +165,7 @@ class Category
             $this->children->add($child);
             $child->setParent($this);
         }
+
         return $this;
     }
 
@@ -168,6 +176,7 @@ class Category
                 $child->setParent(null);
             }
         }
+
         return $this;
     }
 
@@ -185,6 +194,7 @@ class Category
             $this->products->add($product);
             $product->setCategory($this);
         }
+
         return $this;
     }
 
@@ -195,6 +205,7 @@ class Category
                 $product->setCategory(null);
             }
         }
+
         return $this;
     }
 }

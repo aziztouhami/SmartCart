@@ -53,6 +53,7 @@ class GuestEvent
     public function setSessionId(string $sessionId): self
     {
         $this->sessionId = $sessionId;
+
         return $this;
     }
 
@@ -64,13 +65,10 @@ class GuestEvent
     public function setType(string $type): self
     {
         if (!in_array($type, self::TYPES, true)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid guest event type "%s". Valid types are: %s',
-                $type,
-                implode(', ', self::TYPES)
-            ));
+            throw new \InvalidArgumentException(sprintf('Invalid guest event type "%s". Valid types are: %s', $type, implode(', ', self::TYPES)));
         }
         $this->type = $type;
+
         return $this;
     }
 
@@ -87,6 +85,7 @@ class GuestEvent
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 }

@@ -6,6 +6,7 @@
 *.swo
 *~
 .DS_Store
+desktop.ini
 
 # Environment
 .env
@@ -17,19 +18,29 @@ backend/vendor/
 backend/var/
 backend/.env.local
 backend/public/uploads/
+backend/database/seeders/assets/
 backend/config/jwt/private.pem
 backend/config/jwt/public.pem
+backend/.phpunit.cache/
+backend/.php-cs-fixer.cache
 
 # Frontend - React
 frontend/node_modules/
 frontend/build/
 frontend/dist/
 frontend/.env.local
+frontend/coverage/
+frontend/.eslintcache
 
 # Frontend - Cypress artifacts
 frontend/cypress/videos/
 frontend/cypress/screenshots/
 frontend/cypress/downloads/
+
+# npm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Docker
 .docker/
@@ -63,3 +74,8 @@ backend/.phpunit.result.cache
 docs/
 PROJECT_TRACKING.md
 ARCHITECTURE.md
+
+# Design source files at repo root — not used at runtime (the copy actually
+# served by the app lives in frontend/public/assets/logo.png, which stays tracked)
+/logo.png
+/logo2.png

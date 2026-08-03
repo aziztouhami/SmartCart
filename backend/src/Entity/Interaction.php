@@ -51,13 +51,10 @@ class Interaction
         // Validate type (view, cart, purchase, rating)
         $validTypes = ['view', 'cart', 'purchase', 'rating'];
         if (!in_array($type, $validTypes)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid interaction type "%s". Valid types are: %s',
-                $type,
-                implode(', ', $validTypes)
-            ));
+            throw new \InvalidArgumentException(sprintf('Invalid interaction type "%s". Valid types are: %s', $type, implode(', ', $validTypes)));
         }
         $this->type = $type;
+
         return $this;
     }
 
@@ -69,6 +66,7 @@ class Interaction
     public function setValue(?int $value): self
     {
         $this->value = $value;
+
         return $this;
     }
 
@@ -80,6 +78,7 @@ class Interaction
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -91,6 +90,7 @@ class Interaction
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -102,6 +102,7 @@ class Interaction
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 }

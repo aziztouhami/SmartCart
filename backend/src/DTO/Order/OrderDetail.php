@@ -27,11 +27,12 @@ class OrderDetail
             : null;
 
         $dto->items = array_map(
-            fn($item) => OrderItemDetail::fromEntity($item),
+            fn ($item) => OrderItemDetail::fromEntity($item),
             $order->getOrderItems()->toArray()
         );
         $dto->createdAt = $order->getCreatedAt()->format(\DateTimeInterface::ATOM);
         $dto->updatedAt = $order->getUpdatedAt()?->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

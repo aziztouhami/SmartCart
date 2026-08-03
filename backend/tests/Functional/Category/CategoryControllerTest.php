@@ -28,12 +28,12 @@ class CategoryControllerTest extends WebTestCase
     {
         $root = new Category();
         $root->setName('Electronics');
-        $root->setSlug('electronics-' . uniqid());
+        $root->setSlug('electronics-'.uniqid());
         $this->em->persist($root);
 
         $child = new Category();
         $child->setName('Phones');
-        $child->setSlug('phones-' . uniqid());
+        $child->setSlug('phones-'.uniqid());
         $root->addChild($child);
         $this->em->persist($child);
         $this->em->flush();
@@ -66,17 +66,17 @@ class CategoryControllerTest extends WebTestCase
     {
         $categoryA = new Category();
         $categoryA->setName('Category A');
-        $categoryA->setSlug('category-a-' . uniqid());
+        $categoryA->setSlug('category-a-'.uniqid());
         $this->em->persist($categoryA);
 
         $categoryB = new Category();
         $categoryB->setName('Category B');
-        $categoryB->setSlug('category-b-' . uniqid());
+        $categoryB->setSlug('category-b-'.uniqid());
         $this->em->persist($categoryB);
 
         $productA = new Product();
         $productA->setName('Widget A');
-        $productA->setSlug('widget-a-' . uniqid());
+        $productA->setSlug('widget-a-'.uniqid());
         $productA->setPrice('10.00');
         $productA->setStock(5);
         $productA->setCategory($categoryA);
@@ -84,7 +84,7 @@ class CategoryControllerTest extends WebTestCase
 
         $productB = new Product();
         $productB->setName('Widget B');
-        $productB->setSlug('widget-b-' . uniqid());
+        $productB->setSlug('widget-b-'.uniqid());
         $productB->setPrice('10.00');
         $productB->setStock(5);
         $productB->setCategory($categoryB);
@@ -92,11 +92,24 @@ class CategoryControllerTest extends WebTestCase
 
         $this->em->flush();
 
-        $this->client->request('GET', '/api/categories/' . $categoryA->getId() . '/products');
+        $this->client->request('GET', '/api/categories/'.$categoryA->getId().'/products');
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
         $this->assertSame(1, $data['products']['total']);
         $this->assertSame('Widget A', $data['products']['data'][0]['name']);
+    }
+
+    public function testProductsEndpointFallsBackToDefaultSortForUnknownSortValue(): void
+    {
+        $category = new Category();
+        $category->setName('Electronics');
+        $category->setSlug('electronics-'.uniqid());
+        $this->em->persist($category);
+        $this->em->flush();
+
+        $this->client->request('GET', '/api/categories/'.$category->getId().'/products?sort=totallyInvalid');
+
+        $this->assertResponseStatusCodeSame(200);
     }
 }

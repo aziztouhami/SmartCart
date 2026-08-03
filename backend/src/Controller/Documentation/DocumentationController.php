@@ -10,12 +10,14 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class DocumentationController
 {
-    public function __construct(private KernelInterface $kernel) {}
+    public function __construct(private KernelInterface $kernel)
+    {
+    }
 
     #[Route('/api/docs.json', name: 'api_docs_json', methods: ['GET'])]
     public function spec(): JsonResponse
     {
-        $openapi = Generator::scan([$this->kernel->getProjectDir() . '/src']);
+        $openapi = Generator::scan([$this->kernel->getProjectDir().'/src']);
 
         return new JsonResponse(json_decode($openapi->toJson(), true));
     }

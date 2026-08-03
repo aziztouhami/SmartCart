@@ -2,6 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\Pagination;
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Pagination\PaginatedResponse;
 use App\DTO\Promotion\CreatePromotionRequest;
 use App\DTO\Promotion\PromotionListItem;
@@ -14,8 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/promotions', name: 'api_admin_promotions_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -25,9 +25,9 @@ class PromotionAdminController extends AbstractController
     public function __construct(
         private PromotionRepository $promotionRepository,
         private PromotionService $promotionService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(
@@ -43,17 +43,16 @@ class PromotionAdminController extends AbstractController
     )]
     public function list(Request $request): JsonResponse
     {
-        $page  = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $pagination = Pagination::fromRequest($request, defaultLimit: 20);
 
-        $promotions = $this->promotionRepository->findAllPaginated($page, $limit);
-        $total      = $this->promotionRepository->countAll();
+        $promotions = $this->promotionRepository->findAllPaginated($pagination->page, $pagination->limit);
+        $total = $this->promotionRepository->countAll();
 
         return $this->json(PaginatedResponse::create(
-            data: array_map(fn($p) => PromotionListItem::fromEntity($p), $promotions),
+            data: array_map(fn ($p) => PromotionListItem::fromEntity($p), $promotions),
             total: $total,
-            page: $page,
-            limit: $limit,
+            page: $pagination->page,
+            limit: $pagination->limit,
         ));
     }
 
@@ -86,17 +85,7 @@ class PromotionAdminController extends AbstractController
     )]
     public function create(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreatePromotionRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreatePromotionRequest::class);
         $promotion = $this->promotionService->create($dto);
 
         return $this->json(PromotionListItem::fromEntity($promotion), Response::HTTP_CREATED);

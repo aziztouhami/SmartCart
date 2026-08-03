@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use App\Entity\User;
 use App\DTO\Auth\LoginResponse;
+use App\Entity\User;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class AuthenticationService
@@ -11,7 +11,8 @@ class AuthenticationService
     public function __construct(
         private JWTTokenManagerInterface $jwtManager,
         private int $tokenTtl,
-    ) {}
+    ) {
+    }
 
     public function createLoginResponse(User $user): LoginResponse
     {

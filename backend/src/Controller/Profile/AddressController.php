@@ -2,6 +2,7 @@
 
 namespace App\Controller\Profile;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Address\AddressItem;
 use App\DTO\Address\CreateAddressRequest;
 use App\DTO\Address\UpdateAddressRequest;
@@ -14,8 +15,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/profile/addresses', name: 'api_profile_addresses_')]
 #[OA\Tag(name: 'Profile', description: 'Saved address management — requires authentication')]
@@ -24,9 +23,9 @@ class AddressController extends AbstractController
     public function __construct(
         private AddressRepository $addressRepository,
         private AddressService $addressService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(path: '/api/profile/addresses', operationId: 'listAddresses', summary: 'List saved addresses', security: [['Bearer' => []]], responses: [new OA\Response(response: 200, description: 'Address list')])]
@@ -38,7 +37,8 @@ class AddressController extends AbstractController
         }
 
         $addresses = $this->addressRepository->findByUser($user);
-        return $this->json(array_map(fn($a) => AddressItem::fromEntity($a), $addresses));
+
+        return $this->json(array_map(fn ($a) => AddressItem::fromEntity($a), $addresses));
     }
 
     #[Route('', name: 'create', methods: ['POST'])]
@@ -73,17 +73,7 @@ class AddressController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateAddressRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateAddressRequest::class);
         $address = $this->addressService->create($user, $dto);
 
         return $this->json(AddressItem::fromEntity($address), Response::HTTP_CREATED);
@@ -126,17 +116,7 @@ class AddressController extends AbstractController
             return $this->json(['error' => 'Address not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateAddressRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateAddressRequest::class);
         $address = $this->addressService->update($address, $dto, $user);
 
         return $this->json(AddressItem::fromEntity($address));

@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Service\Ai\Prompt;
+namespace App\Prompts\Chatbot;
 
 /**
  * Builds the chatbot's full prompt for one chat turn: fixed grounding/tone
  * instructions + the catalogue overview, matched product fact-sheets, and
  * recent conversation history. Callers gather the data (repositories,
  * entities) — this class only owns the wording and structure sent to the
- * model. See ChatbotService::buildPrompt().
+ * model. See ChatPromptDataBuilder::build().
  */
 class ShopAssistantPrompt
 {
     private const MAX_HISTORY_TURNS = 6;
 
     /**
-     * @param string[] $productLines Pre-formatted "- Nom: ... | Prix: ..." lines,
-     *                                one per matched product (empty when none matched).
+     * @param string[]                                         $productLines Pre-formatted "- Nom: ... | Prix: ..." lines,
+     *                                                                       one per matched product (empty when none matched).
      * @param array<int, array{role: string, content: string}> $history
      */
     public function build(
@@ -48,7 +48,7 @@ class ShopAssistantPrompt
             $lines[] = '[HISTORIQUE DE CONVERSATION]';
             foreach (array_slice($history, -self::MAX_HISTORY_TURNS) as $turn) {
                 $role = ($turn['role'] ?? '') === 'assistant' ? 'Assistant' : 'Utilisateur';
-                $lines[] = "{$role}: " . ($turn['content'] ?? '');
+                $lines[] = "{$role}: ".($turn['content'] ?? '');
             }
             $lines[] = '';
         }

@@ -17,7 +17,8 @@ class PromotionService
         private UserRepository $userRepository,
         private EntityManagerInterface $em,
         private MailService $mailService,
-    ) {}
+    ) {
+    }
 
     public function create(CreatePromotionRequest $dto): Promotion
     {
@@ -25,23 +26,23 @@ class PromotionService
             throw new \RuntimeException('Invalid discount type', 400);
         }
 
-        if ($dto->type !== Promotion::TYPE_PRODUCT && $dto->discountType === Promotion::DISCOUNT_FIXED) {
+        if (Promotion::TYPE_PRODUCT !== $dto->type && Promotion::DISCOUNT_FIXED === $dto->discountType) {
             throw new \RuntimeException('A fixed price can only be set for a single-product promotion. Brand and store-wide promotions must use a percentage.', 400);
         }
 
-        if ($dto->discountType === Promotion::DISCOUNT_PERCENTAGE && $dto->percentage === null) {
+        if (Promotion::DISCOUNT_PERCENTAGE === $dto->discountType && null === $dto->percentage) {
             throw new \RuntimeException('Percentage is required', 400);
         }
-        if ($dto->discountType === Promotion::DISCOUNT_FIXED && $dto->fixedPrice === null) {
+        if (Promotion::DISCOUNT_FIXED === $dto->discountType && null === $dto->fixedPrice) {
             throw new \RuntimeException('Fixed price is required', 400);
         }
 
         $promotion = new Promotion();
         $promotion->setType($dto->type);
         $promotion->setDiscountType($dto->discountType);
-        $promotion->setPercentage($dto->discountType === Promotion::DISCOUNT_PERCENTAGE ? (string) $dto->percentage : null);
+        $promotion->setPercentage(Promotion::DISCOUNT_PERCENTAGE === $dto->discountType ? (string) $dto->percentage : null);
 
-        if ($dto->type === Promotion::TYPE_PRODUCT) {
+        if (Promotion::TYPE_PRODUCT === $dto->type) {
             if (!$dto->productId) {
                 throw new \RuntimeException('productId is required for a product promotion', 400);
             }
@@ -49,12 +50,12 @@ class PromotionService
             if (!$product) {
                 throw new \RuntimeException('Product not found', 404);
             }
-            if ($dto->discountType === Promotion::DISCOUNT_FIXED && $dto->fixedPrice >= (float) $product->getPrice()) {
+            if (Promotion::DISCOUNT_FIXED === $dto->discountType && $dto->fixedPrice >= (float) $product->getPrice()) {
                 throw new \RuntimeException('Fixed promotional price must be lower than the current price', 400);
             }
             $promotion->setProduct($product);
-            $promotion->setFixedPrice($dto->discountType === Promotion::DISCOUNT_FIXED ? (string) $dto->fixedPrice : null);
-        } elseif ($dto->type === Promotion::TYPE_BRAND) {
+            $promotion->setFixedPrice(Promotion::DISCOUNT_FIXED === $dto->discountType ? (string) $dto->fixedPrice : null);
+        } elseif (Promotion::TYPE_BRAND === $dto->type) {
             if (!$dto->brandId) {
                 throw new \RuntimeException('brandId is required for a brand promotion', 400);
             }
@@ -73,7 +74,7 @@ class PromotionService
         }
         $promotion->setStartDate($startDate);
 
-        if ($dto->endDate !== null && $dto->endDate !== '') {
+        if (null !== $dto->endDate && '' !== $dto->endDate) {
             try {
                 $endDate = new \DateTimeImmutable($dto->endDate);
             } catch (\Exception) {

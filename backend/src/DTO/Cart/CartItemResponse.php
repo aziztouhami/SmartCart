@@ -29,6 +29,7 @@ class CartItemResponse
         $dto->quantity = $item->getQuantity();
         $dto->subtotal = round((float) $item->getPrice() * $item->getQuantity(), 2);
         $dto->availableStock = $item->getProduct()->getStock();
+
         return $dto;
     }
 }

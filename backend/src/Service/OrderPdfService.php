@@ -52,7 +52,7 @@ class OrderPdfService
             $address['country'] ?? null,
         ])), ENT_QUOTES);
 
-        $customerName = htmlspecialchars(trim(($user?->getFirstName() ?? '') . ' ' . ($user?->getLastName() ?? '')), ENT_QUOTES);
+        $customerName = htmlspecialchars(trim(($user?->getFirstName() ?? '').' '.($user?->getLastName() ?? '')), ENT_QUOTES);
         $total = number_format((float) $order->getTotalAmount(), 3);
         $date = $order->getCreatedAt()->format('d M Y, H:i');
 

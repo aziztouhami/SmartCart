@@ -48,7 +48,7 @@ class ProductDetail
 
         $type = $product->getProductType();
         $dto->productType = $type ? [
-            'id'   => $type->getId(),
+            'id' => $type->getId(),
             'name' => $type->getName(),
             'slug' => $type->getSlug(),
         ] : null;
@@ -67,10 +67,10 @@ class ProductDetail
                 }
                 $value = $values[$attr->getSlug()];
                 $dto->specifications[] = [
-                    'name'  => $attr->getName(),
-                    'slug'  => $attr->getSlug(),
+                    'name' => $attr->getName(),
+                    'slug' => $attr->getSlug(),
                     'value' => $value,
-                    'unit'  => $attr->getUnit(),
+                    'unit' => $attr->getUnit(),
                     'dataType' => $attr->getDataType(),
                     'display' => is_bool($value)
                         ? ($value ? 'Yes' : 'No')
@@ -85,6 +85,7 @@ class ProductDetail
         $dto->reviewCount = $reviewCount;
         $dto->createdAt = $product->getCreatedAt()->format(\DateTimeInterface::ATOM);
         $dto->updatedAt = $product->getUpdatedAt()?->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

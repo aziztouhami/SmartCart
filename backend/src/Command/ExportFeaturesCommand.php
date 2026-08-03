@@ -30,11 +30,12 @@ class ExportFeaturesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io  = new SymfonyStyle($input, $output);
+        $io = new SymfonyStyle($input, $output);
         $dir = rtrim($input->getArgument('outputDir'), '/\\');
 
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             $io->error("Could not create output directory: {$dir}");
+
             return Command::FAILURE;
         }
 

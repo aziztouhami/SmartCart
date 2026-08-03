@@ -15,7 +15,8 @@ class MailService
         private OrderPdfService $orderPdfService,
         private string $frontendUrl,
         private string $adminEmail,
-    ) {}
+    ) {
+    }
 
     /**
      * Runs a mail-send call, swallowing any failure. A mail delivery issue
@@ -34,7 +35,7 @@ class MailService
 
     public function sendVerificationEmail(User $user): void
     {
-        $link = rtrim($this->frontendUrl, '/') . '/verify-email?token=' . $user->getVerificationToken();
+        $link = rtrim($this->frontendUrl, '/').'/verify-email?token='.$user->getVerificationToken();
 
         $email = (new Email())
             ->from($this->adminEmail)
@@ -69,7 +70,7 @@ class MailService
 
     private function namePart(string $name): string
     {
-        return $name !== '' ? ", {$name}" : '';
+        return '' !== $name ? ", {$name}" : '';
     }
 
     /**
@@ -157,32 +158,34 @@ class MailService
 
     private function promotionContent(Promotion $promotion): array
     {
-        $discount = $promotion->getDiscountType() === Promotion::DISCOUNT_FIXED
-            ? number_format((float) $promotion->getFixedPrice(), 3) . ' TND'
-            : ((float) $promotion->getPercentage()) . '% off';
+        $discount = Promotion::DISCOUNT_FIXED === $promotion->getDiscountType()
+            ? number_format((float) $promotion->getFixedPrice(), 3).' TND'
+            : ((float) $promotion->getPercentage()).'% off';
 
-        if ($promotion->getType() === Promotion::TYPE_PRODUCT && $promotion->getProduct()) {
+        if (Promotion::TYPE_PRODUCT === $promotion->getType() && $promotion->getProduct()) {
             $name = $promotion->getProduct()->getName();
+
             return [
                 "New promotion: {$name}",
                 "{$name} is now on sale — {$discount}. Grab it before the offer ends.",
-                rtrim($this->frontendUrl, '/') . '/product/' . $promotion->getProduct()->getId(),
+                rtrim($this->frontendUrl, '/').'/product/'.$promotion->getProduct()->getId(),
             ];
         }
 
-        if ($promotion->getType() === Promotion::TYPE_BRAND && $promotion->getBrand()) {
+        if (Promotion::TYPE_BRAND === $promotion->getType() && $promotion->getBrand()) {
             $name = $promotion->getBrand()->getName();
+
             return [
                 "New promotion on {$name}",
                 "All {$name} products are now {$discount}. Check out the deals.",
-                rtrim($this->frontendUrl, '/') . '/promotions',
+                rtrim($this->frontendUrl, '/').'/promotions',
             ];
         }
 
         return [
             'A new store-wide promotion just started!',
             "Enjoy {$discount} across the store for a limited time.",
-            rtrim($this->frontendUrl, '/') . '/promotions',
+            rtrim($this->frontendUrl, '/').'/promotions',
         ];
     }
 
@@ -235,7 +238,7 @@ class MailService
                 HTML;
         }
 
-        $ordersLink = rtrim($this->frontendUrl, '/') . '/orders';
+        $ordersLink = rtrim($this->frontendUrl, '/').'/orders';
 
         return <<<HTML
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #1a2b40;">

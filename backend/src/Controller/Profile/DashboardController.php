@@ -20,7 +20,8 @@ class DashboardController extends AbstractController
     public function __construct(
         private OrderRepository $orderRepository,
         private FavoriteRepository $favoriteRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Return a summary dashboard for the authenticated user:
@@ -43,22 +44,22 @@ class DashboardController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $recentOrders    = $this->orderRepository->findUserOrders($user, 1, 5);
-        $totalOrders     = $this->orderRepository->countUserOrders($user);
+        $recentOrders = $this->orderRepository->findUserOrders($user, 1, 5);
+        $totalOrders = $this->orderRepository->countUserOrders($user);
         $recentFavorites = $this->favoriteRepository->findByUser($user, 1, 4);
-        $totalFavorites  = $this->favoriteRepository->countByUser($user);
+        $totalFavorites = $this->favoriteRepository->countByUser($user);
 
         $statusCounts = $this->orderRepository->countUserOrdersByStatus($user);
 
         return $this->json([
             'orders' => [
-                'total'  => $totalOrders,
+                'total' => $totalOrders,
                 'byStatus' => $statusCounts,
-                'recent' => array_map(fn($o) => OrderListItem::fromEntity($o), $recentOrders),
+                'recent' => array_map(fn ($o) => OrderListItem::fromEntity($o), $recentOrders),
             ],
             'favorites' => [
-                'total'  => $totalFavorites,
-                'recent' => array_map(fn($f) => FavoriteItem::fromEntity($f), $recentFavorites),
+                'total' => $totalFavorites,
+                'recent' => array_map(fn ($f) => FavoriteItem::fromEntity($f), $recentFavorites),
             ],
         ]);
     }

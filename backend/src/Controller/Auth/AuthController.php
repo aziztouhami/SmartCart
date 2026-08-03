@@ -2,9 +2,11 @@
 
 namespace App\Controller\Auth;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Auth\LoginRequest;
 use App\DTO\Auth\RegisterRequest;
 use App\Service\AuthenticationService;
+use App\Service\GoogleAuthService;
 use App\Service\UserService;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,9 +14,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/api/auth')]
 #[OA\Tag(name: 'Authentication', description: 'User authentication and account management')]
@@ -23,11 +22,10 @@ class AuthController extends AbstractController
     public function __construct(
         private UserService $userService,
         private AuthenticationService $authService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-        private HttpClientInterface $httpClient,
-        private string $googleClientId = '',
-    ) {}
+        private RequestDtoParser $dtoParser,
+        private GoogleAuthService $googleAuthService,
+    ) {
+    }
 
     #[Route('/login', name: 'api_login', methods: ['POST'])]
     #[OA\Post(
@@ -73,40 +71,10 @@ class AuthController extends AbstractController
     )]
     public function login(Request $request): JsonResponse
     {
-        if (!str_contains($request->headers->get('Content-Type', ''), 'application/json')) {
-            return $this->json(['error' => 'Content-Type must be application/json'], Response::HTTP_UNSUPPORTED_MEDIA_TYPE);
-        }
+        $dto = $this->dtoParser->parse($request, LoginRequest::class);
+        $user = $this->userService->verifyCredentials($dto->email, $dto->password);
 
-        try {
-            $loginRequest = $this->serializer->deserialize($request->getContent(), LoginRequest::class, 'json');
-
-            $errors = $this->validator->validate($loginRequest);
-            if (count($errors) > 0) {
-                return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-            }
-
-            $user = $this->userService->verifyCredentials($loginRequest->email, $loginRequest->password);
-
-            if (!$user->isVerified()) {
-                return $this->json(
-                    ['error' => 'Please confirm your email address before logging in.', 'code' => 'EMAIL_NOT_VERIFIED'],
-                    Response::HTTP_FORBIDDEN
-                );
-            }
-
-            return $this->json($this->authService->createLoginResponse($user), Response::HTTP_OK);
-        } catch (\RuntimeException $e) {
-            $code = $e->getCode();
-            return $this->json(
-                ['error' => $e->getMessage()],
-                ($code >= 400 && $code < 600) ? $code : Response::HTTP_UNAUTHORIZED
-            );
-        } catch (\Exception $e) {
-            return $this->json(
-                ['error' => 'An error occurred during login: ' . $e->getMessage()],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
-        }
+        return $this->json($this->authService->createLoginResponse($user), Response::HTTP_OK);
     }
 
     #[Route('/register', name: 'api_register', methods: ['POST'])]
@@ -154,28 +122,13 @@ class AuthController extends AbstractController
     )]
     public function register(Request $request): JsonResponse
     {
-        try {
-            $registerRequest = $this->serializer->deserialize($request->getContent(), RegisterRequest::class, 'json');
+        $dto = $this->dtoParser->parse($request, RegisterRequest::class);
+        $user = $this->userService->register($dto);
 
-            $errors = $this->validator->validate($registerRequest);
-            if (count($errors) > 0) {
-                return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-            }
-
-            $user = $this->userService->register($registerRequest);
-
-            return $this->json([
-                'message' => 'Account created. Please check your email to confirm your account before logging in.',
-                'email'   => $user->getEmail(),
-            ], Response::HTTP_CREATED);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: Response::HTTP_BAD_REQUEST);
-        } catch (\Exception $e) {
-            return $this->json(
-                ['error' => 'An error occurred during registration: ' . $e->getMessage()],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
-        }
+        return $this->json([
+            'message' => 'Account created. Please check your email to confirm your account before logging in.',
+            'email' => $user->getEmail(),
+        ], Response::HTTP_CREATED);
     }
 
     #[Route('/verify-email', name: 'api_verify_email', methods: ['POST'])]
@@ -196,7 +149,7 @@ class AuthController extends AbstractController
     )]
     public function verifyEmail(Request $request): JsonResponse
     {
-        $data  = json_decode($request->getContent(), true) ?? [];
+        $data = json_decode($request->getContent(), true) ?? [];
         $token = $data['token'] ?? '';
 
         if (!$token) {
@@ -223,7 +176,7 @@ class AuthController extends AbstractController
     )]
     public function resendVerification(Request $request): JsonResponse
     {
-        $data  = json_decode($request->getContent(), true) ?? [];
+        $data = json_decode($request->getContent(), true) ?? [];
         $email = $data['email'] ?? '';
 
         if ($email) {
@@ -271,11 +224,11 @@ class AuthController extends AbstractController
         }
 
         return $this->json([
-            'id'        => $user->getId(),
-            'email'     => $user->getEmail(),
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
             'firstName' => $user->getFirstName(),
-            'lastName'  => $user->getLastName(),
-            'roles'     => $user->getRoles(),
+            'lastName' => $user->getLastName(),
+            'roles' => $user->getRoles(),
             'createdAt' => $user->getCreatedAt(),
         ]);
     }
@@ -301,61 +254,17 @@ class AuthController extends AbstractController
     )]
     public function googleLogin(Request $request): JsonResponse
     {
-        $data        = json_decode($request->getContent(), true) ?? [];
+        $data = json_decode($request->getContent(), true) ?? [];
         $accessToken = $data['accessToken'] ?? '';
 
         if (!$accessToken) {
             return $this->json(['error' => 'Missing access token'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Verify the token with Google's tokeninfo endpoint (also returns `aud` for audience check)
-        $tokenInfo = $this->fetchGoogleJson('GET', 'https://oauth2.googleapis.com/tokeninfo', [
-            'query' => ['access_token' => $accessToken],
-        ]);
-
-        if (!$tokenInfo) {
-            return $this->json(['error' => 'Invalid Google token'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Verify the token was issued for this app
-        if ($this->googleClientId && ($tokenInfo['aud'] ?? '') !== $this->googleClientId
-            && ($tokenInfo['azp'] ?? '') !== $this->googleClientId) {
-            return $this->json(['error' => 'Token was not issued for this application'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        if (($tokenInfo['email_verified'] ?? '') !== 'true' && ($tokenInfo['email_verified'] ?? false) !== true) {
-            return $this->json(['error' => 'Google email is not verified'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Fetch the full profile (tokeninfo may not include name)
-        $profile = $this->fetchGoogleJson('GET', 'https://www.googleapis.com/oauth2/v3/userinfo', [
-            'headers' => ['Authorization' => 'Bearer ' . $accessToken],
-        ]) ?? [];
-        // Merge so email/verified from tokenInfo are always present
-        $profile = array_merge($tokenInfo, $profile);
-
+        $profile = $this->googleAuthService->verifyAndFetchProfile($accessToken);
         $user = $this->userService->findOrCreateFromGoogle($profile);
 
         return $this->json($this->authService->createLoginResponse($user));
-    }
-
-    /**
-     * GET request to a Google API endpoint, decoded as JSON. Returns null on
-     * any failure (network error, non-200 status, invalid JSON) — same
-     * degrade-silently convention as GroqClientService/TranslationService.
-     */
-    private function fetchGoogleJson(string $method, string $url, array $options = []): ?array
-    {
-        try {
-            $response = $this->httpClient->request($method, $url, array_merge(['timeout' => 10], $options));
-            if ($response->getStatusCode() !== 200) {
-                return null;
-            }
-
-            return $response->toArray(false);
-        } catch (\Throwable) {
-            return null;
-        }
     }
 
     #[Route('/logout', name: 'api_logout', methods: ['POST'])]

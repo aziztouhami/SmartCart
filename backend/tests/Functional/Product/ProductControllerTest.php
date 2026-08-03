@@ -25,7 +25,7 @@ class ProductControllerTest extends WebTestCase
 
         $this->category = new Category();
         $this->category->setName('Electronics');
-        $this->category->setSlug('electronics-' . uniqid());
+        $this->category->setSlug('electronics-'.uniqid());
         $this->em->persist($this->category);
         $this->em->flush();
     }
@@ -34,7 +34,7 @@ class ProductControllerTest extends WebTestCase
     {
         $product = new Product();
         $product->setName($name);
-        $product->setSlug('product-' . uniqid());
+        $product->setSlug('product-'.uniqid());
         $product->setPrice($price);
         $product->setStock($stock);
         $product->setCategory($this->category);
@@ -69,11 +69,23 @@ class ProductControllerTest extends WebTestCase
         $this->assertSame('In Stock', $data['data'][0]['name']);
     }
 
+    public function testListFallsBackToDefaultSortForUnknownSortValue(): void
+    {
+        $this->createProduct('Widget A', '10.00', 5);
+        $this->createProduct('Widget B', '20.00', 5);
+
+        $this->client->request('GET', '/api/products?sort=totallyInvalid');
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertSame(2, $data['total']);
+    }
+
     public function testShowReturnsProductDetail(): void
     {
         $product = $this->createProduct('Widget', '10.00', 5);
 
-        $this->client->request('GET', '/api/products/' . $product->getId());
+        $this->client->request('GET', '/api/products/'.$product->getId());
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);

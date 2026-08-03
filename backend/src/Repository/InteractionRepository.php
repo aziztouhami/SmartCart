@@ -79,6 +79,7 @@ class InteractionRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[(int) $row['productId']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 
@@ -101,12 +102,12 @@ class InteractionRepository extends ServiceEntityRepository
             'userId' => (int) $row['userId'],
             'productId' => (int) $row['productId'],
             'type' => $row['type'],
-            'value' => $row['value'] !== null ? (int) $row['value'] : null,
+            'value' => null !== $row['value'] ? (int) $row['value'] : null,
         ], $rows);
     }
 
     /**
-     * Find interactions by user
+     * Find interactions by user.
      */
     public function findByUser(User $user, int $limit = 100): array
     {
@@ -139,7 +140,7 @@ class InteractionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find interactions by product
+     * Find interactions by product.
      */
     public function findByProduct(Product $product): array
     {
@@ -152,7 +153,7 @@ class InteractionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find interactions by type
+     * Find interactions by type.
      */
     public function findByType(string $type, int $limit = 50): array
     {
@@ -166,7 +167,7 @@ class InteractionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find interactions by user and product
+     * Find interactions by user and product.
      */
     public function findByUserAndProduct(User $user, Product $product): array
     {
@@ -181,7 +182,7 @@ class InteractionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find interactions by user and type
+     * Find interactions by user and type.
      */
     public function findByUserAndType(User $user, string $type, int $limit = 50): array
     {
@@ -197,7 +198,7 @@ class InteractionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count interactions by type
+     * Count interactions by type.
      */
     public function countByType(string $type): int
     {
@@ -249,6 +250,7 @@ class InteractionRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[$row['type']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 
@@ -267,6 +269,7 @@ class InteractionRepository extends ServiceEntityRepository
         foreach ($rows as $row) {
             $counts[$row['type']] = (int) $row['cnt'];
         }
+
         return $counts;
     }
 

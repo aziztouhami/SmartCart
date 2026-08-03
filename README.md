@@ -1,6 +1,8 @@
 # SmartCart — Plateforme E-Commerce avec Recommandations Intelligentes
 
-SmartCart est une plateforme e-commerce développée dans le cadre d'un stage chez Sofiatech. Elle combine une API REST sécurisée par JWT, une interface React multilingue, un assistant IA intégré (Groq / Llama 3.3), et un moteur de recommandation basé sur le filtrage collaboratif pour personnaliser l'expérience de chaque utilisateur.
+> **© Tous droits réservés.** Ce code est propriétaire — voir [LICENSE](LICENSE). Aucune utilisation n'est autorisée sans l'accord écrit préalable de l'auteur (aziztouha19@gmail.com).
+
+SmartCart est une plateforme e-commerce développée dans le cadre d'un stage chez Sofiatech. Elle combine une API REST sécurisée par JWT, une interface React multilingue, un assistant IA intégré (Groq / Llama 3.3), un moteur de recommandation basé sur le filtrage collaboratif, et un module d'analytics IA 100% local (Ollama) pour détecter les anomalies de KPIs, pour personnaliser l'expérience de chaque utilisateur et outiller l'équipe admin.
 
 ---
 
@@ -14,6 +16,7 @@ Le projet suit une architecture découplée (Headless) :
 - **Backend Symfony 7** : exposition d'une API REST, gestion des entités métier, sécurité, et logique applicative.
 - **Moteur de recommandation** : service Symfony indépendant basé sur le filtrage collaboratif, calculant des scores de similarité entre utilisateurs à partir de leurs interactions.
 - **Assistant IA (Chatbot)** : intégration de l'API Groq (Llama 3.3 70B) pour répondre aux questions produits des visiteurs en langage naturel, et pour suggérer automatiquement les attributs standards d'un type de produit dans le panneau admin.
+- **Analytics IA locale (Ollama)** : bouton "Analyser" par produit/catégorie/marque/type de produit dans le panneau admin — un LLM auto-hébergé (aucune donnée envoyée à un service tiers) interprète les KPIs comportementaux (vues, ajouts panier, achats, notes, favoris, prix/stock actuels, tendance des ventes) et détecte les anomalies.
 - **Base de données PostgreSQL** : stockage relationnel optimisé avec index sur les tables produits et historique des interactions.
 
 ---
@@ -28,6 +31,7 @@ Le projet suit une architecture découplée (Headless) :
 | Authentification | JWT — LexikJWTAuthenticationBundle v3 |
 | OAuth social | Google OAuth 2.0 |
 | Chatbot IA | Groq API (Llama 3.3 70B) |
+| Analytics IA locale | Ollama (modèle au choix — voir [Analytics IA locale](#analytics-ia-locale-ollama)) |
 | Traduction (chatbot) | MyMemory Translation API |
 | Documentation API | swagger-php v4 + Swagger UI (CDN) |
 | Conteneurisation | Docker et Docker Compose |
@@ -63,7 +67,8 @@ SmartCart/
 │       │   └── RebuildRecommendationsCommand.php   # Recalcul batch des recommandations
 │       ├── Controller/
 │       │   ├── Admin/          # Tableau de bord, produits, catégories, marques, commandes,
-│       │   │                   # promotions, types de produits, utilisateurs, images, recommandations
+│       │   │                   # promotions, types de produits, utilisateurs, images,
+│       │   │                   # recommandations, analytics IA (AnalyticsAdminController)
 │       │   ├── Auth/           # login, register, verify-email, resend-verification, me, google-login, logout
 │       │   ├── Brand/          # Catalogue marques (public)
 │       │   ├── Cart/           # Panier (ajout, mise à jour, suppression, synchronisation)
@@ -74,6 +79,10 @@ SmartCart/
 │       │   ├── Product/        # Catalogue, avis, interactions, événements anonymes
 │       │   ├── Profile/        # Profil, adresses, favoris, tableau de bord, avis
 │       │   └── Recommendation/ # RecommendationController — endpoint GET /api/recommendations
+│       ├── Domain/             # Logique extraite des contrôleurs : parsing de requêtes (RequestDtoParser,
+│       │                       # Pagination, SortParams), objets de filtre typés (ProductQueryParams) et
+│       │                       # petites règles métier qui ne justifient pas un Service à part entière
+│       │                       # (PromotedProductsSelector, BestSellersResolver)
 │       ├── DTO/                # Objets de transfert de données, un sous-dossier par domaine
 │       │                       # (Address, Admin, Auth, Brand, Cart, Category, Chatbot, Favorite,
 │       │                       # Order, Pagination, Product, Profile, Promotion, Review) —
@@ -86,23 +95,36 @@ SmartCart/
 │       │                       # d'apprentissage (PHP pur, sans dépendance) utilisés par le moteur
 │       │                       # de recommandation
 │       ├── OpenApi/            # Configuration globale de la spec OpenAPI
+│       ├── Prompts/            # Un builder de prompt par fonctionnalité IA, organisés par domaine
+│       │   ├── Analytics/      # AnomalyAnalysisPrompt — partagé par les 4 types d'entité analysés
+│       │   ├── Chatbot/        # ShopAssistantPrompt
+│       │   └── ProductType/    # ProductAttributesPrompt
 │       ├── Repository/         # Repositories Doctrine (19)
-│       ├── Service/            # Logique métier (21 services)
-│       │   ├── Ai/             # GroqClientService (client HTTP Groq générique)
-│       │   │   └── Prompt/     # Un builder de prompt par fonctionnalité IA
-│       │   │                   # (ShopAssistantPrompt, ProductAttributesPrompt)
-│       │   ├── Chatbot/        # ChatbotService (logique), TranslationService (MyMemory)
-│       │   └── Recommendation/ # 8 services (collaborative, content, cold start, seasonal...)
+│       ├── Service/            # Logique métier
+│       │   ├── Ai/             # GroqClientService, OllamaClientService — clients HTTP génériques,
+│       │   │                   # aucun ne connaît les prompts (voir Prompts/)
+│       │   ├── Analytics/      # AnomalyAnalysisService — orchestre le bouton "Analyser"
+│       │   ├── Chatbot/        # ChatbotService, ChatProductFinder, ChatPromptDataBuilder,
+│       │   │                   # TranslationService (MyMemory)
+│       │   ├── Feature/        # Agrégation des KPIs par produit/catégorie/marque/type de produit
+│       │   │                   # (réutilisée par l'export CSV ET par l'analytics IA)
+│       │   └── Recommendation/ # 11 services (collaboratif, contenu, cold start, saisonnier, builder de
+│       │                       # relations produit-à-produit, plus le trio partagé scoring hybride /
+│       │                       # règles métier / cache du modèle CF, utilisé à la fois par le job batch
+│       │                       # et le chemin live — voir la section "Moteur de recommandation")
 │       └── Validation/         # Contraintes Symfony Validator en YAML, un fichier par DTO,
 │                                # organisées en miroir de DTO/ (Address, Auth, Brand, Cart,
 │                                # Category, Chatbot, Order, Product, Profile, Promotion, Review)
 │
 ├── frontend/
 │   ├── public/
+│   │   └── assets/            # logo.png, images statiques (fonds d'authentification...)
 │   └── src/
 │       ├── components/        # Composants React réutilisables
-│       │   ├── admin/         # TypeFeatureFields (attributs dynamiques)
-│       │   ├── ui/            # Badge, Button, IconButton, Price, Skeleton
+│       │   ├── admin/         # ConfirmModal, AdminToast, AnalyzeButton, AnomalyReportModal,
+│       │   │                  # TypeFeatureFields (attributs dynamiques), AdminIcons, useAnalysis
+│       │   │                  # (hook partagé par les 4 pages CRUD admin — voir Panneau d'administration)
+│       │   ├── ui/            # Badge, Button, HeartIcon, IconButton, Price, Skeleton
 │       │   ├── Chatbot.jsx    # Interface de l'assistant IA
 │       │   ├── ImageUpload.jsx
 │       │   ├── LanguageSwitcher.jsx
@@ -112,23 +134,27 @@ SmartCart/
 │       ├── context/           # CartContext, CategoryContext, FavoriteContext
 │       ├── i18n/              # Configuration i18next + traductions (EN / FR)
 │       │   └── locales/
-│       │       ├── en/        # 5 fichiers de traduction anglais
-│       │       └── fr/        # 5 fichiers de traduction français
+│       │       ├── en/        # 13 namespaces (auth, brands, cart, chatbot, common, favorites,
+│       │       │              # home, navbar, orders, product, productDetail, profile, promotions)
+│       │       └── fr/        # même liste de namespaces, traduction française
 │       ├── pages/
-│       │   ├── admin/         # AdminDashboard, AdminProducts, AdminCategories, AdminBrands,
-│       │   │                  # AdminOrders, AdminPromotions, AdminTypes, AdminLayout
+│       │   ├── admin/         # AdminDashboard, AdminProducts (+ ProductFormModal, ProductsTable),
+│       │   │                  # AdminCategories, AdminBrands, AdminOrders, AdminPromotions,
+│       │   │                  # AdminTypes (+ AddTypeModal, EditTypeModal, TypesTable, IconSparkles),
+│       │   │                  # AdminLayout (sidebar + shell commun à toutes les pages admin)
 │       │   ├── auth/          # Login, Register, VerifyEmail
 │       │   ├── brands/        # Brands
-│       │   ├── cart/          # Cart
+│       │   ├── cart/          # Cart (+ CartItemRow, CheckoutModal, OrderConfirmModal)
 │       │   ├── favorites/     # Favorites
-│       │   ├── home/          # Home
+│       │   ├── home/          # Home (+ FilterSidebar, HomeSections, ProductRow)
 │       │   ├── orders/        # Orders
-│       │   ├── product/       # ProductDetail
+│       │   ├── product/       # ProductDetail (+ ImageGallery, ReviewsSection)
 │       │   ├── profile/       # Profile, AddressMapModal
 │       │   └── promotions/    # Promotions
 │       ├── services/          # api.js, authService.js, cartService.js, chatbotService.js,
 │       │                      # sessionService.js, uploadService.js
-│       ├── styles/            # variables.css
+│       ├── styles/            # variables.css — jetons de la charte graphique (voir
+│       │                      # section "Charte graphique" ci-dessous)
 │       └── utils/             # fetchAllProducts.js, format.js
 │
 ├── docker/
@@ -136,6 +162,36 @@ SmartCart/
 │
 └── docker-compose.yml
 ```
+
+**Convention des contrôleurs** : un contrôleur ne fait que router une requête vers un `Service`/`Domain` et retourner sa réponse — aucune logique (parsing, branchement, gestion d'erreur métier) n'y est écrite directement. `Domain/` contient le parsing de requête et les petites règles métier réutilisées par plusieurs contrôleurs ; `Service/` contient l'orchestration métier complète ; les `DTO/` ne décrivent que la forme des données. Les exceptions métier restent de simples `throw new \RuntimeException($message, $httpCodeHttp)`, converties en JSON par `RuntimeExceptionListener` — `ApiException` (dans `Domain/Exception/`) est la même chose avec en plus un `code` machine-readable optionnel (ex. `EMAIL_NOT_VERIFIED`) quand le frontend a besoin de distinguer deux erreurs de même statut HTTP.
+
+---
+
+## Charte graphique
+
+Palette **Bleu / Violet — Moderne & Minimaliste**, codifiée en jetons CSS dans `frontend/src/styles/variables.css` (`--color-*`). Tous les composants et pages du frontend utilisent ces variables plutôt que des couleurs codées en dur.
+
+| Rôle | Couleur | Variable |
+|---|---|---|
+| Dégradé du logo | `#185FA5 → #534AB7` | `--color-logo-gradient` |
+| Fond sidebar / navbar | `#042C53` | `--color-sidebar` |
+| Survol sidebar | `#0C447C` | `--color-sidebar-hover` |
+| Bleu primaire (boutons, liens) | `#185FA5` | `--color-primary` |
+| Bleu moyen (survol) | `#378ADD` | `--color-hover` |
+| Violet accent | `#534AB7` | `--color-violet` |
+| Violet foncé (survol) | `#3C3489` | `--color-violet-hover` |
+| Fond cartes KPI | `#E6F1FB` | `--color-card-bg` |
+| Fond de page | `#F8F9FC` | `--color-page-bg` |
+| Texte principal | `#0A1628` | `--color-text` |
+| Texte secondaire | `#5F5E5A` | `--color-text-secondary` |
+| Succès | `#639922` | `--color-success` |
+| Avertissement | `#BA7517` | `--color-warning` |
+| Erreur | `#A32D2D` | `--color-error` |
+| Info | `#1A6EA8` | `--color-info` |
+
+Chaque couleur fonctionnelle (succès/avertissement/erreur/info) a en plus une variante `-bg` (fond clair) et, pour succès/erreur, une variante `-dark`/`-light` (dégradés, boutons pleins) — voir `variables.css` pour la liste complète.
+
+Le logo (`logo.png`, à la racine du dépôt) est copié dans `frontend/public/assets/logo.png` et utilisé tel quel (image, pas de re-génération SVG) dans la Navbar, la sidebar admin (`AdminLayout`) et l'en-tête du profil (`Profile`).
 
 ---
 
@@ -169,6 +225,7 @@ Renseigner les valeurs suivantes dans `backend/.env` :
 - `GOOGLE_CLIENT_ID` — depuis la Google Cloud Console
 - `GROQ_API_KEY` — clé gratuite depuis https://console.groq.com/keys (chatbot + suggestion d'attributs IA)
 - `MAILER_DSN` — connexion au serveur mail (MailPit en développement, voir ci-dessous ; pour un envoi réel via Gmail, voir [Configurer l'envoi d'emails](#configurer-lenvoi-demails))
+- `OLLAMA_MODEL` — optionnel, active le bouton "Analyser" (analytics IA) dans le panneau admin ; voir [Analytics IA locale (Ollama)](#analytics-ia-locale-ollama) pour le choix du modèle et une précision importante sur **où** le renseigner
 
 **3. Créer le fichier d'environnement frontend**
 
@@ -208,6 +265,7 @@ Les services `smartcart_postgres`, `smartcart_backend` et `smartcart_frontend` d
 | Documentation Swagger | http://localhost:8000/api/docs |
 | MailPit (emails de dev) | http://localhost:8025 |
 | Base de données (externe) | 127.0.0.1:5436 |
+| Ollama (API locale) | http://localhost:11434 |
 
 ---
 
@@ -287,6 +345,9 @@ Le frontend local (`http://localhost:3000`) appelle l'API exposée par le conten
 | `MAILER_DSN` | `smtp://mailer:1025` | Connexion au serveur mail (MailPit en dev — voir [Configurer l'envoi d'emails](#configurer-lenvoi-demails) pour un envoi réel) |
 | `ADMIN_EMAIL` | `admin@smartcart.local` | Adresse expéditrice des emails envoyés par l'application |
 | `FRONTEND_URL` | `http://localhost:3000` | Base des liens générés dans les emails (confirmation de compte, etc.) |
+| `OLLAMA_BASE_URL` | `http://ollama:11434` | URL du serveur Ollama (le service `ollama` de `docker-compose.yml`) |
+| `OLLAMA_MODEL` | vide | Nom du modèle Ollama à utiliser — **laissé vide volontairement**, voir [Analytics IA locale (Ollama)](#analytics-ia-locale-ollama) |
+| `OLLAMA_TIMEOUT` | `120` | Timeout des requêtes en secondes — l'inférence locale sur CPU est bien plus lente qu'une API cloud |
 
 Exemple de `DATABASE_URL` en local (identifiants par défaut définis dans `docker-compose.yml`) :
 
@@ -301,6 +362,15 @@ postgresql://scu:scp@postgres:5432/scdb
 ```
 
 Ces identifiants (`DB_USER`, `DB_PASSWORD`, `DB_NAME`) peuvent être surchargés via un fichier `.env` à la racine du dépôt, lu par `docker-compose.yml`.
+
+**Important — `backend/.env` ne suffit pas pour certaines variables.** `docker-compose.yml` injecte `DATABASE_URL`, `MAILER_DSN`, `GOOGLE_CLIENT_ID`, `GROQ_API_KEY`, `GROQ_MODEL`, `OLLAMA_MODEL`, etc. comme de vraies variables d'environnement du conteneur (bloc `environment:`) — et une vraie variable d'environnement gagne toujours face à `backend/.env`, quelle que soit la valeur qu'on y met. Pour que ces variables précises prennent effet, il faut les définir dans le `.env` **à la racine du dépôt** (ignoré par git, comme `backend/.env`), qui alimente les `${VARIABLE:-defaut}` de `docker-compose.yml`. Exemple minimal pour activer l'analytics IA :
+
+```
+# .env (racine du dépôt)
+OLLAMA_MODEL=qwen3:8b
+```
+
+Puis `docker compose up -d --build backend` pour que le conteneur reparte avec la variable injectée.
 
 ### Frontend (`frontend/.env`)
 
@@ -345,15 +415,18 @@ Les échecs d'envoi n'interrompent jamais une inscription ou une commande (`Mail
 
 ## Services Docker
 
-Le fichier `docker-compose.yml` définit cinq services. Le service `nginx` n'est activé que pour le profil `production`.
+Le fichier `docker-compose.yml` définit six services. Le service `nginx` n'est activé que pour le profil `production`.
 
 | Service | Conteneur | Port exposé | Rôle |
 |---|---|---|---|
 | `postgres` | smartcart_postgres | 5436 (hôte) → 5432 (conteneur) | Base de données PostgreSQL |
+| `ollama` | smartcart_ollama | 11434 | Serveur LLM local pour l'analytics IA (voir [Analytics IA locale](#analytics-ia-locale-ollama)) |
 | `backend` | smartcart_backend | 8000 | API Symfony (serveur PHP intégré) |
 | `frontend` | smartcart_frontend | 3000 | Application React |
 | `mailer` | smartcart_mailer | 8025 (UI), 1025 (SMTP) | MailPit — capture des emails en développement |
 | `nginx` | smartcart_nginx | 80 / 443 | Reverse proxy (production uniquement) |
+
+Les modèles Ollama téléchargés sont mis en cache dans le volume nommé `ollama_data` — ils survivent à un `docker compose down` (mais pas à un `docker compose down -v`).
 
 Pour accéder à la base de données depuis un outil externe comme DBeaver :
 
@@ -485,12 +558,57 @@ Le flux d'inscription inclut une **vérification d'email obligatoire** : le comp
 Un assistant conversationnel est intégré dans le frontend (bulle flottante `Chatbot.jsx`) et répond aux questions des visiteurs sur les produits, catégories et commandes.
 
 - Endpoint public : `POST /api/chatbot/message` (header `X-Session-Id` requis) — accessible sans authentification.
-- `ChatbotService` trouve les produits pertinents par mot-clé (avec repli sur une correspondance de catégorie), construit le prompt via `ShopAssistantPrompt` (`Service/Ai/Prompt/`), puis appelle `GroqClientService`.
+- `ChatbotService` trouve les produits pertinents par mot-clé (avec repli sur une correspondance de catégorie), construit le prompt via `ShopAssistantPrompt` (`Prompts/Chatbot/`), puis appelle `GroqClientService`.
 - Les messages non écrits en anglais sont traduits au préalable par `TranslationService` (API MyMemory) afin de retrouver des produits dont le nom/catégorie est en anglais.
 - Limite de débit : 12 messages / 60 secondes par session (`X-Session-Id`), au-delà réponse `429`.
 - Le modèle et la clé API sont configurés via les variables d'environnement `GROQ_MODEL` et `GROQ_API_KEY`.
 - Si la clé API est absente, le chatbot se désactive silencieusement (réponse de repli).
 - Les échanges sont enregistrés dans `chat_message_log` pour analyse.
+
+### Analytics IA locale (Ollama)
+
+Un bouton **"Analyser"** est disponible sur chaque ligne des tableaux admin Produits, Catégories, Marques et Types de produits. Il déclenche une analyse par un LLM **auto-hébergé** (Ollama, dans son propre conteneur Docker) — contrairement au chatbot, **aucune donnée ne quitte la machine**.
+
+- Endpoints : `POST /api/admin/analytics/{products|categories|brands|product-types}/{id}/analyze` (ROLE_ADMIN).
+- `AnomalyAnalysisService` rassemble les KPIs déjà calculés par `Service/Feature/*` pour l'entité ciblée (vues, ajouts panier, achats, favoris, avis/note moyenne, taux de conversion, prix et stock actuels), y ajoute une série temporelle des ventes des 8 dernières semaines (dérivée des `interaction` de type `purchase` — aucune table d'historique dédiée n'existe), construit le prompt via `AnomalyAnalysisPrompt` (`Prompts/Analytics/`, un seul builder partagé par les 4 types d'entité) puis appelle `OllamaClientService`.
+- **Aucun historique de prix n'est disponible** — seul le prix actuel est transmis ; le prompt interdit explicitement au modèle d'inventer une tendance de prix.
+- Le résultat JSON du modèle (score de santé 0–100, résumé, liste d'anomalies avec sévérité) est entièrement validé et assaini côté serveur avant d'être renvoyé — jamais fait confiance aux champs bruts renvoyés par le modèle.
+- **Rien n'est persisté** : chaque clic relance un calcul complet sur les données actuelles.
+- Si `OLLAMA_MODEL` n'est pas configuré (ou si le conteneur `ollama` est injoignable), l'endpoint répond `503` et le panneau admin affiche un message clair plutôt que de planter.
+
+**Mise en route :**
+
+```bash
+# 1. Démarrer le service Ollama
+docker compose up -d ollama
+
+# 2. Télécharger un modèle adapté à votre machine (voir tableau ci-dessous)
+docker exec smartcart_ollama ollama pull qwen3:8b
+
+# 3. Renseigner le modèle choisi dans le .env À LA RACINE DU DÉPÔT (pas backend/.env — voir
+#    la note "Important" dans Variables d'environnement ci-dessus)
+echo "OLLAMA_MODEL=qwen3:8b" >> .env
+
+# 4. Recréer le conteneur backend pour appliquer la variable
+docker compose up -d --build backend
+```
+
+Le nom du modèle est **laissé vide par défaut** dans `.env.example` : c'est un choix matériel (RAM/CPU/GPU) propre à chaque poste, donc chaque développeur qui clone le dépôt choisit le sien plutôt que d'hériter d'un modèle imposé.
+
+**Quel modèle choisir ?**
+
+| RAM | Modèle recommandé | Pull command | Pourquoi |
+|---|---|---|---|
+| 4 Go | Gemma 3 1B | `ollama pull gemma3:1b` | Seul choix viable |
+| 8 Go | Phi-4 Mini | `ollama pull phi4-mini` | Meilleur raisonnement à cette taille |
+| 12 Go | Qwen3 8B | `ollama pull qwen3:8b` | Rapide, JSON fiable, raisonnement solide |
+| 12 Go (alt) | Gemma3 12B | `ollama pull gemma3:12b` | Plus puissant, meilleur suivi d'instructions |
+| 16 Go | Llama 3.1 8B | `ollama pull llama3.1:8b` | Le plus polyvalent, très stable |
+| 16 Go (alt) | GPT-OSS 20B | `ollama pull gpt-oss:20b` | Meilleur qualité si pas de GPU |
+| 32 Go | Qwen2.5 32B | `ollama pull qwen2.5:32b` | Saut de qualité significatif |
+| 64 Go+ | Llama 3.3 70B | `ollama pull llama3.3:70b` | Comparable aux meilleurs modèles cloud |
+
+Sans GPU dédié, l'inférence tourne sur CPU et peut prendre de quelques secondes à plus d'une minute selon la taille du modèle — `OLLAMA_TIMEOUT` (défaut 120s) est là pour ça. Un modèle proche de la limite haute de RAM disponible sur la machine (en tenant compte des autres conteneurs déjà lancés) sera nettement plus lent qu'un modèle plus modeste.
 
 ### Internationalisation (i18n)
 
@@ -515,6 +633,7 @@ Accessible uniquement aux comptes avec le rôle `ROLE_ADMIN` (routes sous `/admi
 | Promotions | Création et gestion des promotions |
 | Types de produits | Gestion des types et de leurs attributs |
 | Recommandations | Déclenchement manuel du recalcul (`POST /api/admin/recommendations/rebuild`) |
+| Analytics IA | Bouton "Analyser" par produit/catégorie/marque/type — détection d'anomalies via Ollama (100% local) |
 
 ---
 
@@ -561,17 +680,48 @@ Le moteur combine trois approches, réparties dans `Controller/Recommendation/`,
 - **Recommandation par contenu** (`ContentRecommendationService` + `ContentSimilarityService`) — "similaire à ce que vous avez aimé", basé sur la catégorie, la marque, le type de produit et les valeurs d'attributs partagées. Les poids sont appris via régression logistique (`LogisticRegressionTrainer`) à partir des co-occurrences réelles.
 - **Cold start** (`ColdStartRecommendationService`) — la liste servie à un visiteur sans aucun historique : mélange de tendances récentes et de scores saisonniers par catégorie (`SeasonalBoostService` + `AnalyzeSeasonalTrendsCommand`).
 
-Pour un utilisateur connecté, `UserRecommendationBuilderService` mélange les deux premiers moteurs, applique des règles métier (exclusion des produits déjà achetés, boost promotion/nouveauté, diversité des catégories), avec repli sur les préférences déclarées puis sur le cold start. Pour un visiteur anonyme, `RecommendationBuilderService` exploite l'historique de session (`guest_event`).
+Pour un utilisateur connecté, le mélange des deux premiers moteurs et les règles métier (exclusion des produits déjà achetés, boost promotion/nouveauté/saisonnier, diversité des catégories) sont factorisés dans deux services partagés — `HybridRecommendationScorer` et `RecommendationBusinessRules` — utilisés **à la fois** par le job batch (`UserRecommendationBuilderService`) et par le chemin live (`RecommendationServingService`), pour que la logique de scoring soit identique dans les deux cas. Pour un visiteur anonyme, `RecommendationServingService::forGuest()` exploite l'historique de session (`guest_event`).
 
-Le calcul lourd tourne hors ligne (batch), jamais sur le chemin de la requête :
+**Ce qui tourne où :**
+- `RecommendationServingService` (appelé à chaque `GET /api/recommendations`) recalcule le score en direct à partir de l'historique complet de l'utilisateur, donc toute vue/ajout panier/achat/note est immédiatement pris en compte — pas de délai batch. Seul l'entraînement du modèle de filtrage collaboratif est mis en cache (`CachedCollaborativeFilteringModel`, TTL 1h) car le ré-entraîner à chaque requête serait trop coûteux ; la *prédiction* contre ce modèle déjà entraîné, elle, reste live.
+- Le job batch (`php bin/console app:rebuild-recommendations` ou `POST /api/admin/recommendations/rebuild`, ROLE_ADMIN) ré-entraîne ce modèle CF (et rafraîchit immédiatement le cache pour que le chemin live en bénéficie sans attendre l'expiration du TTL), reconstruit `product_relation` (similarité/complémentarité produit-à-produit, utilisée pour les invités et "fréquemment achetés ensemble") et `cold_start_recommendation`.
+
+Pour la page produit, "similaire" est calculé en direct (`ContentSimilarityService`, toujours disponible) ; "fréquemment acheté avec" nécessite les co-occurrences du batch et reste vide tant qu'il n'a jamais tourné.
+
+---
+
+## Tests
+
+La suite de tests couvre l'ensemble de la couche `Service` et des contrôleurs côté backend (tests unitaires + fonctionnels), ainsi que la quasi-totalité des pages, composants et sous-composants côté frontend (tests unitaires React Testing Library) — à l'exception des fichiers triviaux (constantes statiques, utilitaires de test).
+
+### Backend
+
+Les tests utilisent une base de données **séparée** (`scdb_test`, voir `backend/.env.test`) pour ne jamais toucher aux données de dev. Elle n'est pas créée automatiquement au démarrage des conteneurs — à faire une seule fois :
 
 ```bash
-php bin/console app:rebuild-recommendations
+docker exec -e DATABASE_URL="postgresql://scu:scp@postgres:5432/scdb_test?serverVersion=15&charset=utf8" -e APP_ENV=test \
+  smartcart_backend php bin/console doctrine:database:create --if-not-exists
+docker exec -e DATABASE_URL="postgresql://scu:scp@postgres:5432/scdb_test?serverVersion=15&charset=utf8" -e APP_ENV=test \
+  smartcart_backend php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-ou via l'API : `POST /api/admin/recommendations/rebuild` (ROLE_ADMIN).
+(La variable `DATABASE_URL` doit être passée explicitement à `docker exec` — `docker-compose.yml` l'injecte déjà pour la base de dev au niveau du conteneur, et une vraie variable d'environnement gagne toujours face à `--env=test` ou à `backend/.env.test`.)
 
-Servir une recommandation (`GET /api/recommendations`) n'est alors qu'une lecture indexée dans les tables précalculées.
+Ensuite, à chaque exécution :
+
+```bash
+docker exec smartcart_backend php vendor/bin/phpunit
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run test:ci   # suite Jest complète, sans mode watch
+npm run e2e        # suite Cypress (démarre le serveur de dev automatiquement)
+npm run lint        # ESLint
+npm run format:check # vérifie le formatage Prettier sans le réécrire
+```
 
 ---
 
@@ -619,4 +769,6 @@ Servir une recommandation (`GET /api/recommendations`) n'est alors qu'une lectur
 
 ## Licence
 
-MIT — projet réalisé dans le cadre d'un stage chez Sofiatech, juin 2026.
+**Tous droits réservés.** Ce code est la propriété exclusive de son auteur (voir le fichier [LICENSE](LICENSE)). Aucune utilisation, copie, modification, distribution ou exploitation de ce code — en tout ou en partie, commerciale ou non — n'est autorisée sans l'accord écrit préalable de l'auteur. Le fait de consulter ce dépôt ne constitue pas une autorisation d'utilisation.
+
+Pour toute demande d'autorisation, contacter : aziztouha19@gmail.com

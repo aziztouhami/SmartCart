@@ -21,9 +21,10 @@ class ReviewItem
         $dto->rating = $review->getRating();
         $dto->comment = $review->getComment();
         $dto->authorName = trim(
-            ($review->getUser()->getFirstName() ?? '') . ' ' . ($review->getUser()->getLastName() ?? '')
+            ($review->getUser()->getFirstName() ?? '').' '.($review->getUser()->getLastName() ?? '')
         );
         $dto->createdAt = $review->getCreatedAt()->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

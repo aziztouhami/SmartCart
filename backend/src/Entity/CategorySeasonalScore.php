@@ -58,6 +58,7 @@ class CategorySeasonalScore
     public function setCategory(?Category $category): self
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class CategorySeasonalScore
     public function setMonth(int $month): self
     {
         $this->month = $month;
+
         return $this;
     }
 
@@ -80,6 +82,7 @@ class CategorySeasonalScore
     public function setScore(float $score): self
     {
         $this->score = $score;
+
         return $this;
     }
 

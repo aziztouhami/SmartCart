@@ -10,12 +10,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[OA\Tag(name: 'Profile', description: "Own reviews — requires authentication")]
+#[OA\Tag(name: 'Profile', description: 'Own reviews — requires authentication')]
 class ReviewProfileController extends AbstractController
 {
     public function __construct(
         private ReviewRepository $reviewRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('/api/profile/reviews', name: 'api_profile_reviews_list', methods: ['GET'])]
     #[OA\Get(

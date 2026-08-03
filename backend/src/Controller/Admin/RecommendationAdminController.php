@@ -29,7 +29,8 @@ class RecommendationAdminController extends AbstractController
         private ColdStartRecommendationService $coldStartRecommendationBuilder,
         private ProductRelationRepository $productRelationRepository,
         private UserRecommendationRepository $userRecommendationRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('/rebuild', name: 'rebuild', methods: ['POST'])]
     #[OA\Post(

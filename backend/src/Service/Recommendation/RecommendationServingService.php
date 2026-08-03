@@ -3,22 +3,24 @@
 namespace App\Service\Recommendation;
 
 use App\Entity\Interaction;
-use App\Entity\User;
 use App\Entity\ProductRelation;
+use App\Entity\User;
 use App\Repository\ColdStartRecommendationRepository;
-use App\Repository\ProductRelationRepository;
-use App\Repository\UserRecommendationRepository;
 use App\Repository\GuestEventRepository;
 use App\Repository\InteractionRepository;
 use App\Repository\OrderRepository;
+use App\Repository\ProductRelationRepository;
 use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Serves recommendations from the most appropriate strategy for each visitor:
- * - Logged in: live content-based scoring from the user's full interaction
- *   history, recomputed on every request so every new view, cart add,
- *   purchase, or rating is immediately reflected in the results.
+ * - Logged in: the same CF+content hybrid and business rules the batch job
+ *   computes (HybridRecommendationScorer, RecommendationBusinessRules),
+ *   recomputed on every request from the user's full interaction history so
+ *   every new view, cart add, purchase, or rating is immediately reflected —
+ *   only the CF model itself is cached (see CachedCollaborativeFilteringModel)
+ *   since training it is too slow to redo per request.
  * - Guest with session history: live product_relation lookup weighted by
  *   how recently each product was browsed.
  * - No history at all (new guest, new account): cold_start_recommendation —
@@ -30,10 +32,10 @@ class RecommendationServingService
     // for a logged-in user. Purchases outweigh views because explicit buying
     // intent is the strongest signal; cart sits between the two.
     private const TASTE_WEIGHTS = [
-        'view'     => 0.5,
-        'cart'     => 1.5,
+        'view' => 0.5,
+        'cart' => 1.5,
         'purchase' => 3.0,
-        'rating'   => 2.0,
+        'rating' => 2.0,
     ];
 
     // Minimum score a complementary relation must have to be shown on the
@@ -45,14 +47,17 @@ class RecommendationServingService
 
     public function __construct(
         private ProductRelationRepository $productRelationRepository,
-        private UserRecommendationRepository $userRecommendationRepository,
         private ColdStartRecommendationRepository $coldStartRecommendationRepository,
         private ProductRepository $productRepository,
         private InteractionRepository $interactionRepository,
         private GuestEventRepository $guestEventRepository,
         private OrderRepository $orderRepository,
         private ContentRecommendationService $contentRecommendation,
-    ) {}
+        private CachedCollaborativeFilteringModel $cachedCfModel,
+        private HybridRecommendationScorer $hybridScorer,
+        private RecommendationBusinessRules $businessRules,
+    ) {
+    }
 
     /**
      * Computes personalized product recommendations for a logged-in user
@@ -60,7 +65,9 @@ class RecommendationServingService
      *
      * Every engagement (view, cart add, purchase, rating) is factored in
      * immediately — the score reflects whatever the user did up to this
-     * exact request, with no batch-job lag.
+     * exact request, with no batch-job lag for anything except the CF
+     * model's own training (bounded by CachedCollaborativeFilteringModel's
+     * cache TTL, refreshed immediately whenever the batch job runs).
      *
      * @return \App\Entity\Product[]
      */
@@ -74,35 +81,28 @@ class RecommendationServingService
 
         $tasteScores = $this->buildTasteScores($interactions);
 
-        // Load the full catalogue so content scoring can compare any product
-        // to any other. At catalog scale (hundreds/low thousands of products)
-        // this is a single indexed read within the request budget.
+        // Load the full catalogue so content/CF scoring can compare any
+        // product to any other. At catalog scale (hundreds/low thousands of
+        // products) this is a single indexed read within the request budget.
         $productsById = [];
         foreach ($this->productRepository->findAll() as $product) {
             $productsById[$product->getId()] = $product;
         }
 
-        // Content-based pass: find products similar to what the user engaged with.
-        $scores = $this->contentRecommendation->predictForUser($tasteScores, $productsById);
-
-        // Retargeting pass: re-surface products the user viewed or carted but
-        // hasn't purchased yet — they showed clear intent, worth nudging back.
-        // Capped at 30 % of the taste weight so genuinely new related products
-        // can still outrank "you already saw this".
-        $purchasedIds = array_flip($this->orderRepository->findPurchasedProductIds($user));
-        foreach ($tasteScores as $productId => $tasteScore) {
-            if (!isset($purchasedIds[$productId])) {
-                $scores[$productId] = max($scores[$productId] ?? 0.0, $tasteScore * 0.3);
-            }
-        }
+        // Hybrid pass: CF ("users like you", against the cached pre-trained
+        // model) blended with content scoring, plus the viewed/carted-but-
+        // not-bought retargeting nudge — same blend the batch job computes.
+        $cfModel = $this->cachedCfModel->get();
+        $scores = $this->hybridScorer->score($user, $tasteScores, $cfModel, array_keys($productsById), $productsById);
 
         // Purchased products have already left the funnel — exclude them so
         // the list focuses on what the user might still want.
-        foreach ($purchasedIds as $productId => $_) {
-            unset($scores[$productId]);
-        }
+        $purchasedIds = array_flip($this->orderRepository->findPurchasedProductIds($user));
+        $scores = array_diff_key($scores, $purchasedIds);
 
-        arsort($scores);
+        // Promo/new-arrival/seasonal boosts + category diversity — the same
+        // business rules the batch job applies.
+        $scores = $this->businessRules->apply($scores, $productsById);
 
         return $this->resolveAndFilterStock(array_keys($scores), $limit);
     }
@@ -113,7 +113,7 @@ class RecommendationServingService
     public function forGuest(Request $request, int $limit): array
     {
         $sessionId = trim((string) $request->headers->get('X-Session-Id'));
-        $recentIds = $sessionId === '' ? [] : $this->guestEventRepository->findRecentProductIdsBySession($sessionId, 15);
+        $recentIds = '' === $sessionId ? [] : $this->guestEventRepository->findRecentProductIdsBySession($sessionId, 15);
 
         // True cold start (no session yet, or a session with no events) —
         // show what brand-new visitors tend to look at, blended with what's
@@ -148,7 +148,7 @@ class RecommendationServingService
         $similar = $this->findSimilarInRealTime($productId, $limit);
 
         return [
-            'similar'       => $similar,
+            'similar' => $similar,
             'complementary' => $this->resolveAndFilterStock($complementaryIds, $limit),
         ];
     }
@@ -215,6 +215,7 @@ class RecommendationServingService
         // Batch job hasn't run yet — fall back to newest products so the
         // recommendation section on the home page is never shown as empty.
         $newestIds = array_map(fn ($p) => $p->getId(), $this->productRepository->findNewestRanked());
+
         return $this->resolveAndFilterStock($newestIds, $limit);
     }
 
@@ -227,6 +228,7 @@ class RecommendationServingService
      * *other* products related to them, not the seeds themselves.
      *
      * @param int[] $recentProductIds
+     *
      * @return \App\Entity\Product[]
      */
     private function liveLookup(array $recentProductIds, int $limit): array
@@ -269,6 +271,7 @@ class RecommendationServingService
      * add 1.5 to the score before any purchase is counted).
      *
      * @param Interaction[] $interactions
+     *
      * @return array<int, float>
      */
     private function buildTasteScores(array $interactions): array
@@ -276,19 +279,21 @@ class RecommendationServingService
         $scores = [];
         foreach ($interactions as $interaction) {
             $product = $interaction->getProduct();
-            $type    = $interaction->getType();
+            $type = $interaction->getType();
             if (!$product || !$type) {
                 continue;
             }
             $productId = $product->getId();
-            $weight    = self::TASTE_WEIGHTS[$type] ?? 0.5;
+            $weight = self::TASTE_WEIGHTS[$type] ?? 0.5;
             $scores[$productId] = ($scores[$productId] ?? 0.0) + $weight;
         }
+
         return $scores;
     }
 
     /**
      * @param int[] $candidateIds ranked, most relevant first
+     *
      * @return \App\Entity\Product[]
      */
     private function resolveAndFilterStock(array $candidateIds, int $limit): array

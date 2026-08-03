@@ -17,7 +17,8 @@ class AdminDashboardController extends AbstractController
 {
     public function __construct(
         private DashboardService $dashboardService,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'index', methods: ['GET'])]
     #[OA\Get(

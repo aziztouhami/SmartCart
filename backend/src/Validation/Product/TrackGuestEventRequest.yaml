@@ -1,0 +1,7 @@
+App\DTO\Product\TrackGuestEventRequest:
+    properties:
+        productId:
+            - NotNull: ~
+            - Positive: ~
+        type:
+            - NotBlank: ~

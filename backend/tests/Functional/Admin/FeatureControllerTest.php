@@ -41,7 +41,7 @@ class FeatureControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken];
     }
 
     public function testProductsForbiddenForNonAdmin(): void

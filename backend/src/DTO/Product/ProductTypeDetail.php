@@ -25,17 +25,18 @@ class ProductTypeDetail
         // expects to .map() over `attributes`.
         $dto->attributes = array_values(array_map(
             fn (ProductTypeAttribute $attr) => [
-                'id'       => $attr->getId(),
-                'name'     => $attr->getName(),
-                'slug'     => $attr->getSlug(),
+                'id' => $attr->getId(),
+                'name' => $attr->getName(),
+                'slug' => $attr->getSlug(),
                 'dataType' => $attr->getDataType(),
-                'unit'     => $attr->getUnit(),
-                'options'  => $attr->getOptions(),
+                'unit' => $attr->getUnit(),
+                'options' => $attr->getOptions(),
                 'required' => $attr->isRequired(),
             ],
             $type->getAttributes()->toArray()
         ));
         $dto->createdAt = $type->getCreatedAt()->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

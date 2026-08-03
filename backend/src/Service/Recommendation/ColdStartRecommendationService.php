@@ -33,7 +33,8 @@ class ColdStartRecommendationService
         private ProductRepository $productRepository,
         private ColdStartRecommendationRepository $coldStartRecommendationRepository,
         private SeasonalBoostService $seasonalBoost,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{rows: int}
@@ -110,13 +111,15 @@ class ColdStartRecommendationService
         $rank = 0;
         foreach ($products as $product) {
             $scores[$product->getId()] = max(0, 1 - ($rank / max(count($products), 1)));
-            $rank++;
+            ++$rank;
         }
+
         return $scores;
     }
 
     /**
      * @param array<int, int> $counts
+     *
      * @return array<int, float>
      */
     private function normalize(array $counts): array
@@ -128,6 +131,7 @@ class ColdStartRecommendationService
         if ($max <= 0) {
             return [];
         }
+
         return array_map(fn ($v) => $v / $max, $counts);
     }
 }

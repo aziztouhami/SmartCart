@@ -25,7 +25,7 @@ class PruneDeletedAccountsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io      = new SymfonyStyle($input, $output);
+        $io = new SymfonyStyle($input, $output);
         $deleted = $this->userService->purgeExpiredDeletions();
 
         $io->success("Permanently deleted {$deleted} account(s) past their grace period.");

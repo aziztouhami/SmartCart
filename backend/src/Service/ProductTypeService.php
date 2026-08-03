@@ -7,8 +7,8 @@ use App\DTO\Product\CreateProductTypeRequest;
 use App\DTO\Product\UpdateProductTypeRequest;
 use App\Entity\ProductType;
 use App\Entity\ProductTypeAttribute;
+use App\Prompts\ProductType\ProductAttributesPrompt;
 use App\Service\Ai\GroqClientService;
-use App\Service\Ai\Prompt\ProductAttributesPrompt;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ProductTypeService
@@ -18,7 +18,8 @@ class ProductTypeService
         private SlugService $slugService,
         private GroqClientService $aiClient,
         private ProductAttributesPrompt $productAttributesPrompt,
-    ) {}
+    ) {
+    }
 
     /**
      * Asks the LLM for standard-market features for a product type name the
@@ -28,9 +29,10 @@ class ProductTypeService
      * dataType/options shape on its own, so every field is re-validated here
      * exactly as it would be for a human-submitted CreateAttributeRequest.
      *
-     * @param string[] $existingNames Features the type already has (edit flow) —
+     * @param string[] $existingNames features the type already has (edit flow) —
      *                                the model is asked for new ones only, and
-     *                                the result is filtered again as a backstop.
+     *                                the result is filtered again as a backstop
+     *
      * @return array<int, array{name: string, dataType: string, unit: ?string, options: ?array, required: bool}>
      */
     public function suggestAttributes(string $typeName, array $existingNames = []): array
@@ -63,15 +65,15 @@ class ProductTypeService
             // A "select" with no usable options is not a valid suggestion —
             // downgrade to "text" rather than surfacing something the admin
             // would immediately have to fix.
-            if ($dataType === 'select' && empty($options)) {
+            if ('select' === $dataType && empty($options)) {
                 $dataType = 'text';
             }
 
             $suggestions[] = [
                 'name' => $name,
                 'dataType' => $dataType,
-                'unit' => $dataType === 'number' && !empty($raw['unit']) ? (string) $raw['unit'] : null,
-                'options' => $dataType === 'select' ? array_values(array_map('strval', (array) $options)) : null,
+                'unit' => 'number' === $dataType && !empty($raw['unit']) ? (string) $raw['unit'] : null,
+                'options' => 'select' === $dataType ? array_values(array_map('strval', (array) $options)) : null,
                 'required' => (bool) ($raw['required'] ?? false),
             ];
         }
@@ -102,10 +104,10 @@ class ProductTypeService
     public function addAttribute(ProductType $type, CreateAttributeRequest $dto): ProductTypeAttribute
     {
         $attribute = $this->buildAttribute($type, [
-            'name'     => $dto->name,
+            'name' => $dto->name,
             'dataType' => $dto->dataType,
-            'unit'     => $dto->unit,
-            'options'  => $dto->options,
+            'unit' => $dto->unit,
+            'options' => $dto->options,
             'required' => $dto->required,
         ]);
 
@@ -168,7 +170,7 @@ class ProductTypeService
         foreach ($type->getAttributes() as $attribute) {
             $slug = $attribute->getSlug();
 
-            if (!array_key_exists($slug, $rawValues) || $rawValues[$slug] === null || $rawValues[$slug] === '') {
+            if (!array_key_exists($slug, $rawValues) || null === $rawValues[$slug] || '' === $rawValues[$slug]) {
                 if ($attribute->isRequired()) {
                     throw new \RuntimeException(sprintf('Feature "%s" is required for this product type', $attribute->getName()), 400);
                 }
@@ -184,7 +186,7 @@ class ProductTypeService
     private function buildAttribute(ProductType $type, array $raw): ProductTypeAttribute
     {
         $name = trim((string) ($raw['name'] ?? ''));
-        if ($name === '') {
+        if ('' === $name) {
             throw new \RuntimeException('Each feature needs a name', 400);
         }
 
@@ -196,9 +198,9 @@ class ProductTypeService
         }
 
         $dataType = $raw['dataType'] ?? 'text';
-        $options  = $raw['options'] ?? null;
+        $options = $raw['options'] ?? null;
 
-        if ($dataType === 'select' && empty($options)) {
+        if ('select' === $dataType && empty($options)) {
             throw new \RuntimeException(sprintf('Feature "%s" is a select but has no options', $name), 400);
         }
 
@@ -213,7 +215,7 @@ class ProductTypeService
         }
 
         $attribute->setUnit($raw['unit'] ?? null);
-        $attribute->setOptions($dataType === 'select' ? array_values($options) : null);
+        $attribute->setOptions('select' === $dataType ? array_values($options) : null);
         $attribute->setRequired((bool) ($raw['required'] ?? false));
 
         return $attribute;
@@ -226,6 +228,7 @@ class ProductTypeService
                 if (!is_numeric($value)) {
                     throw new \RuntimeException(sprintf('Feature "%s" must be a number', $attribute->getName()), 400);
                 }
+
                 return (float) $value;
 
             case 'boolean':
@@ -234,12 +237,9 @@ class ProductTypeService
             case 'select':
                 $options = $attribute->getOptions() ?? [];
                 if (!in_array($value, $options, true)) {
-                    throw new \RuntimeException(sprintf(
-                        'Feature "%s" must be one of: %s',
-                        $attribute->getName(),
-                        implode(', ', $options)
-                    ), 400);
+                    throw new \RuntimeException(sprintf('Feature "%s" must be one of: %s', $attribute->getName(), implode(', ', $options)), 400);
                 }
+
                 return $value;
 
             default:

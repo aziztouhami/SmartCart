@@ -49,7 +49,7 @@ class CategoryAdminControllerTest extends WebTestCase
 
     private function headers(string $token): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $token, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$token, 'CONTENT_TYPE' => 'application/json'];
     }
 
     public function testCreateForbiddenForNonAdmin(): void
@@ -103,11 +103,11 @@ class CategoryAdminControllerTest extends WebTestCase
 
         $category = new Category();
         $category->setName('Old Name');
-        $category->setSlug('old-name-' . uniqid());
+        $category->setSlug('old-name-'.uniqid());
         $this->em->persist($category);
         $this->em->flush();
 
-        $this->client->request('PUT', '/api/admin/categories/' . $category->getId(), server: $this->headers($token), content: json_encode([
+        $this->client->request('PUT', '/api/admin/categories/'.$category->getId(), server: $this->headers($token), content: json_encode([
             'name' => 'New Name',
         ]));
 
@@ -122,12 +122,12 @@ class CategoryAdminControllerTest extends WebTestCase
 
         $category = new Category();
         $category->setName('Temp');
-        $category->setSlug('temp-' . uniqid());
+        $category->setSlug('temp-'.uniqid());
         $this->em->persist($category);
         $this->em->flush();
         $id = $category->getId();
 
-        $this->client->request('DELETE', '/api/admin/categories/' . $id, server: $this->headers($token));
+        $this->client->request('DELETE', '/api/admin/categories/'.$id, server: $this->headers($token));
 
         $this->assertResponseStatusCodeSame(200);
         $this->assertNull($this->em->getRepository(Category::class)->find($id));

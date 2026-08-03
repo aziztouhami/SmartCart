@@ -2,6 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\Pagination;
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Order\AdminOrderListItem;
 use App\DTO\Order\OrderDetail;
 use App\DTO\Order\UpdateOrderStatusRequest;
@@ -15,8 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/orders', name: 'api_admin_orders_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -26,9 +26,9 @@ class OrderAdminController extends AbstractController
     public function __construct(
         private OrderRepository $orderRepository,
         private OrderService $orderService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * List all orders with optional status filter.
@@ -48,18 +48,17 @@ class OrderAdminController extends AbstractController
     )]
     public function list(Request $request): JsonResponse
     {
-        $status = $request->query->get('status');
-        $page   = max(1, (int) $request->query->get('page', 1));
-        $limit  = min(100, max(1, (int) $request->query->get('limit', 20)));
+        $status = $request->query->get('status') ?: null;
+        $pagination = Pagination::fromRequest($request, defaultLimit: 20, maxLimit: 100);
 
-        $orders = $this->orderRepository->findAllOrders($status ?: null, $page, $limit);
-        $total  = $this->orderRepository->countAllOrders($status ?: null);
+        $orders = $this->orderRepository->findAllOrders($status, $pagination->page, $pagination->limit);
+        $total = $this->orderRepository->countAllOrders($status);
 
         return $this->json(PaginatedResponse::create(
-            data: array_map(fn($o) => AdminOrderListItem::fromEntity($o), $orders),
+            data: array_map(fn ($o) => AdminOrderListItem::fromEntity($o), $orders),
             total: $total,
-            page: $page,
-            limit: $limit,
+            page: $pagination->page,
+            limit: $pagination->limit,
         ));
     }
 
@@ -81,7 +80,7 @@ class OrderAdminController extends AbstractController
     public function show(int $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
-        if (!$order || $order->getStatus() === 'cart') {
+        if (!$order || 'cart' === $order->getStatus()) {
             return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -121,21 +120,11 @@ class OrderAdminController extends AbstractController
     public function updateStatus(int $id, Request $request): JsonResponse
     {
         $order = $this->orderRepository->find($id);
-        if (!$order || $order->getStatus() === 'cart') {
+        if (!$order || 'cart' === $order->getStatus()) {
             return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateOrderStatusRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateOrderStatusRequest::class);
         $order = $this->orderService->updateStatus($order, $dto->status);
 
         return $this->json(OrderDetail::fromEntity($order));

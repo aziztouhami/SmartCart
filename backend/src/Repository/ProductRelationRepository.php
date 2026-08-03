@@ -43,7 +43,7 @@ class ProductRelationRepository extends ServiceEntityRepository
                     $params[] = $now;
                 }
                 $conn->executeStatement(
-                    'INSERT INTO product_relation (product_id, related_product_id, score, type, computed_at) VALUES ' . implode(', ', $values),
+                    'INSERT INTO product_relation (product_id, related_product_id, score, type, computed_at) VALUES '.implode(', ', $values),
                     $params
                 );
             }
@@ -60,6 +60,7 @@ class ProductRelationRepository extends ServiceEntityRepository
      * the live serving query (single indexed lookup, no computation).
      *
      * @param int[] $productIds
+     *
      * @return array<int, array{productId: int, relatedProductId: int, score: float}>
      */
     public function findRelationsForProducts(array $productIds, int $perProductLimit = 20): array
@@ -83,7 +84,7 @@ class ProductRelationRepository extends ServiceEntityRepository
             if ($perProduct[$pid] >= $perProductLimit) {
                 continue;
             }
-            $perProduct[$pid]++;
+            ++$perProduct[$pid];
             $result[] = [
                 'productId' => $pid,
                 'relatedProductId' => (int) $row['relatedProductId'],

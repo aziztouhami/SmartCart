@@ -26,6 +26,7 @@ class ProductAutocompleteItem
         $dto->image = $product->getImages()[0] ?? null;
         $dto->category = $product->getCategory() ? ['name' => $product->getCategory()->getName()] : null;
         $dto->brand = $product->getBrand() ? ['name' => $product->getBrand()->getName()] : null;
+
         return $dto;
     }
 }

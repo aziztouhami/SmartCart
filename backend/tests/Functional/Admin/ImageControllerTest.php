@@ -44,8 +44,8 @@ class ImageControllerTest extends WebTestCase
     {
         // UploadedFile::move() in test mode renames (not copies) the source
         // file, so each upload needs its own throwaway copy of the fixture.
-        $copy = tempnam(sys_get_temp_dir(), 'upload') . '.png';
-        copy(__DIR__ . '/../../Fixtures/test-image.png', $copy);
+        $copy = tempnam(sys_get_temp_dir(), 'upload').'.png';
+        copy(__DIR__.'/../../Fixtures/test-image.png', $copy);
 
         return new UploadedFile($copy, 'test-image.png', 'image/png', null, true);
     }
@@ -75,21 +75,21 @@ class ImageControllerTest extends WebTestCase
         ]));
         $token = json_decode($this->client->getResponse()->getContent(), true)['token'];
 
-        $this->client->request('POST', '/api/upload', [], ['file' => $this->imageFile()], ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]);
+        $this->client->request('POST', '/api/upload', [], ['file' => $this->imageFile()], ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
 
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testUploadFailsWithoutFile(): void
     {
-        $this->client->request('POST', '/api/upload', [], [], ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken]);
+        $this->client->request('POST', '/api/upload', [], [], ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken]);
 
         $this->assertResponseStatusCodeSame(400);
     }
 
     public function testAdminCanUploadImage(): void
     {
-        $this->client->request('POST', '/api/upload', [], ['file' => $this->imageFile()], ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken]);
+        $this->client->request('POST', '/api/upload', [], ['file' => $this->imageFile()], ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken]);
 
         $this->assertResponseStatusCodeSame(201);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -97,18 +97,18 @@ class ImageControllerTest extends WebTestCase
         $this->assertStringContainsString('/uploads/', $data['url']);
 
         $path = parse_url($data['url'], PHP_URL_PATH);
-        $diskPath = static::getContainer()->getParameter('kernel.project_dir') . '/public' . $path;
+        $diskPath = static::getContainer()->getParameter('kernel.project_dir').'/public'.$path;
         $this->assertFileExists($diskPath);
         unlink($diskPath);
     }
 
     public function testUploadRejectsUnsupportedMimeType(): void
     {
-        $textFile = tempnam(sys_get_temp_dir(), 'upload') . '.txt';
+        $textFile = tempnam(sys_get_temp_dir(), 'upload').'.txt';
         file_put_contents($textFile, 'not an image');
         $uploaded = new UploadedFile($textFile, 'note.txt', 'text/plain', null, true);
 
-        $this->client->request('POST', '/api/upload', [], ['file' => $uploaded], ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->adminToken]);
+        $this->client->request('POST', '/api/upload', [], ['file' => $uploaded], ['HTTP_AUTHORIZATION' => 'Bearer '.$this->adminToken]);
 
         $this->assertResponseStatusCodeSame(400);
         unlink($textFile);

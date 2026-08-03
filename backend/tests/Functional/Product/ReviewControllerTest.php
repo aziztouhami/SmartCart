@@ -34,13 +34,13 @@ class ReviewControllerTest extends WebTestCase
         $this->em->createQuery('DELETE FROM App\Entity\User')->execute();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $this->product = new Product();
         $this->product->setName('Widget');
-        $this->product->setSlug('widget-' . uniqid());
+        $this->product->setSlug('widget-'.uniqid());
         $this->product->setPrice('10.00');
         $this->product->setStock(5);
         $this->product->setCategory($category);
@@ -65,7 +65,7 @@ class ReviewControllerTest extends WebTestCase
 
     private function headers(): array
     {
-        return ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->token, 'CONTENT_TYPE' => 'application/json'];
+        return ['HTTP_AUTHORIZATION' => 'Bearer '.$this->token, 'CONTENT_TYPE' => 'application/json'];
     }
 
     private function giveUserDeliveredOrder(): void
@@ -95,7 +95,7 @@ class ReviewControllerTest extends WebTestCase
 
     public function testListReturnsEmptyReviewsForNewProduct(): void
     {
-        $this->client->request('GET', '/api/products/' . $this->product->getId() . '/reviews');
+        $this->client->request('GET', '/api/products/'.$this->product->getId().'/reviews');
 
         $this->assertResponseStatusCodeSame(200);
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -104,7 +104,7 @@ class ReviewControllerTest extends WebTestCase
 
     public function testCreateRequiresAuthentication(): void
     {
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'rating' => 5,
         ]));
 
@@ -113,7 +113,7 @@ class ReviewControllerTest extends WebTestCase
 
     public function testCreateRejectedWithoutDeliveredOrder(): void
     {
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 5,
             'comment' => 'Great!',
         ]));
@@ -125,7 +125,7 @@ class ReviewControllerTest extends WebTestCase
     {
         $this->giveUserDeliveredOrder();
 
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 5,
             'comment' => 'Great!',
         ]));
@@ -139,12 +139,12 @@ class ReviewControllerTest extends WebTestCase
     {
         $this->giveUserDeliveredOrder();
 
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 5,
         ]));
         $this->assertResponseStatusCodeSame(201);
 
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 4,
         ]));
         $this->assertResponseStatusCodeSame(409);
@@ -154,7 +154,7 @@ class ReviewControllerTest extends WebTestCase
     {
         $this->giveUserDeliveredOrder();
 
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 0,
         ]));
 
@@ -179,7 +179,7 @@ class ReviewControllerTest extends WebTestCase
         $this->em->persist($review);
         $this->em->flush();
 
-        $this->client->request('DELETE', '/api/reviews/' . $review->getId(), server: $this->headers());
+        $this->client->request('DELETE', '/api/reviews/'.$review->getId(), server: $this->headers());
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -188,12 +188,12 @@ class ReviewControllerTest extends WebTestCase
     {
         $this->giveUserDeliveredOrder();
 
-        $this->client->request('POST', '/api/products/' . $this->product->getId() . '/reviews', server: $this->headers(), content: json_encode([
+        $this->client->request('POST', '/api/products/'.$this->product->getId().'/reviews', server: $this->headers(), content: json_encode([
             'rating' => 5,
         ]));
         $reviewId = json_decode($this->client->getResponse()->getContent(), true)['id'];
 
-        $this->client->request('DELETE', '/api/reviews/' . $reviewId, server: $this->headers());
+        $this->client->request('DELETE', '/api/reviews/'.$reviewId, server: $this->headers());
 
         $this->assertResponseStatusCodeSame(200);
     }

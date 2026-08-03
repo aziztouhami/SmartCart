@@ -104,6 +104,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -116,12 +117,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
+
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
         return $this;
     }
 
@@ -133,6 +136,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
         return $this;
     }
 
@@ -149,6 +153,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstName(?string $firstName): self
     {
         $this->firstName = $firstName;
+
         return $this;
     }
 
@@ -160,6 +165,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(?string $lastName): self
     {
         $this->lastName = $lastName;
+
         return $this;
     }
 
@@ -171,6 +177,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhone(?string $phone): self
     {
         $this->phone = $phone;
+
         return $this;
     }
 
@@ -182,6 +189,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
         return $this;
     }
 
@@ -193,6 +201,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setVerificationToken(?string $verificationToken): self
     {
         $this->verificationToken = $verificationToken;
+
         return $this;
     }
 
@@ -204,6 +213,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setMarketingOptIn(bool $marketingOptIn): self
     {
         $this->marketingOptIn = $marketingOptIn;
+
         return $this;
     }
 
@@ -215,6 +225,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferredCategoryIds(array $preferredCategoryIds): self
     {
         $this->preferredCategoryIds = array_values(array_unique(array_map('intval', $preferredCategoryIds)));
+
         return $this;
     }
 
@@ -226,6 +237,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferredBrandIds(array $preferredBrandIds): self
     {
         $this->preferredBrandIds = array_values(array_unique(array_map('intval', $preferredBrandIds)));
+
         return $this;
     }
 
@@ -237,6 +249,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -248,6 +261,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -259,6 +273,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDeletionRequestedAt(?\DateTimeImmutable $deletionRequestedAt): self
     {
         $this->deletionRequestedAt = $deletionRequestedAt;
+
         return $this;
     }
 
@@ -276,6 +291,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->orders->add($order);
             $order->setUser($this);
         }
+
         return $this;
     }
 
@@ -286,6 +302,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $order->setUser(null);
             }
         }
+
         return $this;
     }
 
@@ -303,6 +320,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->reviews->add($review);
             $review->setUser($this);
         }
+
         return $this;
     }
 
@@ -313,6 +331,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $review->setUser(null);
             }
         }
+
         return $this;
     }
 
@@ -330,6 +349,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->interactions->add($interaction);
             $interaction->setUser($this);
         }
+
         return $this;
     }
 
@@ -340,6 +360,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $interaction->setUser(null);
             }
         }
+
         return $this;
     }
 
@@ -357,6 +378,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->addresses->add($address);
             $address->setUser($this);
         }
+
         return $this;
     }
 
@@ -367,6 +389,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $address->setUser(null);
             }
         }
+
         return $this;
     }
 
@@ -384,6 +407,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->favorites->add($favorite);
             $favorite->setUser($this);
         }
+
         return $this;
     }
 
@@ -394,6 +418,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $favorite->setUser(null);
             }
         }
+
         return $this;
     }
 }

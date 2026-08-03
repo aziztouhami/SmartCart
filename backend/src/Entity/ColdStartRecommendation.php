@@ -49,6 +49,7 @@ class ColdStartRecommendation
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -60,6 +61,7 @@ class ColdStartRecommendation
     public function setScore(float $score): self
     {
         $this->score = $score;
+
         return $this;
     }
 }

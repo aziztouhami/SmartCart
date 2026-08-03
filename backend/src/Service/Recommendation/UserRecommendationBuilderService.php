@@ -5,37 +5,25 @@ namespace App\Service\Recommendation;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\ColdStartRecommendationRepository;
-use App\Repository\UserRecommendationRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Repository\PromotionRepository;
+use App\Repository\UserRecommendationRepository;
 use App\Repository\UserRepository;
 
 /**
- * The offline "brain" behind logged-in hybrid recommendations. For each
- * user, blends Engine A (CollaborativeFilteringService — "users like you")
- * with Engine B (ContentRecommendationService — "similar to what you
- * liked"), using a switching weight that leans on content for thin
- * histories and on CF once a user has enough activity. Business rules
- * (exclude purchased, restock check, promo/new-arrival/seasonal boosts,
- * category diversity) are applied last. Brand-new users with no history at
- * all fall back to their stated category/brand preferences, then to trending.
+ * The offline "brain" behind logged-in hybrid recommendations — trains a
+ * fresh CF model and blends it with content scoring via
+ * HybridRecommendationScorer, applies business rules via
+ * RecommendationBusinessRules (both shared with the live per-request path
+ * in RecommendationServingService, which uses this same trained model via
+ * its cache — see CachedCollaborativeFilteringModel). Brand-new users with
+ * no history at all fall back to their stated category/brand preferences,
+ * then to trending.
  */
 class UserRecommendationBuilderService
 {
-    private const MIN_HISTORY_FOR_CF_LEAD = 3;
     private const TOP_K_PER_USER = 20;
-    private const DIVERSITY_CATEGORY_CAP = 3;
-
-    private const WEIGHT_CF_THIN_HISTORY      = 0.2;
-    private const WEIGHT_CONTENT_THIN_HISTORY = 0.8;
-    private const WEIGHT_CF_RICH_HISTORY      = 0.6;
-    private const WEIGHT_CONTENT_RICH_HISTORY = 0.4;
-
-    private const RETARGETING_FACTOR = 0.5; // viewed/carted-but-not-bought nudge, as a fraction of the original taste score
-    private const BOOST_PROMOTION = 1.0;
-    private const BOOST_NEW_ARRIVAL = 0.5;
-    private const BOOST_SEASONAL = 0.5;
 
     public function __construct(
         private UserRepository $userRepository,
@@ -45,9 +33,11 @@ class UserRecommendationBuilderService
         private UserRecommendationRepository $userRecommendationRepository,
         private ColdStartRecommendationRepository $coldStartRecommendationRepository,
         private CollaborativeFilteringService $collaborativeFiltering,
-        private ContentRecommendationService $contentRecommendation,
-        private SeasonalBoostService $seasonalBoost,
-    ) {}
+        private CachedCollaborativeFilteringModel $cachedCfModel,
+        private HybridRecommendationScorer $hybridScorer,
+        private RecommendationBusinessRules $businessRules,
+    ) {
+    }
 
     /**
      * @return array{users: int, hybrid: int, fallback: int, rows: int}
@@ -61,10 +51,11 @@ class UserRecommendationBuilderService
         }
 
         $promoMap = $this->promotionRepository->findActiveForProducts($products);
-        $newArrivalCutoff = new \DateTimeImmutable('-7 days');
 
         $tasteMatrix = $this->collaborativeFiltering->buildTasteMatrix();
-        $model = $this->collaborativeFiltering->train($tasteMatrix);
+        // Also (re)trains the model the live serving path reads from its
+        // cache, so a rebuild is reflected there immediately.
+        $model = $this->cachedCfModel->refresh($tasteMatrix);
         $allProductIds = array_keys($productsById);
 
         // The shared "what new visitors tend to look at + what's trending"
@@ -82,17 +73,17 @@ class UserRecommendationBuilderService
 
             if (empty($userRatings)) {
                 $candidates = $this->buildColdStartCandidates($user, $productsById, $coldStart);
-                $fallbackCount++;
+                ++$fallbackCount;
                 $source = (empty($user->getPreferredCategoryIds()) && empty($user->getPreferredBrandIds()))
                     ? 'trending'
                     : 'preferences';
             } else {
-                $candidates = $this->buildHybridCandidates($user, $userRatings, $model, $allProductIds, $productsById);
-                $hybridCount++;
+                $candidates = $this->hybridScorer->score($user, $userRatings, $model, $allProductIds, $productsById);
+                ++$hybridCount;
                 $source = 'hybrid';
             }
 
-            $candidates = $this->applyBusinessRules($user, $candidates, $productsById, $promoMap, $newArrivalCutoff);
+            $candidates = $this->applyBusinessRules($user, $candidates, $productsById, $promoMap);
 
             foreach ($candidates as $productId => $score) {
                 $rows[] = [
@@ -115,50 +106,9 @@ class UserRecommendationBuilderService
     }
 
     /**
-     * @param array<int, float> $userRatings
-     * @param array $model trained matrix-factorization model
-     * @param int[] $allProductIds
      * @param array<int, Product> $productsById
-     * @return array<int, float> candidateProductId => blended score
-     */
-    private function buildHybridCandidates(User $user, array $userRatings, array $model, array $allProductIds, array $productsById): array
-    {
-        $cfScores = $this->collaborativeFiltering->predictForUser($user->getId(), $userRatings, $model, $allProductIds);
-        $contentScores = $this->contentRecommendation->predictForUser($userRatings, $productsById);
-
-        $historySize = count($userRatings);
-        if ($historySize < self::MIN_HISTORY_FOR_CF_LEAD) {
-            [$wCf, $wContent] = [self::WEIGHT_CF_THIN_HISTORY, self::WEIGHT_CONTENT_THIN_HISTORY];
-        } else {
-            [$wCf, $wContent] = [self::WEIGHT_CF_RICH_HISTORY, self::WEIGHT_CONTENT_RICH_HISTORY];
-        }
-
-        $normCf = $this->normalize($cfScores);
-        $normContent = $this->normalize($contentScores);
-
-        $blended = [];
-        foreach (array_unique(array_merge(array_keys($normCf), array_keys($normContent))) as $candidateId) {
-            $blended[$candidateId] = $wCf * ($normCf[$candidateId] ?? 0) + $wContent * ($normContent[$candidateId] ?? 0);
-        }
-
-        // Retargeting: products this user engaged with (viewed and/or
-        // carted) but never bought stay eligible too, instead of vanishing
-        // the moment they're "rated" — both engines above exclude them by
-        // design, so they have to be reintroduced explicitly here.
-        $purchasedIds = array_flip($this->orderRepository->findPurchasedProductIds($user));
-        foreach ($userRatings as $productId => $tasteScore) {
-            if (isset($purchasedIds[$productId]) || $tasteScore <= 0) {
-                continue;
-            }
-            $blended[$productId] = max($blended[$productId] ?? 0, $tasteScore * self::RETARGETING_FACTOR);
-        }
-
-        return $blended;
-    }
-
-    /**
-     * @param array<int, Product> $productsById
-     * @param array<int, float> $coldStart productId => "new visitors + trending" score
+     * @param array<int, float>   $coldStart    productId => "new visitors + trending" score
+     *
      * @return array<int, float>
      */
     private function buildColdStartCandidates(User $user, array $productsById, array $coldStart): array
@@ -203,76 +153,16 @@ class UserRecommendationBuilderService
     }
 
     /**
-     * @param array<int, float> $candidates
+     * @param array<int, float>   $candidates
      * @param array<int, Product> $productsById
+     *
      * @return array<int, float>
      */
-    private function applyBusinessRules(
-        User $user,
-        array $candidates,
-        array $productsById,
-        array $promoMap,
-        \DateTimeImmutable $newArrivalCutoff
-    ): array {
-        $purchasedIds = array_flip($this->orderRepository->findPurchasedProductIds($user));
-
-        $filtered = [];
-        foreach ($candidates as $productId => $score) {
-            if (isset($purchasedIds[$productId])) {
-                continue; // already own it
-            }
-            $product = $productsById[$productId] ?? null;
-            if (!$product || $product->getStock() <= 0) {
-                continue; // out of stock
-            }
-
-            if (isset($promoMap[$productId])) {
-                $score += self::BOOST_PROMOTION;
-            }
-            if ($product->getCreatedAt() >= $newArrivalCutoff) {
-                $score += self::BOOST_NEW_ARRIVAL;
-            }
-            if ($this->seasonalBoost->isInSeason($product)) {
-                $score += self::BOOST_SEASONAL;
-            }
-
-            $filtered[$productId] = $score;
-        }
-
-        arsort($filtered);
-
-        // Diversity: cap how many of the final list can share a category so
-        // ten near-identical phones don't crowd out everything else.
-        $final = [];
-        $perCategoryCount = [];
-        foreach ($filtered as $productId => $score) {
-            if (count($final) >= self::TOP_K_PER_USER) {
-                break;
-            }
-            $categoryId = $productsById[$productId]?->getCategory()?->getId() ?? 0;
-            if (($perCategoryCount[$categoryId] ?? 0) >= self::DIVERSITY_CATEGORY_CAP) {
-                continue;
-            }
-            $perCategoryCount[$categoryId] = ($perCategoryCount[$categoryId] ?? 0) + 1;
-            $final[$productId] = $score;
-        }
-
-        return $final;
-    }
-
-    /**
-     * @param array<int, float> $scores
-     * @return array<int, float> same keys, values scaled to 0..1
-     */
-    private function normalize(array $scores): array
+    private function applyBusinessRules(User $user, array $candidates, array $productsById, array $promoMap): array
     {
-        if (empty($scores)) {
-            return [];
-        }
-        $max = max($scores);
-        if ($max <= 0) {
-            return array_map(fn () => 0.0, $scores);
-        }
-        return array_map(fn ($v) => max(0, $v) / $max, $scores);
+        $purchasedIds = array_flip($this->orderRepository->findPurchasedProductIds($user));
+        $candidates = array_diff_key($candidates, $purchasedIds); // already own it
+
+        return $this->businessRules->apply($candidates, $productsById, $promoMap, self::TOP_K_PER_USER);
     }
 }

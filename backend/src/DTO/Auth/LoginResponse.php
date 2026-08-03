@@ -8,5 +8,6 @@ class LoginResponse
         public string $token,
         public int $expiresIn,
         public array $user,
-    ) {}
+    ) {
+    }
 }

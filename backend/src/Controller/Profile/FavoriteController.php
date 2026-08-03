@@ -2,6 +2,9 @@
 
 namespace App\Controller\Profile;
 
+use App\Domain\Http\Pagination;
+use App\Domain\Http\RequestDtoParser;
+use App\DTO\Favorite\AddFavoriteRequest;
 use App\DTO\Favorite\FavoriteItem;
 use App\DTO\Pagination\PaginatedResponse;
 use App\Entity\User;
@@ -21,7 +24,9 @@ class FavoriteController extends AbstractController
     public function __construct(
         private FavoriteRepository $favoriteRepository,
         private FavoriteService $favoriteService,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(
@@ -42,17 +47,16 @@ class FavoriteController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $page  = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $pagination = Pagination::fromRequest($request, defaultLimit: 20);
 
-        $favorites = $this->favoriteRepository->findByUser($user, $page, $limit);
-        $total     = $this->favoriteRepository->countByUser($user);
+        $favorites = $this->favoriteRepository->findByUser($user, $pagination->page, $pagination->limit);
+        $total = $this->favoriteRepository->countByUser($user);
 
         return $this->json(PaginatedResponse::create(
-            data: array_map(fn($f) => FavoriteItem::fromEntity($f), $favorites),
+            data: array_map(fn ($f) => FavoriteItem::fromEntity($f), $favorites),
             total: $total,
-            page: $page,
-            limit: $limit,
+            page: $pagination->page,
+            limit: $pagination->limit,
         ));
     }
 
@@ -82,10 +86,8 @@ class FavoriteController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data      = json_decode($request->getContent(), true) ?? [];
-        $productId = (int) ($data['productId'] ?? 0);
-
-        $favorite = $this->favoriteService->add($user, $productId);
+        $dto = $this->dtoParser->parse($request, AddFavoriteRequest::class);
+        $favorite = $this->favoriteService->add($user, $dto->productId);
 
         return $this->json(FavoriteItem::fromEntity($favorite), Response::HTTP_CREATED);
     }

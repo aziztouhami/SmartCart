@@ -25,7 +25,8 @@ class UserAdminController extends AbstractController
         private UserRepository $userRepository,
         private OrderRepository $orderRepository,
         private UserService $userService,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     #[OA\Get(
@@ -42,19 +43,19 @@ class UserAdminController extends AbstractController
     )]
     public function list(Request $request): JsonResponse
     {
-        $page   = max(1, (int) $request->query->get('page', 1));
-        $limit  = min(100, max(1, (int) $request->query->get('limit', 20)));
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
         $search = $request->query->get('search') ?: null;
 
         $users = $this->userRepository->findAllPaginated($page, $limit, $search);
         $total = $this->userRepository->countAllUsers($search);
 
-        $userIds     = array_map(fn($u) => $u->getId(), $users);
+        $userIds = array_map(fn ($u) => $u->getId(), $users);
         $orderCounts = $this->orderRepository->countOrdersPerUser($userIds);
 
         return $this->json(PaginatedResponse::create(
             data: array_map(
-                fn($u) => UserAdminItem::fromEntity($u, $orderCounts[$u->getId()] ?? 0),
+                fn ($u) => UserAdminItem::fromEntity($u, $orderCounts[$u->getId()] ?? 0),
                 $users
             ),
             total: $total,
@@ -82,12 +83,12 @@ class UserAdminController extends AbstractController
             return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $orderCount   = $this->orderRepository->countUserOrders($user);
+        $orderCount = $this->orderRepository->countUserOrders($user);
         $recentOrders = $this->orderRepository->findUserOrders($user, 1, 5);
 
         return $this->json([
-            'user'         => UserAdminItem::fromEntity($user, $orderCount),
-            'recentOrders' => array_map(fn($o) => OrderListItem::fromEntity($o), $recentOrders),
+            'user' => UserAdminItem::fromEntity($user, $orderCount),
+            'recentOrders' => array_map(fn ($o) => OrderListItem::fromEntity($o), $recentOrders),
         ]);
     }
 
@@ -117,7 +118,7 @@ class UserAdminController extends AbstractController
             return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data    = json_decode($request->getContent(), true) ?? [];
+        $data = json_decode($request->getContent(), true) ?? [];
         $isAdmin = (bool) ($data['isAdmin'] ?? false);
 
         $user = $this->userService->updateRole($user, $isAdmin);

@@ -53,6 +53,7 @@ class ChatMessageLog
     public function setSessionId(string $sessionId): self
     {
         $this->sessionId = $sessionId;
+
         return $this;
     }
 
@@ -64,13 +65,10 @@ class ChatMessageLog
     public function setRole(string $role): self
     {
         if (!in_array($role, self::ROLES, true)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid chat message role "%s". Valid roles are: %s',
-                $role,
-                implode(', ', self::ROLES)
-            ));
+            throw new \InvalidArgumentException(sprintf('Invalid chat message role "%s". Valid roles are: %s', $role, implode(', ', self::ROLES)));
         }
         $this->role = $role;
+
         return $this;
     }
 
@@ -82,6 +80,7 @@ class ChatMessageLog
     public function setMessage(string $message): self
     {
         $this->message = $message;
+
         return $this;
     }
 

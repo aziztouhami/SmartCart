@@ -31,19 +31,20 @@ class PromotionListItem
         $dto->brand = $brand ? ['id' => $brand->getId(), 'name' => $brand->getName()] : null;
 
         $dto->discountType = $promotion->getDiscountType();
-        $dto->percentage = $promotion->getPercentage() !== null ? (float) $promotion->getPercentage() : null;
-        $dto->fixedPrice = $promotion->getFixedPrice() !== null ? (float) $promotion->getFixedPrice() : null;
+        $dto->percentage = null !== $promotion->getPercentage() ? (float) $promotion->getPercentage() : null;
+        $dto->fixedPrice = null !== $promotion->getFixedPrice() ? (float) $promotion->getFixedPrice() : null;
         $dto->startDate = $promotion->getStartDate()->format(\DateTimeInterface::ATOM);
         $dto->endDate = $promotion->getEndDate()?->format(\DateTimeInterface::ATOM);
 
         $now = new \DateTimeImmutable();
         if (!$promotion->isActive($now)) {
-            $dto->status = $promotion->getEndDate() !== null && $promotion->getEndDate() < $now ? 'ended' : 'scheduled';
+            $dto->status = null !== $promotion->getEndDate() && $promotion->getEndDate() < $now ? 'ended' : 'scheduled';
         } else {
             $dto->status = 'active';
         }
 
         $dto->createdAt = $promotion->getCreatedAt()->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

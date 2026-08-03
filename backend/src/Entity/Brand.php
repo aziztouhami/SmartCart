@@ -52,6 +52,7 @@ class Brand
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -63,6 +64,7 @@ class Brand
     public function setImage(?string $image): self
     {
         $this->image = $image;
+
         return $this;
     }
 
@@ -74,6 +76,7 @@ class Brand
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -85,6 +88,7 @@ class Brand
     public function setJoinedAt(\DateTimeImmutable $joinedAt): self
     {
         $this->joinedAt = $joinedAt;
+
         return $this;
     }
 
@@ -96,6 +100,7 @@ class Brand
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -113,6 +118,7 @@ class Brand
             $this->products->add($product);
             $product->setBrand($this);
         }
+
         return $this;
     }
 
@@ -123,6 +129,7 @@ class Brand
                 $product->setBrand(null);
             }
         }
+
         return $this;
     }
 }

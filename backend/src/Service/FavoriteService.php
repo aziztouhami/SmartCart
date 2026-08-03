@@ -14,7 +14,8 @@ class FavoriteService
         private FavoriteRepository $favoriteRepository,
         private ProductRepository $productRepository,
         private EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function add(User $user, int $productId): Favorite
     {

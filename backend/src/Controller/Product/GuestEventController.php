@@ -2,6 +2,8 @@
 
 namespace App\Controller\Product;
 
+use App\Domain\Http\RequestDtoParser;
+use App\DTO\Product\TrackGuestEventRequest;
 use App\Entity\GuestEvent;
 use App\Repository\ProductRepository;
 use App\Service\GuestEventService;
@@ -24,7 +26,9 @@ class GuestEventController extends AbstractController
     public function __construct(
         private ProductRepository $productRepository,
         private GuestEventService $guestEventService,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Record a guest's view or cart-add for a product under their session id.
@@ -54,24 +58,18 @@ class GuestEventController extends AbstractController
     public function track(Request $request): JsonResponse
     {
         $sessionId = trim((string) $request->headers->get('X-Session-Id'));
-        if ($sessionId === '') {
+        if ('' === $sessionId) {
             return $this->json(['error' => 'X-Session-Id header is required'], Response::HTTP_BAD_REQUEST);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
-        $type = $data['type'] ?? '';
-        $productId = isset($data['productId']) ? (int) $data['productId'] : 0;
+        $dto = $this->dtoParser->parse($request, TrackGuestEventRequest::class);
 
-        $product = $this->productRepository->find($productId);
+        $product = $this->productRepository->find($dto->productId);
         if (!$product) {
             return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $event = $this->guestEventService->track($sessionId, $product, $type);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
+        $event = $this->guestEventService->track($sessionId, $product, $dto->type);
 
         return $this->json(['id' => $event->getId()], Response::HTTP_CREATED);
     }

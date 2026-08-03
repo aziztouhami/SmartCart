@@ -2,6 +2,7 @@
 
 namespace App\Controller\Profile;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Profile\ChangePasswordRequest;
 use App\DTO\Profile\UpdateProfileRequest;
 use App\Entity\User;
@@ -12,8 +13,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/profile', name: 'api_profile_')]
 #[OA\Tag(name: 'Profile', description: 'User profile management — requires authentication')]
@@ -21,9 +20,9 @@ class ProfileController extends AbstractController
 {
     public function __construct(
         private UserService $userService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Get the authenticated user's full profile.
@@ -79,17 +78,7 @@ class ProfileController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateProfileRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateProfileRequest::class);
         $user = $this->userService->updateProfile($user, $dto);
 
         return $this->json($this->buildProfileArray($user));
@@ -126,17 +115,7 @@ class ProfileController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), ChangePasswordRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, ChangePasswordRequest::class);
         $this->userService->changePassword($user, $dto);
 
         return $this->json(['message' => 'Password updated successfully']);
@@ -172,18 +151,18 @@ class ProfileController extends AbstractController
     private function buildProfileArray(User $user): array
     {
         return [
-            'id'                   => $user->getId(),
-            'email'                => $user->getEmail(),
-            'firstName'            => $user->getFirstName(),
-            'lastName'             => $user->getLastName(),
-            'phone'                => $user->getPhone(),
-            'roles'                => $user->getRoles(),
-            'marketingOptIn'       => $user->getMarketingOptIn(),
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'phone' => $user->getPhone(),
+            'roles' => $user->getRoles(),
+            'marketingOptIn' => $user->getMarketingOptIn(),
             'preferredCategoryIds' => $user->getPreferredCategoryIds(),
-            'preferredBrandIds'    => $user->getPreferredBrandIds(),
-            'deletionRequestedAt'  => $user->getDeletionRequestedAt()?->format(\DateTimeInterface::ATOM),
-            'createdAt'            => $user->getCreatedAt()->format(\DateTimeInterface::ATOM),
-            'updatedAt'            => $user->getUpdatedAt()?->format(\DateTimeInterface::ATOM),
+            'preferredBrandIds' => $user->getPreferredBrandIds(),
+            'deletionRequestedAt' => $user->getDeletionRequestedAt()?->format(\DateTimeInterface::ATOM),
+            'createdAt' => $user->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'updatedAt' => $user->getUpdatedAt()?->format(\DateTimeInterface::ATOM),
         ];
     }
 }

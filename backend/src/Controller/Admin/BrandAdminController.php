@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Brand\BrandDetail;
 use App\DTO\Brand\CreateBrandRequest;
 use App\DTO\Brand\UpdateBrandRequest;
@@ -15,8 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/brands', name: 'api_admin_brands_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -27,9 +26,9 @@ class BrandAdminController extends AbstractController
         private BrandRepository $brandRepository,
         private BrandService $brandService,
         private FileUploadService $fileUploadService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     #[Route('', name: 'create', methods: ['POST'])]
     #[OA\Post(
@@ -56,17 +55,7 @@ class BrandAdminController extends AbstractController
     )]
     public function create(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateBrandRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateBrandRequest::class);
         $brand = $this->brandService->create($dto);
 
         $stats = $this->brandRepository->getStats($brand);
@@ -105,18 +94,7 @@ class BrandAdminController extends AbstractController
         }
 
         $rawData = json_decode($request->getContent(), true) ?? [];
-
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateBrandRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateBrandRequest::class);
         $brand = $this->brandService->update($brand, $dto, $rawData);
 
         $stats = $this->brandRepository->getStats($brand);
@@ -159,7 +137,7 @@ class BrandAdminController extends AbstractController
             'brand_',
         );
 
-        return $this->json(['url' => $request->getSchemeAndHttpHost() . $relativeUrl]);
+        return $this->json(['url' => $request->getSchemeAndHttpHost().$relativeUrl]);
     }
 
     #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]

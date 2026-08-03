@@ -25,6 +25,7 @@ class MatrixFactorizationTrainer
 
     /**
      * @param array<int, array<int, float>> $matrix userId => [productId => tasteScore]
+     *
      * @return array{mu: float, userFactors: array<int, float[]>, itemFactors: array<int, float[]>, userBias: array<int, float>, itemBias: array<int, float>}
      */
     public function train(array $matrix): array
@@ -39,7 +40,7 @@ class MatrixFactorizationTrainer
         }
 
         $n = count($triples);
-        if ($n === 0) {
+        if (0 === $n) {
             return ['mu' => 0.0, 'userFactors' => [], 'itemFactors' => [], 'userBias' => [], 'itemBias' => []];
         }
 
@@ -56,7 +57,7 @@ class MatrixFactorizationTrainer
             $itemBias[$productId] ??= 0.0;
         }
 
-        for ($epoch = 0; $epoch < self::EPOCHS; $epoch++) {
+        for ($epoch = 0; $epoch < self::EPOCHS; ++$epoch) {
             shuffle($triples); // re-ordering each epoch helps SGD converge more evenly
 
             foreach ($triples as [$userId, $productId, $actual]) {
@@ -64,7 +65,7 @@ class MatrixFactorizationTrainer
                 $vVec = $itemFactors[$productId];
 
                 $prediction = $mu + $userBias[$userId] + $itemBias[$productId];
-                for ($k = 0; $k < self::FACTORS; $k++) {
+                for ($k = 0; $k < self::FACTORS; ++$k) {
                     $prediction += $uVec[$k] * $vVec[$k];
                 }
                 $error = $actual - $prediction;
@@ -72,7 +73,7 @@ class MatrixFactorizationTrainer
                 $userBias[$userId] += self::LEARNING_RATE * ($error - self::REGULARIZATION * $userBias[$userId]);
                 $itemBias[$productId] += self::LEARNING_RATE * ($error - self::REGULARIZATION * $itemBias[$productId]);
 
-                for ($k = 0; $k < self::FACTORS; $k++) {
+                for ($k = 0; $k < self::FACTORS; ++$k) {
                     $uk = $uVec[$k];
                     $vk = $vVec[$k];
                     $userFactors[$userId][$k] = $uk + self::LEARNING_RATE * ($error * $vk - self::REGULARIZATION * $uk);
@@ -104,7 +105,7 @@ class MatrixFactorizationTrainer
 
         $uVec = $model['userFactors'][$userId] ?? null;
         $vVec = $model['itemFactors'][$productId] ?? null;
-        if ($uVec !== null && $vVec !== null) {
+        if (null !== $uVec && null !== $vVec) {
             foreach ($uVec as $k => $value) {
                 $prediction += $value * $vVec[$k];
             }
@@ -119,9 +120,10 @@ class MatrixFactorizationTrainer
     private function randomFactorVector(): array
     {
         $vector = [];
-        for ($k = 0; $k < self::FACTORS; $k++) {
+        for ($k = 0; $k < self::FACTORS; ++$k) {
             $vector[] = mt_rand(-100, 100) / 1000; // small values around 0, e.g. [-0.1, 0.1]
         }
+
         return $vector;
     }
 }

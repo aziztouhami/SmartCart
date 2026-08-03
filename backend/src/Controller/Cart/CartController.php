@@ -2,6 +2,7 @@
 
 namespace App\Controller\Cart;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Cart\AddToCartRequest;
 use App\DTO\Cart\CartResponse;
 use App\DTO\Cart\SyncCartRequest;
@@ -15,8 +16,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/cart', name: 'api_cart_')]
 #[OA\Tag(name: 'Cart', description: 'Persistent cart — requires authentication')]
@@ -25,9 +24,9 @@ class CartController extends AbstractController
     public function __construct(
         private CartService $cartService,
         private OrderItemRepository $orderItemRepository,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * Get the current user's cart.
@@ -48,6 +47,7 @@ class CartController extends AbstractController
         }
 
         $cart = $this->cartService->getCart($user);
+
         return $this->json(CartResponse::fromOrder($cart));
     }
 
@@ -83,17 +83,7 @@ class CartController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), AddToCartRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, AddToCartRequest::class);
         $cart = $this->cartService->addItem($user, $dto);
 
         return $this->json(CartResponse::fromOrder($cart));
@@ -128,16 +118,7 @@ class CartController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateCartItemRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
+        $dto = $this->dtoParser->parse($request, UpdateCartItemRequest::class);
 
         $item = $this->orderItemRepository->find($itemId);
         if (!$item) {
@@ -145,7 +126,7 @@ class CartController extends AbstractController
         }
 
         $cart = $item->getOrder();
-        if ($cart->getUser()->getId() !== $user->getId() || $cart->getStatus() !== 'cart') {
+        if ($cart->getUser()->getId() !== $user->getId() || 'cart' !== $cart->getStatus()) {
             return $this->json(['error' => 'Item does not belong to your cart'], Response::HTTP_FORBIDDEN);
         }
 
@@ -183,11 +164,12 @@ class CartController extends AbstractController
         }
 
         $cart = $item->getOrder();
-        if ($cart->getUser()->getId() !== $user->getId() || $cart->getStatus() !== 'cart') {
+        if ($cart->getUser()->getId() !== $user->getId() || 'cart' !== $cart->getStatus()) {
             return $this->json(['error' => 'Item does not belong to your cart'], Response::HTTP_FORBIDDEN);
         }
 
         $cart = $this->cartService->removeItem($item);
+
         return $this->json(CartResponse::fromOrder($cart));
     }
 
@@ -210,6 +192,7 @@ class CartController extends AbstractController
         }
 
         $cart = $this->cartService->clearCart($user);
+
         return $this->json(CartResponse::fromOrder($cart));
     }
 
@@ -251,13 +234,9 @@ class CartController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), SyncCartRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, SyncCartRequest::class);
         $cart = $this->cartService->syncCart($user, $dto);
+
         return $this->json(CartResponse::fromOrder($cart));
     }
 }

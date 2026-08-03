@@ -2,7 +2,7 @@
     "name": "smartcart/backend",
     "description": "SmartCart - E-commerce platform with AI recommendations",
     "type": "project",
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": ">=8.2",
         "doctrine/dbal": "^3.0",
@@ -31,6 +31,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3",
+        "friendsofphp/php-cs-fixer": "^3.64",
         "phpunit/phpunit": "^11.0",
         "symfony/debug-bundle": "^7.0",
         "symfony/test-pack": "^1.1"
@@ -57,6 +58,8 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix"
     }
 }

@@ -26,13 +26,13 @@ class GuestEventControllerTest extends WebTestCase
         $this->em->createQuery('DELETE FROM App\Entity\Category')->execute();
 
         $category = new Category();
-        $category->setName('Cat ' . uniqid());
-        $category->setSlug('cat-' . uniqid());
+        $category->setName('Cat '.uniqid());
+        $category->setSlug('cat-'.uniqid());
         $this->em->persist($category);
 
         $this->product = new Product();
         $this->product->setName('Widget');
-        $this->product->setSlug('widget-' . uniqid());
+        $this->product->setSlug('widget-'.uniqid());
         $this->product->setPrice('10.00');
         $this->product->setStock(5);
         $this->product->setCategory($category);

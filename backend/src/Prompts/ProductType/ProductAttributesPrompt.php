@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Ai\Prompt;
+namespace App\Prompts\ProductType;
 
 /**
  * Builds the prompt asking the LLM for standard-market features for a
@@ -12,15 +12,15 @@ namespace App\Service\Ai\Prompt;
 class ProductAttributesPrompt
 {
     /**
-     * @param string[] $existingNames Features the type already has (edit flow) —
-     *                                asks the model for new ones only.
+     * @param string[] $existingNames features the type already has (edit flow) —
+     *                                asks the model for new ones only
      */
     public function build(string $typeName, array $existingNames = []): string
     {
         $existingClause = '';
         if (!empty($existingNames)) {
-            $existingClause = "\n\nThis type already has the following attributes: " . implode(', ', $existingNames)
-                . '. Do NOT suggest them again — only suggest additional, relevant attributes that are still missing.';
+            $existingClause = "\n\nThis type already has the following attributes: ".implode(', ', $existingNames)
+                .'. Do NOT suggest them again — only suggest additional, relevant attributes that are still missing.';
         }
 
         return <<<PROMPT

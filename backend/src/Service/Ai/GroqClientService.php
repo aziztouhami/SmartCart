@@ -19,12 +19,13 @@ class GroqClientService
         private HttpClientInterface $httpClient,
         private string $apiKey,
         private string $model,
-    ) {}
+    ) {
+    }
 
     /**
-     * @return string|null The generated text, or null if the key is missing,
-     *                      the request timed out, the API errored, or the
-     *                      response didn't have the shape we expect.
+     * @return string|null the generated text, or null if the key is missing,
+     *                     the request timed out, the API errored, or the
+     *                     response didn't have the shape we expect
      */
     public function generate(string $prompt): ?string
     {
@@ -45,9 +46,9 @@ class GroqClientService
      * only guarantees syntactically valid JSON, not a particular schema, so
      * callers must still validate/sanitize every field of the result.
      *
-     * @return array<string, mixed>|null Decoded JSON object, or null if the
+     * @return array<string, mixed>|null decoded JSON object, or null if the
      *                                   key is missing, the request failed,
-     *                                   or the response wasn't valid JSON.
+     *                                   or the response wasn't valid JSON
      */
     public function generateJson(string $prompt): ?array
     {
@@ -71,12 +72,13 @@ class GroqClientService
 
     /**
      * @param array<int, array{role: string, content: string}> $messages
-     * @param array<string, mixed> $extra
+     * @param array<string, mixed>                             $extra
+     *
      * @return array<string, mixed>|null
      */
     private function call(array $messages, array $extra): ?array
     {
-        if ($this->apiKey === '') {
+        if ('' === $this->apiKey) {
             return null;
         }
 
@@ -96,7 +98,7 @@ class GroqClientService
             // exception that crashes the caller.
             $data = $response->toArray(false);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return null;
             }
 

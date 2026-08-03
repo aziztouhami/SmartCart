@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Domain\Http\RequestDtoParser;
 use App\DTO\Product\CreateAttributeRequest;
 use App\DTO\Product\CreateProductTypeRequest;
 use App\DTO\Product\ProductTypeDetail;
@@ -17,8 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Product types ("Smartphone", "Smart watch", ...) and the per-type list of
@@ -35,9 +34,9 @@ class ProductTypeAdminController extends AbstractController
         private ProductTypeRepository $productTypeRepository,
         private ProductTypeAttributeRepository $productTypeAttributeRepository,
         private ProductTypeService $productTypeService,
-        private SerializerInterface $serializer,
-        private ValidatorInterface $validator,
-    ) {}
+        private RequestDtoParser $dtoParser,
+    ) {
+    }
 
     /**
      * List all product types with their feature definitions, for the
@@ -97,17 +96,7 @@ class ProductTypeAdminController extends AbstractController
     )]
     public function create(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateProductTypeRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateProductTypeRequest::class);
         $type = $this->productTypeService->create($dto);
 
         return $this->json(ProductTypeDetail::fromEntity($type), Response::HTTP_CREATED);
@@ -145,16 +134,7 @@ class ProductTypeAdminController extends AbstractController
     )]
     public function suggestAttributes(Request $request): JsonResponse
     {
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), SuggestAttributesRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
+        $dto = $this->dtoParser->parse($request, SuggestAttributesRequest::class);
 
         return $this->json(['attributes' => $this->productTypeService->suggestAttributes($dto->name, $dto->existingNames)]);
     }
@@ -186,17 +166,7 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => 'Product type not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), UpdateProductTypeRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, UpdateProductTypeRequest::class);
         $this->productTypeService->rename($type, $dto);
 
         return $this->json(ProductTypeDetail::fromEntity($type));
@@ -239,17 +209,7 @@ class ProductTypeAdminController extends AbstractController
             return $this->json(['error' => 'Product type not found'], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $dto = $this->serializer->deserialize($request->getContent(), CreateAttributeRequest::class, 'json');
-        } catch (\Exception) {
-            return $this->json(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
-        }
-
+        $dto = $this->dtoParser->parse($request, CreateAttributeRequest::class);
         $this->productTypeService->addAttribute($type, $dto);
 
         return $this->json(ProductTypeDetail::fromEntity($type), Response::HTTP_CREATED);

@@ -32,14 +32,14 @@ class ProductListItem
         $dto->stock = $product->getStock();
         $dto->inStock = $product->getStock() > 0;
         $dto->images = $product->getImages();
-        $cat    = $product->getCategory();
+        $cat = $product->getCategory();
         $parent = $cat?->getParent();
         $dto->category = [
-            'id'     => $cat?->getId(),
-            'name'   => $cat?->getName(),
-            'slug'   => $cat?->getSlug(),
+            'id' => $cat?->getId(),
+            'name' => $cat?->getName(),
+            'slug' => $cat?->getSlug(),
             'parent' => $parent ? [
-                'id'   => $parent->getId(),
+                'id' => $parent->getId(),
                 'name' => $parent->getName(),
                 'slug' => $parent->getSlug(),
             ] : null,
@@ -49,7 +49,7 @@ class ProductListItem
 
         $type = $product->getProductType();
         $dto->productType = $type ? [
-            'id'   => $type->getId(),
+            'id' => $type->getId(),
             'name' => $type->getName(),
             'slug' => $type->getSlug(),
         ] : null;
@@ -58,6 +58,7 @@ class ProductListItem
         $dto->promotion = $promotion?->toPublicArray($dto->price);
         $dto->isNew = $product->getCreatedAt() >= new \DateTimeImmutable('-7 days');
         $dto->createdAt = $product->getCreatedAt()->format(\DateTimeInterface::ATOM);
+
         return $dto;
     }
 }

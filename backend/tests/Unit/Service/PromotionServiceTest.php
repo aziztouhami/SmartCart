@@ -3,7 +3,6 @@
 namespace App\Tests\Unit\Service;
 
 use App\DTO\Promotion\CreatePromotionRequest;
-use App\Entity\Brand;
 use App\Entity\Product;
 use App\Entity\Promotion;
 use App\Entity\User;
@@ -31,6 +30,15 @@ class PromotionServiceTest extends TestCase
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->mailService = $this->createMock(MailService::class);
+        // Mirrors MailService::sendSafely()'s real try/catch — without this, the
+        // mock's sendSafely() is a no-op and the callback (the actual
+        // sendXxxEmail assertion target) never runs.
+        $this->mailService->method('sendSafely')->willReturnCallback(function (callable $send) {
+            try {
+                $send();
+            } catch (\Throwable) {
+            }
+        });
 
         $this->service = new PromotionService(
             $this->productRepository,

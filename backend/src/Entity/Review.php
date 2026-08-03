@@ -54,6 +54,7 @@ class Review
             throw new \InvalidArgumentException('Rating must be between 1 and 100');
         }
         $this->rating = $rating;
+
         return $this;
     }
 
@@ -65,6 +66,7 @@ class Review
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
         return $this;
     }
 
@@ -76,6 +78,7 @@ class Review
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -87,6 +90,7 @@ class Review
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -98,6 +102,7 @@ class Review
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -109,6 +114,7 @@ class Review
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 }
