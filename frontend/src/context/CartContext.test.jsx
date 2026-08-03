@@ -2,17 +2,24 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { guestEventApi } from '../services/cartService';
+import { CartProvider, useCart } from './CartContext';
+
 jest.mock('../services/authService', () => ({
   isAuthenticated: jest.fn(() => false),
 }));
 
 jest.mock('../services/cartService', () => ({
-  cartApi: { getCart: jest.fn(), syncCart: jest.fn(), addItem: jest.fn(), updateItem: jest.fn(), removeItem: jest.fn(), clearCart: jest.fn() },
+  cartApi: {
+    getCart: jest.fn(),
+    syncCart: jest.fn(),
+    addItem: jest.fn(),
+    updateItem: jest.fn(),
+    removeItem: jest.fn(),
+    clearCart: jest.fn(),
+  },
   guestEventApi: { track: jest.fn() },
 }));
-
-import { guestEventApi } from '../services/cartService';
-import { CartProvider, useCart } from './CartContext';
 
 const product = (overrides = {}) => ({
   id: 1,
@@ -24,18 +31,23 @@ const product = (overrides = {}) => ({
 });
 
 function TestConsumer() {
-  const { items, addToCart, removeFromCart, updateQty, clearCart, cartCount, cartTotal } = useCart();
+  const { items, addToCart, removeFromCart, updateQty, clearCart, cartCount, cartTotal } =
+    useCart();
   return (
     <div>
       <span data-testid="count">{cartCount}</span>
       <span data-testid="total">{cartTotal}</span>
       <ul>
-        {items.map((i) => (
-          <li key={i.id} data-testid="item">{i.name} x{i.qty}</li>
+        {items.map(i => (
+          <li key={i.id} data-testid="item">
+            {i.name} x{i.qty}
+          </li>
         ))}
       </ul>
       <button onClick={() => addToCart(product(), 1)}>add-widget</button>
-      <button onClick={() => addToCart(product({ id: 2, name: 'Gadget', price: 5 }), 1)}>add-gadget</button>
+      <button onClick={() => addToCart(product({ id: 2, name: 'Gadget', price: 5 }), 1)}>
+        add-gadget
+      </button>
       <button onClick={() => removeFromCart(1)}>remove-widget</button>
       <button onClick={() => updateQty(1, 5)}>set-qty-5</button>
       <button onClick={() => updateQty(1, 0)}>set-qty-0</button>
@@ -89,8 +101,8 @@ describe('CartContext (guest / local cart)', () => {
 
   it('computes cartTotal as the sum of price * qty across distinct items', async () => {
     const { user } = setup();
-    await user.click(screen.getByText('add-widget'));  // 10 * 1
-    await user.click(screen.getByText('add-gadget'));  // 5 * 1
+    await user.click(screen.getByText('add-widget')); // 10 * 1
+    await user.click(screen.getByText('add-gadget')); // 5 * 1
 
     expect(screen.getByTestId('total')).toHaveTextContent('15');
   });

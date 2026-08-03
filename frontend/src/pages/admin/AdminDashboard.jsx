@@ -46,18 +46,27 @@ export default function AdminDashboard() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    dashboardApi.get()
+    dashboardApi
+      .get()
       .then(res => setData(res.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
-    return <div className="adm-page"><p className="adm-page-sub">Loading dashboard…</p></div>;
+    return (
+      <div className="adm-page">
+        <p className="adm-page-sub">Loading dashboard…</p>
+      </div>
+    );
   }
 
   if (error || !data) {
-    return <div className="adm-page"><p className="adm-page-sub">Failed to load dashboard data.</p></div>;
+    return (
+      <div className="adm-page">
+        <p className="adm-page-sub">Failed to load dashboard data.</p>
+      </div>
+    );
   }
 
   const kpiCards = buildKpiCards(data);
@@ -75,7 +84,12 @@ export default function AdminDashboard() {
           <p className="adm-page-sub">Welcome back, Admin — here's what's happening today.</p>
         </div>
         <div className="db-date">
-          {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date().toLocaleDateString('en-GB', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
         </div>
       </div>
 
@@ -89,9 +103,7 @@ export default function AdminDashboard() {
             <div className="db-kpi-body">
               <p className="db-kpi-label">{card.label}</p>
               <p className="db-kpi-value">{card.value}</p>
-              {card.trend && (
-                <p className="db-kpi-trend db-kpi-trend--warn">{card.trend}</p>
-              )}
+              {card.trend && <p className="db-kpi-trend db-kpi-trend--warn">{card.trend}</p>}
             </div>
           </div>
         ))}
@@ -99,7 +111,6 @@ export default function AdminDashboard() {
 
       {/* Charts row */}
       <div className="db-charts-row">
-
         {/* Monthly revenue bar chart */}
         <div className="db-card db-chart-card">
           <div className="db-card-head">
@@ -107,9 +118,7 @@ export default function AdminDashboard() {
               <h3 className="db-card-title">Monthly Revenue</h3>
               <p className="db-card-sub">Last {monthly.length} months</p>
             </div>
-            <span className="db-total-badge">
-              {formatPrice(data.revenue.total)} TND
-            </span>
+            <span className="db-total-badge">{formatPrice(data.revenue.total)} TND</span>
           </div>
           <div className="db-bar-chart">
             {monthly.map(({ month, year, value }) => {
@@ -138,23 +147,24 @@ export default function AdminDashboard() {
           <div className="db-cat-list">
             {topCats.length === 0 ? (
               <p className="adm-muted">No categories yet.</p>
-            ) : topCats.map(cat => {
-              const pct = Math.round((cat.productCount / maxCount) * 100);
-              return (
-                <div key={cat.id} className="db-cat-row">
-                  <div className="db-cat-info">
-                    <span className="db-cat-name">{cat.name}</span>
-                    <span className="db-cat-count">{cat.productCount}</span>
+            ) : (
+              topCats.map(cat => {
+                const pct = Math.round((cat.productCount / maxCount) * 100);
+                return (
+                  <div key={cat.id} className="db-cat-row">
+                    <div className="db-cat-info">
+                      <span className="db-cat-name">{cat.name}</span>
+                      <span className="db-cat-count">{cat.productCount}</span>
+                    </div>
+                    <div className="db-hbar-track">
+                      <div className="db-hbar-fill" style={{ width: `${pct}%` }} />
+                    </div>
                   </div>
-                  <div className="db-hbar-track">
-                    <div className="db-hbar-fill" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
-
       </div>
 
       {/* Top selling products */}
@@ -178,31 +188,40 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {topSelling.length === 0 ? (
-                <tr><td colSpan={5}><div className="adm-empty"><p>No sales recorded yet.</p></div></td></tr>
-              ) : topSelling.map(p => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>{p.name}</td>
-                  <td><span className="adm-parent-badge">{p.category?.name}</span></td>
-                  <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
-                    {formatPrice(p.price)} TND
-                  </td>
-                  <td>{p.stock}</td>
-                  <td>
-                    {p.stock === 0 ? (
-                      <span className="db-status db-status--out">Out of Stock</span>
-                    ) : p.stock <= 15 ? (
-                      <span className="db-status db-status--low">Low Stock</span>
-                    ) : (
-                      <span className="db-status db-status--ok">In Stock</span>
-                    )}
+                <tr>
+                  <td colSpan={5}>
+                    <div className="adm-empty">
+                      <p>No sales recorded yet.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                topSelling.map(p => (
+                  <tr key={p.id}>
+                    <td style={{ fontWeight: 600 }}>{p.name}</td>
+                    <td>
+                      <span className="adm-parent-badge">{p.category?.name}</span>
+                    </td>
+                    <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                      {formatPrice(p.price)} TND
+                    </td>
+                    <td>{p.stock}</td>
+                    <td>
+                      {p.stock === 0 ? (
+                        <span className="db-status db-status--out">Out of Stock</span>
+                      ) : p.stock <= 15 ? (
+                        <span className="db-status db-status--low">Low Stock</span>
+                      ) : (
+                        <span className="db-status db-status--ok">In Stock</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   );
 }

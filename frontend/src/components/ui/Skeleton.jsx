@@ -1,7 +1,14 @@
 import React from 'react';
 import './Skeleton.css';
 
-export default function Skeleton({ width, height, radius = 6, className = '', style = {}, ...rest }) {
+export default function Skeleton({
+  width,
+  height,
+  radius = 6,
+  className = '',
+  style = {},
+  ...rest
+}) {
   return (
     <div
       className={['ui-skeleton', className].filter(Boolean).join(' ')}

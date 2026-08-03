@@ -1,10 +1,10 @@
+import api from './api';
+import { productApi, cartApi, orderApi, adminAnalyticsApi } from './cartService';
+
 jest.mock('./api', () => ({
   __esModule: true,
   default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn() },
 }));
-
-import api from './api';
-import { productApi, cartApi, orderApi } from './cartService';
 
 describe('productApi.list', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -72,5 +72,37 @@ describe('orderApi.getOrders', () => {
   it('builds the paginated query string with sensible defaults', () => {
     orderApi.getOrders();
     expect(api.get).toHaveBeenCalledWith('/orders?page=1&limit=10');
+  });
+});
+
+describe('adminAnalyticsApi', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('analyzeProduct posts to the product analyze endpoint with an extended timeout', () => {
+    adminAnalyticsApi.analyzeProduct(7);
+    expect(api.post).toHaveBeenCalledWith('/admin/analytics/products/7/analyze', null, {
+      timeout: 180000,
+    });
+  });
+
+  it('analyzeCategory posts to the category analyze endpoint with an extended timeout', () => {
+    adminAnalyticsApi.analyzeCategory(3);
+    expect(api.post).toHaveBeenCalledWith('/admin/analytics/categories/3/analyze', null, {
+      timeout: 180000,
+    });
+  });
+
+  it('analyzeBrand posts to the brand analyze endpoint with an extended timeout', () => {
+    adminAnalyticsApi.analyzeBrand(9);
+    expect(api.post).toHaveBeenCalledWith('/admin/analytics/brands/9/analyze', null, {
+      timeout: 180000,
+    });
+  });
+
+  it('analyzeProductType posts to the product-types analyze endpoint with an extended timeout', () => {
+    adminAnalyticsApi.analyzeProductType(2);
+    expect(api.post).toHaveBeenCalledWith('/admin/analytics/product-types/2/analyze', null, {
+      timeout: 180000,
+    });
   });
 });

@@ -1,0 +1,179 @@
+/* ── Image panel ────────────────────────────── */
+.pd-image {
+  border-radius: 20px;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(4, 44, 83, 0.25);
+}
+.pd-image-emoji {
+  font-size: 8rem;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.3));
+  user-select: none;
+}
+.pd-image-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.pd-image--clickable {
+  cursor: zoom-in;
+}
+.pd-image-zoom-hint {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.55);
+  color: white;
+  pointer-events: none;
+}
+
+/* ── Image nav arrows (main panel) ──────────── */
+.pd-image-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 23, 42, 0.5);
+  color: white;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.pd-image-nav:hover {
+  background: rgba(15, 23, 42, 0.75);
+}
+.pd-image-nav--prev {
+  left: 14px;
+}
+.pd-image-nav--next {
+  right: 14px;
+}
+
+/* ── Thumbnail row ───────────────────────────── */
+.pd-thumb-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.pd-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background: #f8fafc;
+  opacity: 0.7;
+  transition:
+    opacity var(--transition-fast),
+    border-color var(--transition-fast);
+}
+.pd-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pd-thumb:hover {
+  opacity: 1;
+}
+.pd-thumb--active {
+  border-color: var(--color-primary);
+  opacity: 1;
+}
+
+/* ── Lightbox ───────────────────────────────── */
+.pd-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 11, 22, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: zoom-out;
+}
+.pd-lightbox-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: default;
+}
+.pd-lightbox-close {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.pd-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.pd-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.pd-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.pd-lightbox-nav--prev {
+  left: 28px;
+}
+.pd-lightbox-nav--next {
+  right: 28px;
+}
+
+/* ── Product image ───────────────────────────── */
+.pd-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 16px;
+}
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 900px) {
+  .pd-image {
+    height: 280px;
+  }
+}

@@ -24,10 +24,14 @@
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
-.h-lang-btn:hover { color: white; }
+.h-lang-btn:hover {
+  color: white;
+}
 
 .h-lang-btn--active {
   background: rgba(255, 255, 255, 0.2);

@@ -17,7 +17,9 @@ export default function Button({
     `ui-btn--${size}`,
     fullWidth ? 'ui-btn--full' : '',
     className,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <button className={classes} {...rest}>

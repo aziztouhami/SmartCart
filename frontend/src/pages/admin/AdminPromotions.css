@@ -9,13 +9,22 @@
   letter-spacing: 0.3px;
 }
 
-.pr-badge--active    { background: #dcfce7; color: #166534; }
-.pr-badge--scheduled { background: #dbeafe; color: #1d4ed8; }
-.pr-badge--ended      { background: #f1f5f9; color: #64748b; }
+.pr-badge--active {
+  background: var(--color-success-bg);
+  color: var(--color-success-dark);
+}
+.pr-badge--scheduled {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+.pr-badge--ended {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .pr-discount {
   font-weight: 600;
-  color: #b45309;
+  color: var(--color-warning);
 }
 
 .pr-prices {
@@ -58,4 +67,6 @@
   cursor: pointer;
 }
 
-.pr-checkbox input { cursor: pointer; }
+.pr-checkbox input {
+  cursor: pointer;
+}

@@ -20,7 +20,10 @@ export function buildAttributesPayload(type, values) {
 /** Turns a comma-separated options string back into the array the
  * backend expects for "select" features. */
 export function parseOptions(raw) {
-  return raw.split(',').map(o => o.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
 }
 
 /** One row of the inline "define a feature" editor, used both when
@@ -69,7 +72,14 @@ export function FeatureRowEditor({ feature, onChange, onRemove }) {
         Required
       </label>
       {onRemove && (
-        <button type="button" className="tff-feature-remove" onClick={onRemove} title="Remove feature">✕</button>
+        <button
+          type="button"
+          className="tff-feature-remove"
+          onClick={onRemove}
+          title="Remove feature"
+        >
+          ✕
+        </button>
       )}
     </div>
   );
@@ -80,7 +90,10 @@ export function FeatureRowEditor({ feature, onChange, onRemove }) {
 export function AttributeValueInput({ attr, value, onChange }) {
   if (attr.dataType === 'boolean') {
     return (
-      <select value={value === undefined || value === null ? '' : String(value)} onChange={e => onChange(e.target.value === '' ? undefined : e.target.value === 'true')}>
+      <select
+        value={value === undefined || value === null ? '' : String(value)}
+        onChange={e => onChange(e.target.value === '' ? undefined : e.target.value === 'true')}
+      >
         <option value="">—</option>
         <option value="true">Yes</option>
         <option value="false">No</option>
@@ -91,7 +104,11 @@ export function AttributeValueInput({ attr, value, onChange }) {
     return (
       <select value={value ?? ''} onChange={e => onChange(e.target.value || undefined)}>
         <option value="">—</option>
-        {(attr.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {(attr.options || []).map(opt => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
       </select>
     );
   }
@@ -106,5 +123,7 @@ export function AttributeValueInput({ attr, value, onChange }) {
       />
     );
   }
-  return <input type="text" value={value ?? ''} onChange={e => onChange(e.target.value || undefined)} />;
+  return (
+    <input type="text" value={value ?? ''} onChange={e => onChange(e.target.value || undefined)} />
+  );
 }

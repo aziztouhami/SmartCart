@@ -1,43 +1,63 @@
 :root {
-  /* ── Brand Palette ─────────────────────── */
-  --color-sidebar:    #042C53;
-  --color-primary:    #185FA5;
-  --color-hover:      #378ADD;
-  --color-violet:     #3C3489;
-  --color-card-bg:    #E6F1FB;
-  --color-page-bg:    #F8F9FC;
+  /* ── Brand Palette (SmartCart Blue / Violet · Moderne & Minimaliste) ── */
+  --color-logo-gradient: linear-gradient(135deg, #185fa5 0%, #534ab7 100%);
+  --color-sidebar: #042c53; /* Blue Night */
+  --color-sidebar-hover: #0c447c; /* Blue Dark */
+  --color-primary: #185fa5; /* Blue Primary */
+  --color-primary-light: #cfe2f4; /* light tint of primary, for borders/rings */
+  --color-hover: #378add; /* Blue Medium */
+  --color-violet: #534ab7; /* Violet Accent */
+  --color-violet-hover: #3c3489; /* Violet Dark */
+  --color-violet-light: #efeefa; /* light violet tint, for chips/panels */
+  --color-violet-border: #b3aade; /* light violet border */
+  --color-card-bg: #e6f1fb; /* Blue Pale */
+  --color-page-bg: #f8f9fc; /* Page Background / Off-White */
 
-  /* ── Neutrals ──────────────────────────── */
-  --color-white:      #ffffff;
-  --color-text:       #042C53;
-  --color-text-muted: #8a9bb0;
-  --color-border:     #dde8f4;
+  /* ── Neutrals / Typography ─────────────── */
+  --color-white: #ffffff;
+  --color-text: #0a1628; /* Text Primary */
+  --color-text-secondary: #5f5e5a; /* Text Secondary */
+  --color-text-muted: #5f5e5a;
+  --color-text-on-dark: #e6f1fb; /* Text on Dark */
+  --color-border: #dde8f4;
 
-  /* ── Feedback ──────────────────────────── */
-  --color-error:      #dc2626;
-  --color-error-bg:   #fef2f2;
-  --color-success:    #16a34a;
+  /* ── Functional Colors ─────────────────── */
+  --color-success: #639922;
+  --color-success-dark: #4d7a1a;
+  --color-success-bg: #eef3e0;
+  --color-success-border: #cbe0a8;
+  --color-warning: #ba7517;
+  --color-warning-bg: #f7ecd6;
+  --color-warning-border: #e0c493;
+  --color-error: #a32d2d;
+  --color-error-dark: #7a2020;
+  --color-error-light: #b8504f;
+  --color-error-bg: #f5e3e3;
+  --color-error-border: #e0b3b3;
+  --color-info: #1a6ea8;
+  --color-info-bg: #e3eef4;
+  --color-info-border: #a8c9dc;
 
   /* ── Typography ────────────────────────── */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* ── Spacing ───────────────────────────── */
-  --radius-sm:   6px;
-  --radius-md:   12px;
-  --radius-lg:   20px;
-  --radius-xl:   50px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 50px;
   --radius-pill: 999px;
 
   /* ── Shadows ───────────────────────────── */
-  --shadow-card:     0 4px 24px rgba(24, 95, 165, 0.10);
-  --shadow-button:   0 8px 25px rgba(24, 95, 165, 0.35);
-  --shadow-soft:      0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-elevated:  0 18px 36px rgba(24, 95, 165, 0.16);
+  --shadow-card: 0 4px 24px rgba(24, 95, 165, 0.1);
+  --shadow-button: 0 8px 25px rgba(24, 95, 165, 0.35);
+  --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-elevated: 0 18px 36px rgba(24, 95, 165, 0.16);
   --shadow-elevated-sm: 0 8px 20px rgba(24, 95, 165, 0.14);
 
   /* ── Transitions ───────────────────────── */
   --transition-fast: 0.2s ease;
-  --transition-med:  0.3s ease;
+  --transition-med: 0.3s ease;
 }
 
 *,

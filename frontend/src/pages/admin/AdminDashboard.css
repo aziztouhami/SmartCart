@@ -26,7 +26,9 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .db-kpi-card:hover {
@@ -45,7 +47,10 @@
   flex-shrink: 0;
 }
 
-.db-kpi-body { flex: 1; min-width: 0; }
+.db-kpi-body {
+  flex: 1;
+  min-width: 0;
+}
 
 .db-kpi-label {
   font-size: 0.775rem;
@@ -71,8 +76,12 @@
   margin: 0;
 }
 
-.db-kpi-trend--up   { color: var(--color-success); }
-.db-kpi-trend--warn { color: #d97706; }
+.db-kpi-trend--up {
+  color: var(--color-success);
+}
+.db-kpi-trend--warn {
+  color: var(--color-warning);
+}
 
 /* ── Charts row ─────────────────────────────── */
 .db-charts-row {
@@ -180,7 +189,11 @@
   gap: 14px;
 }
 
-.db-cat-row { display: flex; flex-direction: column; gap: 5px; }
+.db-cat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 
 .db-cat-info {
   display: flex;
@@ -215,7 +228,9 @@
 }
 
 /* Recent products */
-.db-recent-card { margin-bottom: 0; }
+.db-recent-card {
+  margin-bottom: 0;
+}
 
 /* Status badges */
 .db-status {
@@ -227,15 +242,30 @@
   letter-spacing: 0.3px;
 }
 
-.db-status--ok  { background: #dcfce7; color: #16a34a; }
-.db-status--low { background: #fef3c7; color: #d97706; }
-.db-status--out { background: #fee2e2; color: #dc2626; }
+.db-status--ok {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.db-status--low {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.db-status--out {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
 
 @media (max-width: 1100px) {
-  .db-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .db-charts-row { grid-template-columns: 1fr; }
+  .db-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .db-charts-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .db-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .db-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

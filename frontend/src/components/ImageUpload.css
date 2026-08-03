@@ -1,4 +1,7 @@
-.imu-wrap { display: flex; flex-direction: column; }
+.imu-wrap {
+  display: flex;
+  flex-direction: column;
+}
 
 .imu-zone {
   border: 2px dashed #cbd5e1;
@@ -6,11 +9,13 @@
   padding: 28px 20px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   background: #f8fafc;
 }
 .imu-zone:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: #eff6ff;
 }
 .imu-icon {
@@ -18,7 +23,9 @@
   margin-bottom: 10px;
   transition: color 0.2s;
 }
-.imu-zone:hover .imu-icon { color: #3b82f6; }
+.imu-zone:hover .imu-icon {
+  color: var(--color-primary);
+}
 .imu-label {
   margin: 0 0 4px;
   font-size: 0.875rem;
@@ -58,4 +65,6 @@
   backdrop-filter: blur(4px);
   transition: background 0.15s;
 }
-.imu-clear:hover { background: rgba(220, 38, 38, 0.85); }
+.imu-clear:hover {
+  background: rgba(163, 45, 45, 0.85);
+}

@@ -8,15 +8,16 @@
     "title": "Product not found",
     "backButton": "← Back to Store"
   },
-  "nav": {
-    "back": "Back"
-  },
   "breadcrumb": {
     "home": "Home"
   },
   "badges": {
     "promotion": "Promotion",
     "new": "New"
+  },
+  "images": {
+    "previous": "Previous image",
+    "next": "Next image"
   },
   "favorite": {
     "remove": "Remove from favorites",

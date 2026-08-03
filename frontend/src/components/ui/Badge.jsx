@@ -12,12 +12,9 @@ export default function Badge({
   className = '',
   ...rest
 }) {
-  const classes = [
-    'ui-badge',
-    `ui-badge--${tone}-${variant}`,
-    `ui-badge--${size}`,
-    className,
-  ].filter(Boolean).join(' ');
+  const classes = ['ui-badge', `ui-badge--${tone}-${variant}`, `ui-badge--${size}`, className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <span className={classes} {...rest}>

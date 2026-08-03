@@ -63,8 +63,8 @@
 }
 
 .ac-btn-danger {
-  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-light)) !important;
+  box-shadow: 0 4px 14px rgba(163, 45, 45, 0.35) !important;
 }
 
 .adm-modal--sm {
@@ -86,12 +86,24 @@
 }
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.ac-toast--success { background: #166534; color: white; }
-.ac-toast--error   { background: #991b1b; color: white; }
+.ac-toast--success {
+  background: var(--color-success-dark);
+  color: white;
+}
+.ac-toast--error {
+  background: var(--color-error-dark);
+  color: white;
+}
 
 .ac-field-hint {
   font-size: 0.78rem;
@@ -114,10 +126,15 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
-.ac-month-btn:hover { border-color: var(--color-primary); }
+.ac-month-btn:hover {
+  border-color: var(--color-primary);
+}
 
 .ac-month-btn--active {
   background: var(--color-primary);

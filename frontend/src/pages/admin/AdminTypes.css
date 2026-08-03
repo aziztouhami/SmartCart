@@ -32,7 +32,7 @@
 
 .aty-chip--required::after {
   content: '*';
-  color: #dc2626;
+  color: var(--color-error);
 }
 
 .aty-empty-chip {
@@ -78,7 +78,9 @@
   padding: 2px 6px;
 }
 
-.aty-existing-feature-remove:hover { text-decoration: underline; }
+.aty-existing-feature-remove:hover {
+  text-decoration: underline;
+}
 
 .aty-no-features {
   color: var(--color-text-muted);
@@ -103,8 +105,8 @@
   gap: 10px;
   padding: 14px;
   margin-top: 4px;
-  background: linear-gradient(180deg, #f5f3ff, #faf9ff);
-  border: 1.5px dashed #c4b5fd;
+  background: linear-gradient(180deg, var(--color-violet-light), #faf9ff);
+  border: 1.5px dashed var(--color-violet-border);
   border-radius: var(--radius-md);
 }
 
@@ -124,7 +126,10 @@
   color: #6d28d9;
 }
 
-.aty-suggested-title svg { width: 14px; height: 14px; }
+.aty-suggested-title svg {
+  width: 14px;
+  height: 14px;
+}
 
 .aty-suggested-discard {
   border: none;

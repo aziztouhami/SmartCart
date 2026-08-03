@@ -4,47 +4,50 @@ import { formatPrice as fmt } from '../../utils/format';
 import './AdminOrders.css';
 
 const TRANSITIONS = {
-  pending:   ['confirmed', 'cancelled'],
+  pending: ['confirmed', 'cancelled'],
   confirmed: ['shipped', 'cancelled'],
-  shipped:   ['delivered'],
+  shipped: ['delivered'],
   delivered: [],
   cancelled: [],
 };
 
 const STATUS_FR = {
-  pending:   'En attente',
+  pending: 'En attente',
   confirmed: 'Confirmée',
-  shipped:   'Expédiée',
+  shipped: 'Expédiée',
   delivered: 'Livrée',
   cancelled: 'Annulée',
 };
 
 const FILTERS = [
-  { key: '',          label: 'All' },
-  { key: 'pending',   label: 'En attente' },
+  { key: '', label: 'All' },
+  { key: 'pending', label: 'En attente' },
   { key: 'confirmed', label: 'Confirmées' },
-  { key: 'shipped',   label: 'Expédiées' },
+  { key: 'shipped', label: 'Expédiées' },
   { key: 'delivered', label: 'Livrées' },
   { key: 'cancelled', label: 'Annulées' },
 ];
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('fr-TN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 export default function AdminOrders() {
-  const [orders,      setOrders]      = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [filter,      setFilter]      = useState('');
-  const [page,        setPage]        = useState(1);
-  const [total,       setTotal]       = useState(0);
-  const [expanded,    setExpanded]    = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [expanded, setExpanded] = useState(null);
   const [detailCache, setDetailCache] = useState({});
-  const [updating,    setUpdating]    = useState(null);
-  const [toast,       setToast]       = useState(null);
+  const [updating, setUpdating] = useState(null);
+  const [toast, setToast] = useState(null);
   const limit = 20;
 
   const showToast = (msg, type = 'success') => {
@@ -54,21 +57,31 @@ export default function AdminOrders() {
 
   const load = useCallback(() => {
     setLoading(true);
-    adminOrderApi.getOrders(filter || null, page, limit)
+    adminOrderApi
+      .getOrders(filter || null, page, limit)
       .then(res => {
-        setOrders(res.data.data  || []);
+        setOrders(res.data.data || []);
         setTotal(res.data.total || 0);
       })
       .catch(() => showToast('Failed to load orders.', 'error'))
       .finally(() => setLoading(false));
   }, [filter, page]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const changeFilter = (f) => { setFilter(f); setPage(1); setExpanded(null); };
+  const changeFilter = f => {
+    setFilter(f);
+    setPage(1);
+    setExpanded(null);
+  };
 
-  const toggleExpand = async (id) => {
-    if (expanded === id) { setExpanded(null); return; }
+  const toggleExpand = async id => {
+    if (expanded === id) {
+      setExpanded(null);
+      return;
+    }
     setExpanded(id);
     if (detailCache[id]) return;
     try {
@@ -82,8 +95,12 @@ export default function AdminOrders() {
     try {
       await adminOrderApi.updateStatus(orderId, newStatus);
       showToast(`Order #${orderId} → ${STATUS_FR[newStatus]}`);
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-      setDetailCache(prev => { const n = { ...prev }; delete n[orderId]; return n; });
+      setOrders(prev => prev.map(o => (o.id === orderId ? { ...o, status: newStatus } : o)));
+      setDetailCache(prev => {
+        const n = { ...prev };
+        delete n[orderId];
+        return n;
+      });
     } catch (err) {
       showToast(err.response?.data?.error || 'Failed to update status.', 'error');
     } finally {
@@ -95,15 +112,14 @@ export default function AdminOrders() {
 
   return (
     <div className="ao-page">
-
       {/* Toast notification */}
-      {toast && (
-        <div className={`ao-toast ao-toast--${toast.type}`}>{toast.msg}</div>
-      )}
+      {toast && <div className={`ao-toast ao-toast--${toast.type}`}>{toast.msg}</div>}
 
       <div className="ao-head">
         <h1 className="ao-title">Orders</h1>
-        <p className="ao-subtitle">{total} order{total !== 1 ? 's' : ''} total</p>
+        <p className="ao-subtitle">
+          {total} order{total !== 1 ? 's' : ''} total
+        </p>
       </div>
 
       {/* Status filter tabs */}
@@ -143,7 +159,7 @@ export default function AdminOrders() {
               </thead>
               <tbody>
                 {orders.map(order => {
-                  const nexts  = TRANSITIONS[order.status] || [];
+                  const nexts = TRANSITIONS[order.status] || [];
                   const detail = detailCache[order.id];
                   const isExpanded = expanded === order.id;
 
@@ -153,10 +169,14 @@ export default function AdminOrders() {
                         <td className="ao-id">#{order.id}</td>
 
                         <td className="ao-customer">
-                          {(order.userFirstName || order.userLastName)
-                            ? <><strong>{order.userFirstName} {order.userLastName}</strong><br /></>
-                            : null
-                          }
+                          {order.userFirstName || order.userLastName ? (
+                            <>
+                              <strong>
+                                {order.userFirstName} {order.userLastName}
+                              </strong>
+                              <br />
+                            </>
+                          ) : null}
                           <span className="ao-email">{order.userEmail || '—'}</span>
                         </td>
 
@@ -175,12 +195,16 @@ export default function AdminOrders() {
                             <select
                               className="ao-select"
                               value=""
-                              onChange={e => e.target.value && handleStatusChange(order.id, e.target.value)}
+                              onChange={e =>
+                                e.target.value && handleStatusChange(order.id, e.target.value)
+                              }
                               disabled={updating === order.id}
                             >
                               <option value="">Change…</option>
                               {nexts.map(s => (
-                                <option key={s} value={s}>{STATUS_FR[s]}</option>
+                                <option key={s} value={s}>
+                                  {STATUS_FR[s]}
+                                </option>
                               ))}
                             </select>
                           ) : (
@@ -205,18 +229,21 @@ export default function AdminOrders() {
                                     <div key={item.id} className="ao-detail-item">
                                       <span className="ao-di-name">{item.productName}</span>
                                       <span className="ao-di-qty">× {item.quantity}</span>
-                                      <span className="ao-di-unit">{fmt(item.unitPrice)} TND/unit</span>
+                                      <span className="ao-di-unit">
+                                        {fmt(item.unitPrice)} TND/unit
+                                      </span>
                                       <span className="ao-di-sub">{fmt(item.subtotal)} TND</span>
                                     </div>
                                   ))}
                                 </div>
                                 {detail.shippingAddress && (
                                   <div className="ao-detail-addr">
-                                    <strong>Ship to:</strong>{' '}
-                                    {detail.shippingAddress.street},{' '}
+                                    <strong>Ship to:</strong> {detail.shippingAddress.street},{' '}
                                     {detail.shippingAddress.city}
-                                    {detail.shippingAddress.postalCode ? ` ${detail.shippingAddress.postalCode}` : ''},{' '}
-                                    {detail.shippingAddress.country}
+                                    {detail.shippingAddress.postalCode
+                                      ? ` ${detail.shippingAddress.postalCode}`
+                                      : ''}
+                                    , {detail.shippingAddress.country}
                                   </div>
                                 )}
                               </div>
@@ -235,11 +262,21 @@ export default function AdminOrders() {
 
           {totalPages > 1 && (
             <div className="ao-pager">
-              <button className="ao-page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+              <button
+                className="ao-page-btn"
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+              >
                 ← Previous
               </button>
-              <span className="ao-page-info">Page {page} of {totalPages}</span>
-              <button className="ao-page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+              <span className="ao-page-info">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                className="ao-page-btn"
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+              >
                 Next →
               </button>
             </div>

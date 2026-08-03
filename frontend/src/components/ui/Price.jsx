@@ -5,7 +5,12 @@ import './Price.css';
 // Renders a single price, or a promo price + struck-through old price + % off chip.
 export default function Price({ value, oldValue, percentage, currency = 'TND', className = '' }) {
   const hasDiscount = oldValue != null && Number(oldValue) > Number(value);
-  const pct = percentage != null ? Math.round(percentage) : (hasDiscount ? Math.round(((oldValue - value) / oldValue) * 100) : null);
+  const pct =
+    percentage != null
+      ? Math.round(percentage)
+      : hasDiscount
+        ? Math.round(((oldValue - value) / oldValue) * 100)
+        : null;
 
   return (
     <div className={['ui-price-row', className].filter(Boolean).join(' ')}>

@@ -1,45 +1,79 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { categoryApi, adminCategoryApi } from '../../services/cartService';
+import { categoryApi, adminCategoryApi, adminAnalyticsApi } from '../../services/cartService';
 import ImageUpload from '../../components/ImageUpload';
 import { uploadImage } from '../../services/uploadService';
 import { IconPlus, IconEdit, IconTrash, IconSearch } from '../../components/admin/AdminIcons';
+import AnalyzeButton from '../../components/admin/AnalyzeButton';
+import AnomalyReportModal from '../../components/admin/AnomalyReportModal';
+import useAnalysis from '../../components/admin/useAnalysis';
 import './AdminCategories.css';
 
 const EMPTY_FORM = { name: '', parentId: '', image: null, seasonalMonths: [] };
 
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 function flattenTree(tree) {
   const rows = [];
   for (const parent of tree) {
-    rows.push({ id: parent.id, name: parent.name, slug: parent.slug, image: parent.image, seasonalMonths: parent.seasonalMonths || [], parentId: null, parentName: null });
+    rows.push({
+      id: parent.id,
+      name: parent.name,
+      slug: parent.slug,
+      image: parent.image,
+      seasonalMonths: parent.seasonalMonths || [],
+      parentId: null,
+      parentName: null,
+    });
     for (const child of parent.children) {
-      rows.push({ id: child.id, name: child.name, slug: child.slug, image: child.image, seasonalMonths: child.seasonalMonths || [], parentId: parent.id, parentName: parent.name });
+      rows.push({
+        id: child.id,
+        name: child.name,
+        slug: child.slug,
+        image: child.image,
+        seasonalMonths: child.seasonalMonths || [],
+        parentId: parent.id,
+        parentName: parent.name,
+      });
     }
   }
   return rows;
 }
 
 export default function AdminCategories() {
-  const [tree, setTree]             = useState([]);
-  const [counts, setCounts]         = useState({});
-  const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState('');
-  const [modal, setModal]           = useState(null);
-  const [form, setForm]             = useState(EMPTY_FORM);
-  const [imageFile, setImageFile]   = useState(null);
+  const [tree, setTree] = useState([]);
+  const [counts, setCounts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [saving, setSaving]         = useState(false);
-  const [errors, setErrors]         = useState({});
-  const [confirmId, setConfirmId]   = useState(null);
-  const [toast, setToast]           = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [confirmId, setConfirmId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const { analysis, runAnalysis, closeAnalysis } = useAnalysis();
 
   const categories = flattenTree(tree);
   const parents = tree.map(p => ({ id: p.id, name: p.name }));
 
-  const filtered = categories.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.slug.toLowerCase().includes(search.toLowerCase())
+  const filtered = categories.filter(
+    c =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.slug.toLowerCase().includes(search.toLowerCase()),
   );
 
   const showToast = (msg, type = 'success') => {
@@ -49,17 +83,19 @@ export default function AdminCategories() {
 
   const loadCategories = useCallback(() => {
     setLoading(true);
-    return categoryApi.list()
+    return categoryApi
+      .list()
       .then(res => {
         const data = res.data || [];
         setTree(data);
         const rows = flattenTree(data);
         return Promise.all(
           rows.map(c =>
-            categoryApi.products(c.id, { limit: 1 })
+            categoryApi
+              .products(c.id, { limit: 1 })
               .then(r => [c.id, r.data.category?.productCount ?? 0])
-              .catch(() => [c.id, 0])
-          )
+              .catch(() => [c.id, 0]),
+          ),
         );
       })
       .then(entries => setCounts(Object.fromEntries(entries)))
@@ -67,7 +103,9 @@ export default function AdminCategories() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { loadCategories(); }, [loadCategories]);
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const openAdd = () => {
     setForm(EMPTY_FORM);
@@ -77,15 +115,20 @@ export default function AdminCategories() {
     setModal({ mode: 'add' });
   };
 
-  const openEdit = (cat) => {
-    setForm({ name: cat.name, parentId: cat.parentId ? String(cat.parentId) : '', image: cat.image || null, seasonalMonths: cat.seasonalMonths || [] });
+  const openEdit = cat => {
+    setForm({
+      name: cat.name,
+      parentId: cat.parentId ? String(cat.parentId) : '',
+      image: cat.image || null,
+      seasonalMonths: cat.seasonalMonths || [],
+    });
     setImageFile(null);
     setImagePreview(cat.image || null);
     setErrors({});
     setModal({ mode: 'edit', id: cat.id });
   };
 
-  const toggleSeasonalMonth = (month) => {
+  const toggleSeasonalMonth = month => {
     setForm(f => ({
       ...f,
       seasonalMonths: f.seasonalMonths.includes(month)
@@ -94,7 +137,7 @@ export default function AdminCategories() {
     }));
   };
 
-  const handleImageFile = (file) => {
+  const handleImageFile = file => {
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -124,9 +167,9 @@ export default function AdminCategories() {
       }
 
       const payload = {
-        name:           form.name.trim(),
-        parentId:       form.parentId ? parseInt(form.parentId) : null,
-        image:          imageUrl,
+        name: form.name.trim(),
+        parentId: form.parentId ? parseInt(form.parentId) : null,
+        image: imageUrl,
         seasonalMonths: form.seasonalMonths.length ? form.seasonalMonths : null,
       };
 
@@ -146,7 +189,7 @@ export default function AdminCategories() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     try {
       await adminCategoryApi.remove(id);
       showToast('Category deleted.');
@@ -185,7 +228,9 @@ export default function AdminCategories() {
           />
         </div>
         {search && (
-          <span className="ac-results">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+          <span className="ac-results">
+            {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+          </span>
         )}
       </div>
 
@@ -205,18 +250,31 @@ export default function AdminCategories() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>Loading categories…</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>Loading categories…</p>
+                  </div>
+                </td>
+              </tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>No categories found.</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>No categories found.</p>
+                  </div>
+                </td>
+              </tr>
             ) : (
               filtered.map((cat, i) => (
                 <tr key={cat.id}>
                   <td className="adm-td-muted">{i + 1}</td>
                   <td>
-                    {cat.image
-                      ? <img src={cat.image} alt={cat.name} className="ac-thumb" />
-                      : <div className="ac-thumb-placeholder">—</div>
-                    }
+                    {cat.image ? (
+                      <img src={cat.image} alt={cat.name} className="ac-thumb" />
+                    ) : (
+                      <div className="ac-thumb-placeholder">—</div>
+                    )}
                   </td>
                   <td>
                     <div className="ac-name">
@@ -224,16 +282,24 @@ export default function AdminCategories() {
                       <span className="ac-label">{cat.name}</span>
                     </div>
                   </td>
-                  <td><code className="adm-slug">{cat.slug}</code></td>
                   <td>
-                    {cat.parentName
-                      ? <span className="adm-parent-badge">{cat.parentName}</span>
-                      : <span className="adm-muted">—</span>}
+                    <code className="adm-slug">{cat.slug}</code>
                   </td>
                   <td>
-                    {cat.seasonalMonths?.length
-                      ? <span className="adm-parent-badge">{cat.seasonalMonths.map(m => MONTH_LABELS[m - 1]).join(', ')}</span>
-                      : <span className="adm-muted">—</span>}
+                    {cat.parentName ? (
+                      <span className="adm-parent-badge">{cat.parentName}</span>
+                    ) : (
+                      <span className="adm-muted">—</span>
+                    )}
+                  </td>
+                  <td>
+                    {cat.seasonalMonths?.length ? (
+                      <span className="adm-parent-badge">
+                        {cat.seasonalMonths.map(m => MONTH_LABELS[m - 1]).join(', ')}
+                      </span>
+                    ) : (
+                      <span className="adm-muted">—</span>
+                    )}
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <span className="ac-count">{counts[cat.id] ?? 0}</span>
@@ -243,9 +309,17 @@ export default function AdminCategories() {
                       <button className="adm-btn-icon adm-btn-edit" onClick={() => openEdit(cat)}>
                         <IconEdit /> Edit
                       </button>
-                      <button className="adm-btn-icon adm-btn-delete" onClick={() => setConfirmId(cat.id)}>
+                      <button
+                        className="adm-btn-icon adm-btn-delete"
+                        onClick={() => setConfirmId(cat.id)}
+                      >
                         <IconTrash /> Delete
                       </button>
+                      <AnalyzeButton
+                        onClick={() =>
+                          runAnalysis(cat.name, () => adminAnalyticsApi.analyzeCategory(cat.id))
+                        }
+                      />
                     </div>
                   </td>
                 </tr>
@@ -261,7 +335,9 @@ export default function AdminCategories() {
           <div className="adm-modal" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>{modal.mode === 'add' ? 'Add New Category' : 'Edit Category'}</h2>
-              <button className="adm-modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setModal(null)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <div className="adm-field">
@@ -277,11 +353,18 @@ export default function AdminCategories() {
               </div>
               <div className="adm-field">
                 <label>Parent Category</label>
-                <select value={form.parentId} onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}>
+                <select
+                  value={form.parentId}
+                  onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}
+                >
                   <option value="">— None (top-level) —</option>
-                  {parents.filter(p => p.id !== modal.id).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
+                  {parents
+                    .filter(p => p.id !== modal.id)
+                    .map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="adm-field">
@@ -294,7 +377,9 @@ export default function AdminCategories() {
               </div>
               <div className="adm-field">
                 <label>Seasonal Boost Months</label>
-                <p className="ac-field-hint">Products in this category get a recommendation boost during the selected months.</p>
+                <p className="ac-field-hint">
+                  Products in this category get a recommendation boost during the selected months.
+                </p>
                 <div className="ac-month-grid">
                   {MONTH_LABELS.map((label, i) => {
                     const month = i + 1;
@@ -314,9 +399,15 @@ export default function AdminCategories() {
               </div>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setModal(null)}>Cancel</button>
-              <button className="adm-btn-save" onClick={handleSave} disabled={!form.name.trim() || saving}>
-                {saving ? 'Saving…' : (modal.mode === 'add' ? 'Add Category' : 'Save Changes')}
+              <button className="adm-btn-cancel" onClick={() => setModal(null)}>
+                Cancel
+              </button>
+              <button
+                className="adm-btn-save"
+                onClick={handleSave}
+                disabled={!form.name.trim() || saving}
+              >
+                {saving ? 'Saving…' : modal.mode === 'add' ? 'Add Category' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -329,22 +420,32 @@ export default function AdminCategories() {
           <div className="adm-modal adm-modal--sm" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Delete Category?</h2>
-              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <p className="ac-confirm-msg">
-                This will also remove all subcategories linked to this category. This action cannot be undone.
+                This will also remove all subcategories linked to this category. This action cannot
+                be undone.
               </p>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>Cancel</button>
-              <button className="adm-btn-save ac-btn-danger" onClick={() => handleDelete(confirmId)}>
+              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>
+                Cancel
+              </button>
+              <button
+                className="adm-btn-save ac-btn-danger"
+                onClick={() => handleDelete(confirmId)}
+              >
                 Delete
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {analysis && <AnomalyReportModal {...analysis} onClose={closeAnalysis} />}
     </div>
   );
 }

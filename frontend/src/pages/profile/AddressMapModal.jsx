@@ -9,38 +9,47 @@ import './AddressMapModal.css';
 // Fix Leaflet's broken default icons in webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
 const DEFAULT_CENTER = [36.8065, 10.1815]; // Tunis
-const DEFAULT_ZOOM   = 13;
+const DEFAULT_ZOOM = 13;
 
 const LABELS = ['Home', 'Work', 'Other'];
-const EMPTY_FORM = { label: 'Home', street: '', city: '', postalCode: '', country: 'Tunisia', isDefault: false };
+const EMPTY_FORM = {
+  label: 'Home',
+  street: '',
+  city: '',
+  postalCode: '',
+  country: 'Tunisia',
+  isDefault: false,
+};
 
 // ── Reverse geocode via Nominatim (free, no key) ──────────────────────────────
 async function reverseGeocode(lat, lng) {
   try {
-    const res  = await fetch(
+    const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
-      { headers: { 'Accept-Language': 'en' } }
+      { headers: { 'Accept-Language': 'en' } },
     );
     const data = await res.json();
-    const a    = data.address || {};
+    const a = data.address || {};
     return {
-      street:     [a.house_number, a.road].filter(Boolean).join(' ') || a.pedestrian || a.footway || '',
-      city:       a.city || a.town || a.village || a.suburb || '',
+      street: [a.house_number, a.road].filter(Boolean).join(' ') || a.pedestrian || a.footway || '',
+      city: a.city || a.town || a.village || a.suburb || '',
       postalCode: a.postcode || '',
-      country:    a.country  || '',
+      country: a.country || '',
     };
-  } catch { return {}; }
+  } catch {
+    return {};
+  }
 }
 
 // ── Inner map component — handles click + exposes map ref ─────────────────────
 function ClickableMap({ onMapClick }) {
-  useMapEvents({ click: (e) => onMapClick(e.latlng.lat, e.latlng.lng) });
+  useMapEvents({ click: e => onMapClick(e.latlng.lat, e.latlng.lng) });
   return null;
 }
 
@@ -55,18 +64,26 @@ function FlyTo({ position }) {
 // ── Main modal ────────────────────────────────────────────────────────────────
 export default function AddressMapModal({ initial, onSave, onClose }) {
   const { t } = useTranslation('profile');
-  const [position, setPosition]   = useState(
-    initial?.lat && initial?.lng ? [initial.lat, initial.lng] : null
+  const [position, setPosition] = useState(
+    initial?.lat && initial?.lng ? [initial.lat, initial.lng] : null,
   );
-  const [flyTo, setFlyTo]         = useState(null);
-  const [form, setForm]           = useState(initial
-    ? { label: initial.label, street: initial.street, city: initial.city, postalCode: initial.postalCode, country: initial.country, isDefault: initial.isDefault }
-    : EMPTY_FORM
+  const [flyTo, setFlyTo] = useState(null);
+  const [form, setForm] = useState(
+    initial
+      ? {
+          label: initial.label,
+          street: initial.street,
+          city: initial.city,
+          postalCode: initial.postalCode,
+          country: initial.country,
+          isDefault: initial.isDefault,
+        }
+      : EMPTY_FORM,
   );
   const [geocoding, setGeocoding] = useState(false);
-  const [locating,  setLocating]  = useState(false);
-  const [geoError,  setGeoError]  = useState('');
-  const [errors,    setErrors]    = useState({});
+  const [locating, setLocating] = useState(false);
+  const [geoError, setGeoError] = useState('');
+  const [errors, setErrors] = useState({});
 
   const handleMapClick = useCallback(async (lat, lng) => {
     setPosition([lat, lng]);
@@ -75,15 +92,18 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
     setGeocoding(false);
     setForm(prev => ({
       ...prev,
-      street:     addr.street     || prev.street,
-      city:       addr.city       || prev.city,
+      street: addr.street || prev.street,
+      city: addr.city || prev.city,
       postalCode: addr.postalCode || prev.postalCode,
-      country:    addr.country    || prev.country,
+      country: addr.country || prev.country,
     }));
   }, []);
 
   const handleDetect = () => {
-    if (!navigator.geolocation) { setGeoError(t('addressModal.errors.geolocationUnsupported')); return; }
+    if (!navigator.geolocation) {
+      setGeoError(t('addressModal.errors.geolocationUnsupported'));
+      return;
+    }
     setLocating(true);
     setGeoError('');
     navigator.geolocation.getCurrentPosition(
@@ -97,34 +117,38 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
         setGeocoding(false);
         setForm(prev => ({
           ...prev,
-          street:     addr.street     || prev.street,
-          city:       addr.city       || prev.city,
+          street: addr.street || prev.street,
+          city: addr.city || prev.city,
           postalCode: addr.postalCode || prev.postalCode,
-          country:    addr.country    || prev.country,
+          country: addr.country || prev.country,
         }));
       },
-      (err) => {
+      err => {
         setLocating(false);
         setGeoError(
-          err.code === 1 ? t('addressModal.errors.permissionDenied')
-          : t('addressModal.errors.detectFailed')
+          err.code === 1
+            ? t('addressModal.errors.permissionDenied')
+            : t('addressModal.errors.detectFailed'),
         );
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
   const validate = () => {
     const e = {};
-    if (!form.street.trim()) e.street  = t('addressModal.errors.streetRequired');
-    if (!form.city.trim())   e.city    = t('addressModal.errors.cityRequired');
+    if (!form.street.trim()) e.street = t('addressModal.errors.streetRequired');
+    if (!form.city.trim()) e.city = t('addressModal.errors.cityRequired');
     if (!form.country.trim()) e.country = t('addressModal.errors.countryRequired');
     return e;
   };
 
   const handleSave = () => {
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
     onSave({
       ...form,
       lat: position?.[0] ?? null,
@@ -135,11 +159,12 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
   return (
     <div className="amm-overlay" onClick={onClose}>
       <div className="amm-modal" onClick={e => e.stopPropagation()}>
-
         {/* Header */}
         <div className="amm-head">
           <h2>{initial ? t('addressModal.editTitle') : t('addressModal.addTitle')}</h2>
-          <button className="amm-close" onClick={onClose}>✕</button>
+          <button className="amm-close" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
         <div className="amm-body">
@@ -147,19 +172,29 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
           <div className="amm-map-section">
             <div className="amm-map-toolbar">
               <p className="amm-map-hint">
-                {position ? <><MapPin size={14} className="amm-inline-icon" /> {t('addressModal.mapHintSelected')}</> : t('addressModal.mapHintEmpty')}
+                {position ? (
+                  <>
+                    <MapPin size={14} className="amm-inline-icon" />{' '}
+                    {t('addressModal.mapHintSelected')}
+                  </>
+                ) : (
+                  t('addressModal.mapHintEmpty')
+                )}
               </p>
-              <button
-                className="amm-btn-detect"
-                onClick={handleDetect}
-                disabled={locating}
-              >
+              <button className="amm-btn-detect" onClick={handleDetect} disabled={locating}>
                 {locating ? (
                   <span className="amm-spin">⟳</span>
                 ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    width="15"
+                    height="15"
+                  >
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
                   </svg>
                 )}
                 {locating ? t('addressModal.detecting') : t('addressModal.detectButton')}
@@ -185,7 +220,7 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
                     position={position}
                     draggable
                     eventHandlers={{
-                      dragend: (e) => {
+                      dragend: e => {
                         const { lat, lng } = e.target.getLatLng();
                         handleMapClick(lat, lng);
                       },
@@ -214,7 +249,14 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
                     className={`amm-label-btn ${form.label === l ? 'amm-label-btn--active' : ''}`}
                     onClick={() => setForm(f => ({ ...f, label: l }))}
                   >
-                    {l === 'Home' ? <HomeIcon size={14} /> : l === 'Work' ? <Briefcase size={14} /> : <MapPin size={14} />} {t(`addressModal.labels.${l.toLowerCase()}`)}
+                    {l === 'Home' ? (
+                      <HomeIcon size={14} />
+                    ) : l === 'Work' ? (
+                      <Briefcase size={14} />
+                    ) : (
+                      <MapPin size={14} />
+                    )}{' '}
+                    {t(`addressModal.labels.${l.toLowerCase()}`)}
                   </button>
                 ))}
               </div>
@@ -277,7 +319,9 @@ export default function AddressMapModal({ initial, onSave, onClose }) {
 
         {/* Footer */}
         <div className="amm-foot">
-          <button className="amm-btn-cancel" onClick={onClose}>{t('addressModal.cancel')}</button>
+          <button className="amm-btn-cancel" onClick={onClose}>
+            {t('addressModal.cancel')}
+          </button>
           <button className="amm-btn-save" onClick={handleSave}>
             {initial ? t('addressModal.saveChanges') : t('addressModal.addAddress')}
           </button>

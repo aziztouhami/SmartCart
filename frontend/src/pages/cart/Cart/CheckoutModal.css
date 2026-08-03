@@ -1,0 +1,132 @@
+/* Address cards */
+.cp-addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cp-addr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.cp-addr-card:hover,
+.cp-addr-card--on {
+  border-color: var(--color-primary);
+  background: var(--color-card-bg);
+}
+
+.cp-addr-card input[type='radio'] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+}
+
+.cp-addr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cp-addr-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.cp-addr-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-sidebar);
+}
+
+.cp-addr-default {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: white;
+  border: 1px solid var(--color-primary-light);
+  border-radius: 100px;
+  padding: 1px 8px;
+}
+
+.cp-addr-card--new .cp-addr-body {
+  justify-content: center;
+}
+
+/* Address form */
+.cp-field {
+  margin-bottom: 14px;
+}
+
+.cp-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-sidebar);
+  margin-bottom: 6px;
+}
+
+.cp-field input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.cp-field input:focus {
+  border-color: var(--color-primary);
+}
+
+.cp-field-error {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.78rem;
+  color: var(--color-error);
+}
+
+.cp-btn-map {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1.5px dashed var(--color-primary);
+  border-radius: 8px;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cp-btn-map:hover {
+  background: rgba(59, 130, 246, 0.07);
+}
+
+.cp-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .cp-field-row {
+    grid-template-columns: 1fr;
+  }
+}

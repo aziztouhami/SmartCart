@@ -14,7 +14,11 @@ describe('Badge', () => {
   });
 
   it('applies the requested tone, variant, and size', () => {
-    render(<Badge tone="danger" variant="solid" size="lg">Sale</Badge>);
+    render(
+      <Badge tone="danger" variant="solid" size="lg">
+        Sale
+      </Badge>,
+    );
     expect(screen.getByText('Sale')).toHaveClass('ui-badge--danger-solid', 'ui-badge--lg');
   });
 

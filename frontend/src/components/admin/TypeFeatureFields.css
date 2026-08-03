@@ -42,7 +42,7 @@
   align-items: center;
   gap: 6px;
   border: none;
-  background: linear-gradient(135deg, var(--color-primary), #7c3aed);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-violet));
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
@@ -52,7 +52,10 @@
   cursor: pointer;
 }
 
-.tff-suggest-btn svg { width: 14px; height: 14px; }
+.tff-suggest-btn svg {
+  width: 14px;
+  height: 14px;
+}
 
 .tff-suggest-btn:disabled {
   opacity: 0.5;
@@ -96,10 +99,16 @@
   box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.1);
 }
 
-.tff-feature-name  { flex: 1 1 160px; }
-.tff-feature-type  { flex: 0 0 128px; }
+.tff-feature-name {
+  flex: 1 1 160px;
+}
+.tff-feature-type {
+  flex: 0 0 128px;
+}
 .tff-feature-unit,
-.tff-feature-options { flex: 1 1 140px; }
+.tff-feature-options {
+  flex: 1 1 140px;
+}
 
 .tff-feature-required {
   display: flex;
@@ -125,7 +134,7 @@
 
 .tff-feature-remove:hover {
   color: var(--color-error);
-  background: #fee2e2;
+  background: var(--color-error-bg);
 }
 
 .tff-add-feature-btn,

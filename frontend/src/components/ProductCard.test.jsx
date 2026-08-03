@@ -2,19 +2,26 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { guestEventApi, favoriteApi } from '../services/cartService';
+import { renderWithProviders } from '../test-utils/renderWithProviders';
+import ProductCard from './ProductCard';
+
 jest.mock('../services/authService', () => ({
   isAuthenticated: jest.fn(() => false),
 }));
 
 jest.mock('../services/cartService', () => ({
-  cartApi: { getCart: jest.fn(), syncCart: jest.fn(), addItem: jest.fn(), updateItem: jest.fn(), removeItem: jest.fn(), clearCart: jest.fn() },
+  cartApi: {
+    getCart: jest.fn(),
+    syncCart: jest.fn(),
+    addItem: jest.fn(),
+    updateItem: jest.fn(),
+    removeItem: jest.fn(),
+    clearCart: jest.fn(),
+  },
   guestEventApi: { track: jest.fn() },
   favoriteApi: { list: jest.fn(), add: jest.fn(), remove: jest.fn() },
 }));
-
-import { guestEventApi, favoriteApi } from '../services/cartService';
-import { renderWithProviders } from '../test-utils/renderWithProviders';
-import ProductCard from './ProductCard';
 
 beforeEach(() => {
   // CRA's Jest config sets resetMocks: true, which wipes any implementation

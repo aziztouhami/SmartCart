@@ -9,7 +9,7 @@ const api = axios.create({
 });
 
 // Only attach the JWT token when it is present AND not expired
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(config => {
   if (isAuthenticated()) {
     config.headers.Authorization = `Bearer ${getToken()}`;
   }
@@ -22,13 +22,13 @@ api.interceptors.request.use((config) => {
 
 // On 401, clear stale auth state so public routes stop getting blocked
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       logout();
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

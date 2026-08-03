@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { brandApi, adminBrandApi } from '../../services/cartService';
+import { brandApi, adminBrandApi, adminAnalyticsApi } from '../../services/cartService';
 import { formatPrice } from '../../utils/format';
 import ImageUpload from '../../components/ImageUpload';
 import { IconPlus, IconEdit, IconTrash } from '../../components/admin/AdminIcons';
+import AnalyzeButton from '../../components/admin/AnalyzeButton';
+import AnomalyReportModal from '../../components/admin/AnomalyReportModal';
+import useAnalysis from '../../components/admin/useAnalysis';
 import './AdminBrands.css';
 
 const EMPTY = { name: '', description: '', image: null };
@@ -13,7 +16,11 @@ function fmtRevenue(amount) {
 
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('fr-TN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('fr-TN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 function StarRating({ value }) {
@@ -22,16 +29,17 @@ function StarRating({ value }) {
 }
 
 export default function AdminBrands() {
-  const [brands,       setBrands]       = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [modal,        setModal]        = useState(null);
-  const [form,         setForm]         = useState(EMPTY);
-  const [imageFile,    setImageFile]    = useState(null);
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState(EMPTY);
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [saving,       setSaving]       = useState(false);
-  const [errors,       setErrors]       = useState({});
-  const [confirmId,    setConfirmId]    = useState(null);
-  const [toast,        setToast]        = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [confirmId, setConfirmId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const { analysis, runAnalysis, closeAnalysis } = useAnalysis();
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -40,13 +48,16 @@ export default function AdminBrands() {
 
   const loadBrands = () => {
     setLoading(true);
-    brandApi.list(1, 100)
+    brandApi
+      .list(1, 100)
       .then(res => setBrands(res.data.data || []))
       .catch(() => showToast('Failed to load brands.', 'error'))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadBrands(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    loadBrands();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openAdd = () => {
     setForm(EMPTY);
@@ -56,7 +67,7 @@ export default function AdminBrands() {
     setModal({ mode: 'add' });
   };
 
-  const openEdit = (brand) => {
+  const openEdit = brand => {
     setForm({ name: brand.name, description: brand.description || '', image: brand.image || null });
     setErrors({});
     setImageFile(null);
@@ -64,7 +75,7 @@ export default function AdminBrands() {
     setModal({ mode: 'edit', brand });
   };
 
-  const handleImageFile = (file) => {
+  const handleImageFile = file => {
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -83,7 +94,10 @@ export default function AdminBrands() {
 
   const handleSave = async () => {
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
     setSaving(true);
     try {
       // form.image tracks the current intent: the existing URL, or null if
@@ -96,18 +110,21 @@ export default function AdminBrands() {
       }
 
       const payload = {
-        name:        form.name.trim(),
-        image:       imageUrl,
+        name: form.name.trim(),
+        image: imageUrl,
         description: form.description.trim() || null,
       };
 
       if (modal.mode === 'add') {
         const res = await adminBrandApi.create(payload);
-        setBrands(prev => [...prev, { ...res.data, productCount: 0, soldCount: 0, revenue: 0, avgRating: null }]);
+        setBrands(prev => [
+          ...prev,
+          { ...res.data, productCount: 0, soldCount: 0, revenue: 0, avgRating: null },
+        ]);
         showToast('Brand added successfully.');
       } else {
         const res = await adminBrandApi.update(modal.brand.id, payload);
-        setBrands(prev => prev.map(b => b.id === modal.brand.id ? { ...b, ...res.data } : b));
+        setBrands(prev => prev.map(b => (b.id === modal.brand.id ? { ...b, ...res.data } : b)));
         showToast('Brand updated successfully.');
       }
       setModal(null);
@@ -118,7 +135,7 @@ export default function AdminBrands() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     try {
       await adminBrandApi.remove(id);
       setBrands(prev => prev.filter(b => b.id !== id));
@@ -131,13 +148,14 @@ export default function AdminBrands() {
 
   return (
     <div className="adm-page">
-
       {toast && <Toast msg={toast.msg} type={toast.type} />}
 
       <div className="adm-page-header">
         <div>
           <h1 className="adm-page-title">Brands</h1>
-          <p className="adm-page-sub">{brands.length} brand{brands.length !== 1 ? 's' : ''} total</p>
+          <p className="adm-page-sub">
+            {brands.length} brand{brands.length !== 1 ? 's' : ''} total
+          </p>
         </div>
         <button className="adm-btn-primary" onClick={openAdd}>
           <IconPlus /> Add Brand
@@ -160,9 +178,21 @@ export default function AdminBrands() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>Loading brands…</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>Loading brands…</p>
+                  </div>
+                </td>
+              </tr>
             ) : brands.length === 0 ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>No brands yet. Click "Add Brand" to create one.</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>No brands yet. Click "Add Brand" to create one.</p>
+                  </div>
+                </td>
+              </tr>
             ) : (
               brands.map(brand => (
                 <tr key={brand.id} className="br-row">
@@ -172,32 +202,58 @@ export default function AdminBrands() {
                         src={brand.image}
                         alt={brand.name}
                         className="br-logo-img"
-                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        onError={e => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
                       />
                     ) : null}
-                    <div className="br-logo-placeholder" style={{ display: brand.image ? 'none' : 'flex' }}>
+                    <div
+                      className="br-logo-placeholder"
+                      style={{ display: brand.image ? 'none' : 'flex' }}
+                    >
                       {brand.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="br-brand-name">{brand.name}</span>
                   </td>
                   <td className="br-desc">
-                    {brand.description
-                      ? brand.description.length > 60 ? brand.description.slice(0, 60) + '…' : brand.description
-                      : <span className="br-muted">—</span>}
+                    {brand.description ? (
+                      brand.description.length > 60 ? (
+                        brand.description.slice(0, 60) + '…'
+                      ) : (
+                        brand.description
+                      )
+                    ) : (
+                      <span className="br-muted">—</span>
+                    )}
                   </td>
                   <td className="br-date">{fmtDate(brand.joinedAt)}</td>
-                  <td className="br-center"><span className="br-stat-badge">{brand.productCount}</span></td>
-                  <td className="br-center"><span className="br-stat-badge">{brand.soldCount}</span></td>
+                  <td className="br-center">
+                    <span className="br-stat-badge">{brand.productCount}</span>
+                  </td>
+                  <td className="br-center">
+                    <span className="br-stat-badge">{brand.soldCount}</span>
+                  </td>
                   <td className="br-revenue">{fmtRevenue(brand.revenue)}</td>
-                  <td className="br-center"><StarRating value={brand.avgRating} /></td>
+                  <td className="br-center">
+                    <StarRating value={brand.avgRating} />
+                  </td>
                   <td className="br-center">
                     <div className="adm-actions">
                       <button className="adm-btn-icon adm-btn-edit" onClick={() => openEdit(brand)}>
                         <IconEdit /> Edit
                       </button>
-                      <button className="adm-btn-icon adm-btn-delete" onClick={() => setConfirmId(brand.id)}>
+                      <button
+                        className="adm-btn-icon adm-btn-delete"
+                        onClick={() => setConfirmId(brand.id)}
+                      >
                         <IconTrash /> Delete
                       </button>
+                      <AnalyzeButton
+                        onClick={() =>
+                          runAnalysis(brand.name, () => adminAnalyticsApi.analyzeBrand(brand.id))
+                        }
+                      />
                     </div>
                   </td>
                 </tr>
@@ -213,7 +269,9 @@ export default function AdminBrands() {
           <div className="adm-modal" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>{modal.mode === 'add' ? 'Add New Brand' : 'Edit Brand'}</h2>
-              <button className="adm-modal-close" onClick={() => setModal(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setModal(null)}>
+                ✕
+              </button>
             </div>
 
             <div className="adm-modal-body">
@@ -250,7 +308,9 @@ export default function AdminBrands() {
             </div>
 
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setModal(null)} disabled={saving}>Cancel</button>
+              <button className="adm-btn-cancel" onClick={() => setModal(null)} disabled={saving}>
+                Cancel
+              </button>
               <button className="adm-btn-save" onClick={handleSave} disabled={saving}>
                 {saving ? 'Saving…' : modal.mode === 'add' ? 'Add Brand' : 'Save Changes'}
               </button>
@@ -265,20 +325,32 @@ export default function AdminBrands() {
           <div className="adm-modal adm-modal--sm" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Delete Brand?</h2>
-              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <p style={{ fontSize: '0.875rem', color: '#475569', margin: 0, lineHeight: 1.6 }}>
-                Delete this brand? Products assigned to it will have their brand cleared. This action cannot be undone.
+                Delete this brand? Products assigned to it will have their brand cleared. This
+                action cannot be undone.
               </p>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>Cancel</button>
-              <button className="adm-btn-save ac-btn-danger" onClick={() => handleDelete(confirmId)}>Delete</button>
+              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>
+                Cancel
+              </button>
+              <button
+                className="adm-btn-save ac-btn-danger"
+                onClick={() => handleDelete(confirmId)}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {analysis && <AnomalyReportModal {...analysis} onClose={closeAnalysis} />}
     </div>
   );
 }

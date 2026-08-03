@@ -13,7 +13,9 @@ const STATUS_IDX = { pending: 0, confirmed: 1, shipped: 2, delivered: 3 };
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('fr-TN', {
-    day: '2-digit', month: 'short', year: 'numeric',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
 }
 
@@ -30,11 +32,20 @@ function Timeline({ status }) {
     <div className="ord-timeline">
       {STATUS_STEPS.map((key, i) => (
         <React.Fragment key={key}>
-          <div className={`ord-step ${i <= cur ? 'ord-step--on' : ''} ${i === cur ? 'ord-step--cur' : ''}`}>
+          <div
+            className={`ord-step ${i <= cur ? 'ord-step--on' : ''} ${i === cur ? 'ord-step--cur' : ''}`}
+          >
             <div className="ord-dot">
               {i < cur && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" width="10" height="10">
-                  <polyline points="20 6 9 17 4 12"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  width="10"
+                  height="10"
+                >
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               )}
               {i === cur && <div className="ord-dot-pulse" />}
@@ -53,12 +64,12 @@ function Timeline({ status }) {
 /* ── Review modal ──────────────────────────────────────── */
 function ReviewModal({ item, existing, onClose, onSaved }) {
   const { t } = useTranslation('orders');
-  const [rating,  setRating]  = useState(existing?.rating  ?? 80);
+  const [rating, setRating] = useState(existing?.rating ?? 80);
   const [comment, setComment] = useState(existing?.comment ?? '');
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setSaving(true);
     setError('');
@@ -73,23 +84,24 @@ function ReviewModal({ item, existing, onClose, onSaved }) {
   };
 
   const ratingColor =
-    rating >= 80 ? '#16a34a' :
-    rating >= 60 ? '#d97706' :
-    rating >= 40 ? '#ea580c' : '#dc2626';
+    rating >= 80 ? '#16a34a' : rating >= 60 ? '#d97706' : rating >= 40 ? '#ea580c' : '#dc2626';
 
   return (
     <div className="ord-modal-overlay" onClick={onClose}>
       <div className="ord-modal" onClick={e => e.stopPropagation()}>
         <div className="ord-modal-head">
           <h3 className="ord-modal-title">{t('review.title')}</h3>
-          <button className="ord-modal-close" onClick={onClose}>×</button>
+          <button className="ord-modal-close" onClick={onClose}>
+            ×
+          </button>
         </div>
         <p className="ord-modal-product">{item.productName}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="ord-rating-wrap">
             <div className="ord-rating-display" style={{ color: ratingColor }}>
-              {rating}<span className="ord-rating-pct">%</span>
+              {rating}
+              <span className="ord-rating-pct">%</span>
             </div>
             <input
               type="range"
@@ -123,7 +135,9 @@ function ReviewModal({ item, existing, onClose, onSaved }) {
           {error && <div className="ord-modal-error">{error}</div>}
 
           <div className="ord-modal-foot">
-            <button type="button" className="ord-modal-cancel" onClick={onClose}>{t('review.cancel')}</button>
+            <button type="button" className="ord-modal-cancel" onClick={onClose}>
+              {t('review.cancel')}
+            </button>
             <button type="submit" className="ord-modal-submit" disabled={saving}>
               {saving ? t('review.submitting') : t('review.submit')}
             </button>
@@ -137,20 +151,21 @@ function ReviewModal({ item, existing, onClose, onSaved }) {
 /* ── Order detail panel ────────────────────────────────── */
 function OrderDetailPanel({ orderId, orderStatus, myReviewedIds, onReview }) {
   const { t } = useTranslation('orders');
-  const [detail,  setDetail]  = useState(null);
+  const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    orderApi.getOrder(orderId)
+    orderApi
+      .getOrder(orderId)
       .then(res => setDetail(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [orderId]);
 
   if (loading) return <div className="ord-detail-load">{t('detail.loading')}</div>;
-  if (!detail)  return null;
+  if (!detail) return null;
 
-  const addr      = detail.shippingAddress;
+  const addr = detail.shippingAddress;
   const delivered = orderStatus === 'delivered';
 
   return (
@@ -161,25 +176,21 @@ function OrderDetailPanel({ orderId, orderStatus, myReviewedIds, onReview }) {
             <span className="ord-detail-name">{item.productName}</span>
             <span className="ord-detail-qty">× {item.quantity}</span>
             <span className="ord-detail-sub">{fmt(item.subtotal)} TND</span>
-            {delivered && (
-              myReviewedIds.has(item.productId) ? (
+            {delivered &&
+              (myReviewedIds.has(item.productId) ? (
                 <span className="ord-reviewed-badge">✓ {t('detail.reviewed')}</span>
               ) : (
-                <button
-                  className="ord-review-btn"
-                  onClick={() => onReview(item)}
-                >
+                <button className="ord-review-btn" onClick={() => onReview(item)}>
                   {t('detail.rate')}
                 </button>
-              )
-            )}
+              ))}
           </div>
         ))}
       </div>
       {addr && (
         <div className="ord-detail-addr">
-          <strong>{t('detail.deliveredTo')}:</strong>{' '}
-          {addr.street}, {addr.city}{addr.postalCode ? ` ${addr.postalCode}` : ''}, {addr.country}
+          <strong>{t('detail.deliveredTo')}:</strong> {addr.street}, {addr.city}
+          {addr.postalCode ? ` ${addr.postalCode}` : ''}, {addr.country}
         </div>
       )}
     </div>
@@ -194,15 +205,27 @@ function CancelOrderModal({ order, onClose, onConfirm, cancelling, error }) {
       <div className="ord-modal" onClick={e => e.stopPropagation()}>
         <div className="ord-modal-head">
           <h3 className="ord-modal-title">{t('cancelModal.title', { id: order.id })}</h3>
-          <button className="ord-modal-close" onClick={onClose}>×</button>
+          <button className="ord-modal-close" onClick={onClose}>
+            ×
+          </button>
         </div>
         <p className="ord-modal-product">{t('cancelModal.warning')}</p>
         {error && <div className="ord-modal-error">{error}</div>}
         <div className="ord-modal-foot">
-          <button type="button" className="ord-modal-cancel" onClick={onClose} disabled={cancelling}>
+          <button
+            type="button"
+            className="ord-modal-cancel"
+            onClick={onClose}
+            disabled={cancelling}
+          >
             {t('cancelModal.keepOrder')}
           </button>
-          <button type="button" className="ord-modal-submit" onClick={onConfirm} disabled={cancelling}>
+          <button
+            type="button"
+            className="ord-modal-submit"
+            onClick={onConfirm}
+            disabled={cancelling}
+          >
             {cancelling ? t('cancelModal.cancelling') : t('cancelModal.cancelOrder')}
           </button>
         </div>
@@ -214,41 +237,45 @@ function CancelOrderModal({ order, onClose, onConfirm, cancelling, error }) {
 /* ── Main component ────────────────────────────────────── */
 export default function Orders() {
   const { t } = useTranslation('orders');
-  const navigate   = useNavigate();
-  const [orders,   setOrders]   = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState('');
-  const [page,     setPage]     = useState(1);
-  const [total,    setTotal]    = useState(0);
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [expanded, setExpanded] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [myReviewedIds, setMyReviewedIds] = useState(new Set());
   const [cancelTarget, setCancelTarget] = useState(null);
-  const [cancelling,   setCancelling]   = useState(false);
-  const [cancelError,  setCancelError]  = useState('');
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
   const limit = 10;
 
   const loadMyReviews = useCallback(() => {
-    reviewApi.myReviews()
+    reviewApi
+      .myReviews()
       .then(res => setMyReviewedIds(new Set((res.data || []).map(r => r.productId))))
       .catch(() => {});
   }, []);
 
-  useEffect(() => { loadMyReviews(); }, [loadMyReviews]);
+  useEffect(() => {
+    loadMyReviews();
+  }, [loadMyReviews]);
 
   useEffect(() => {
     setLoading(true);
-    orderApi.getOrders(page, limit)
+    orderApi
+      .getOrders(page, limit)
       .then(res => {
-        setOrders(res.data.data  || []);
-        setTotal(res.data.total  || 0);
+        setOrders(res.data.data || []);
+        setTotal(res.data.total || 0);
       })
       .catch(() => setError(t('errors.loadFailed')))
       .finally(() => setLoading(false));
   }, [page, t]);
 
   const totalPages = Math.ceil(total / limit);
-  const toggle = (id) => setExpanded(p => p === id ? null : id);
+  const toggle = id => setExpanded(p => (p === id ? null : id));
 
   const handleReviewSaved = () => {
     setReviewTarget(null);
@@ -260,7 +287,9 @@ export default function Orders() {
     setCancelError('');
     try {
       await orderApi.cancel(cancelTarget.id);
-      setOrders(prev => prev.map(o => o.id === cancelTarget.id ? { ...o, status: 'cancelled' } : o));
+      setOrders(prev =>
+        prev.map(o => (o.id === cancelTarget.id ? { ...o, status: 'cancelled' } : o)),
+      );
       setCancelTarget(null);
     } catch (err) {
       setCancelError(err.response?.data?.error || t('errors.cancelFailed'));
@@ -274,13 +303,14 @@ export default function Orders() {
       <Navbar />
       <main className="ord-main">
         <div className="ord-container">
-
           <div className="ord-header">
             <div>
               <h1 className="ord-title">{t('title')}</h1>
               <p className="ord-sub">{t('subtitle')}</p>
             </div>
-            <button className="ord-btn-shop" onClick={() => navigate('/')}>{t('continueShopping')}</button>
+            <button className="ord-btn-shop" onClick={() => navigate('/')}>
+              {t('continueShopping')}
+            </button>
           </div>
 
           {loading && (
@@ -294,10 +324,14 @@ export default function Orders() {
 
           {!loading && !error && orders.length === 0 && (
             <div className="ord-empty">
-              <div className="ord-empty-icon"><Package size={32} /></div>
+              <div className="ord-empty-icon">
+                <Package size={32} />
+              </div>
               <h2>{t('empty.title')}</h2>
               <p>{t('empty.message')}</p>
-              <button className="ord-btn-primary" onClick={() => navigate('/')}>{t('empty.shopNow')}</button>
+              <button className="ord-btn-primary" onClick={() => navigate('/')}>
+                {t('empty.shopNow')}
+              </button>
             </div>
           )}
 
@@ -306,10 +340,11 @@ export default function Orders() {
               <div className="ord-list">
                 {orders.map(order => (
                   <div key={order.id} className="ord-card">
-
                     <div className="ord-card-head">
                       <div className="ord-card-meta">
-                        <span className="ord-card-id">{t('card.orderNumber', { id: order.id })}</span>
+                        <span className="ord-card-id">
+                          {t('card.orderNumber', { id: order.id })}
+                        </span>
                         <span className="ord-card-date">{fmtDate(order.createdAt)}</span>
                       </div>
                       <StatusBadge status={order.status} />
@@ -319,7 +354,10 @@ export default function Orders() {
                       <div className="ord-card-actions">
                         <button
                           className="ord-btn-cancel"
-                          onClick={() => { setCancelError(''); setCancelTarget(order); }}
+                          onClick={() => {
+                            setCancelError('');
+                            setCancelTarget(order);
+                          }}
                         >
                           {t('card.cancelOrder')}
                         </button>
@@ -327,10 +365,11 @@ export default function Orders() {
                     )}
 
                     <div className="ord-card-timeline">
-                      {order.status === 'cancelled'
-                        ? <p className="ord-cancelled">{t('card.cancelledNotice')}</p>
-                        : <Timeline status={order.status} />
-                      }
+                      {order.status === 'cancelled' ? (
+                        <p className="ord-cancelled">{t('card.cancelledNotice')}</p>
+                      ) : (
+                        <Timeline status={order.status} />
+                      )}
                     </div>
 
                     <div className="ord-card-foot">
@@ -341,7 +380,9 @@ export default function Orders() {
                         <span className="ord-amount">{fmt(order.totalAmount)} TND</span>
                       </div>
                       <button className="ord-btn-detail" onClick={() => toggle(order.id)}>
-                        {expanded === order.id ? `${t('card.hideDetails')} ▲` : `${t('card.viewDetails')} ▼`}
+                        {expanded === order.id
+                          ? `${t('card.hideDetails')} ▲`
+                          : `${t('card.viewDetails')} ▼`}
                       </button>
                     </div>
 
@@ -359,11 +400,21 @@ export default function Orders() {
 
               {totalPages > 1 && (
                 <div className="ord-pager">
-                  <button className="ord-page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                  <button
+                    className="ord-page-btn"
+                    disabled={page === 1}
+                    onClick={() => setPage(p => p - 1)}
+                  >
                     ← {t('pagination.previous')}
                   </button>
-                  <span className="ord-page-info">{t('pagination.pageOf', { page, totalPages })}</span>
-                  <button className="ord-page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                  <span className="ord-page-info">
+                    {t('pagination.pageOf', { page, totalPages })}
+                  </span>
+                  <button
+                    className="ord-page-btn"
+                    disabled={page === totalPages}
+                    onClick={() => setPage(p => p + 1)}
+                  >
                     {t('pagination.next')} →
                   </button>
                 </div>

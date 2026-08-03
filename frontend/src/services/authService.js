@@ -1,9 +1,9 @@
 import api from './api';
 
-const TOKEN_KEY      = process.env.REACT_APP_JWT_STORAGE_KEY;
+const TOKEN_KEY = process.env.REACT_APP_JWT_STORAGE_KEY;
 const EXPIRATION_KEY = process.env.REACT_APP_JWT_EXPIRATION_KEY;
-const USER_KEY       = 'smartcart_user';
-const CART_KEY       = 'smartcart_cart';
+const USER_KEY = 'smartcart_user';
+const CART_KEY = 'smartcart_cart';
 
 function saveSession(token, expiresIn, user) {
   localStorage.setItem(TOKEN_KEY, token);
@@ -23,9 +23,23 @@ export async function googleLogin(accessToken) {
   return data;
 }
 
-export async function register(firstName, lastName, email, password, marketingOptIn = false, preferredCategoryIds = [], preferredBrandIds = []) {
+export async function register(
+  firstName,
+  lastName,
+  email,
+  password,
+  marketingOptIn = false,
+  preferredCategoryIds = [],
+  preferredBrandIds = [],
+) {
   const { data } = await api.post('/auth/register', {
-    firstName, lastName, email, password, marketingOptIn, preferredCategoryIds, preferredBrandIds,
+    firstName,
+    lastName,
+    email,
+    password,
+    marketingOptIn,
+    preferredCategoryIds,
+    preferredBrandIds,
   });
   return data;
 }
@@ -56,7 +70,11 @@ export function getToken() {
 
 export function getUser() {
   const raw = localStorage.getItem(USER_KEY);
-  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function isAuthenticated() {

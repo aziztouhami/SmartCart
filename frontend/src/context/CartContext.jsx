@@ -6,7 +6,11 @@ const CartContext = createContext(null);
 const STORAGE_KEY = 'smartcart_cart';
 
 function loadLocal() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
 }
 
 function saveLocal(items) {
@@ -16,14 +20,14 @@ function saveLocal(items) {
 function mapBackendCart(data) {
   if (!data?.items) return [];
   return data.items.map(i => ({
-    id:     i.productId,
+    id: i.productId,
     itemId: i.id,
-    name:   i.productName,
-    price:  i.unitPrice,
-    qty:    i.quantity,
-    image:  i.productImage,
-    slug:   i.productSlug,
-    stock:  i.availableStock,
+    name: i.productName,
+    price: i.unitPrice,
+    qty: i.quantity,
+    image: i.productImage,
+    slug: i.productSlug,
+    stock: i.availableStock,
   }));
 }
 
@@ -33,13 +37,13 @@ function toCartItem(product, qty) {
   // for authenticated carts — otherwise a guest's cart shows the full price.
   const price = product.promotion?.newPrice ?? product.price;
   return {
-    id:    product.id,
-    name:  product.name,
+    id: product.id,
+    name: product.name,
     price: parseFloat(price),
     stock: product.stock ?? null,
     // API products have `images` (array); synced items already have `image`
     image: product.images?.[0] ?? product.image ?? null,
-    slug:  product.slug ?? null,
+    slug: product.slug ?? null,
     qty,
   };
 }
@@ -52,9 +56,13 @@ export function CartProvider({ children }) {
   const syncWithBackend = useCallback(async () => {
     const local = loadLocal();
     try {
-      const call = local.length > 0
-        ? cartApi.syncCart(local.map(i => ({ productId: i.id, quantity: i.qty })), 'merge')
-        : cartApi.getCart();
+      const call =
+        local.length > 0
+          ? cartApi.syncCart(
+              local.map(i => ({ productId: i.id, quantity: i.qty })),
+              'merge',
+            )
+          : cartApi.getCart();
       const res = await call;
       const mapped = mapBackendCart(res.data);
       setItems(mapped);
@@ -72,16 +80,19 @@ export function CartProvider({ children }) {
       try {
         const res = await cartApi.addItem(product.id, qty);
         const mapped = mapBackendCart(res.data);
-        setItems(mapped); saveLocal(mapped); return;
+        setItems(mapped);
+        saveLocal(mapped);
+        return;
       } catch {}
     }
     const item = toCartItem(product, qty);
     setItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       const next = existing
-        ? prev.map(i => i.id === item.id ? { ...i, qty: i.qty + qty } : i)
+        ? prev.map(i => (i.id === item.id ? { ...i, qty: i.qty + qty } : i))
         : [...prev, item];
-      saveLocal(next); return next;
+      saveLocal(next);
+      return next;
     });
     // Authenticated cart-adds are tracked server-side automatically; a
     // guest's cart is local-only, so it needs an explicit session event
@@ -89,18 +100,24 @@ export function CartProvider({ children }) {
     guestEventApi.track(product.id, 'cart').catch(() => {});
   }, []);
 
-  const removeFromCart = useCallback(async (id) => {
+  const removeFromCart = useCallback(async id => {
     if (isAuthenticated()) {
       const item = itemsRef.current.find(i => i.id === id);
       if (item?.itemId) {
         try {
           const res = await cartApi.removeItem(item.itemId);
           const mapped = mapBackendCart(res.data);
-          setItems(mapped); saveLocal(mapped); return;
+          setItems(mapped);
+          saveLocal(mapped);
+          return;
         } catch {}
       }
     }
-    setItems(prev => { const next = prev.filter(i => i.id !== id); saveLocal(next); return next; });
+    setItems(prev => {
+      const next = prev.filter(i => i.id !== id);
+      saveLocal(next);
+      return next;
+    });
   }, []);
 
   const updateQty = useCallback(async (id, qty) => {
@@ -111,30 +128,54 @@ export function CartProvider({ children }) {
         try {
           const res = await cartApi.updateItem(item.itemId, qty);
           const mapped = mapBackendCart(res.data);
-          setItems(mapped); saveLocal(mapped); return;
+          setItems(mapped);
+          saveLocal(mapped);
+          return;
         } catch {}
       }
     }
-    setItems(prev => { const next = prev.map(i => i.id === id ? { ...i, qty } : i); saveLocal(next); return next; });
+    setItems(prev => {
+      const next = prev.map(i => (i.id === id ? { ...i, qty } : i));
+      saveLocal(next);
+      return next;
+    });
   }, []);
 
   const clearCart = useCallback(async () => {
-    if (isAuthenticated()) { try { await cartApi.clearCart(); } catch {} }
-    setItems([]); saveLocal([]);
+    if (isAuthenticated()) {
+      try {
+        await cartApi.clearCart();
+      } catch {}
+    }
+    setItems([]);
+    saveLocal([]);
   }, []);
 
   // Reset the local cart mirror only (no backend call) — used on logout so
   // the displayed cart doesn't linger and isn't re-merged into the backend
   // cart (additively) on the next login.
   const resetCart = useCallback(() => {
-    setItems([]); saveLocal([]);
+    setItems([]);
+    saveLocal([]);
   }, []);
 
   const cartCount = items.reduce((s, i) => s + i.qty, 0);
   const cartTotal = items.reduce((s, i) => s + i.price * i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQty, clearCart, resetCart, cartCount, cartTotal, syncWithBackend }}>
+    <CartContext.Provider
+      value={{
+        items,
+        addToCart,
+        removeFromCart,
+        updateQty,
+        clearCart,
+        resetCart,
+        cartCount,
+        cartTotal,
+        syncWithBackend,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

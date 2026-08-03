@@ -24,7 +24,9 @@ export default function Chatbot() {
     const message = input.trim();
     if (!message || loading) return;
 
-    const history = messages.slice(-HISTORY_TURNS_SENT).map(m => ({ role: m.role, content: m.content }));
+    const history = messages
+      .slice(-HISTORY_TURNS_SENT)
+      .map(m => ({ role: m.role, content: m.content }));
     setMessages(prev => [...prev, { role: 'user', content: message }]);
     setInput('');
     setLoading(true);
@@ -41,7 +43,7 @@ export default function Chatbot() {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
@@ -74,7 +76,9 @@ export default function Chatbot() {
             ))}
             {loading && (
               <div className="cb-bubble cb-bubble--assistant cb-bubble--typing">
-                <span className="cb-dot" /><span className="cb-dot" /><span className="cb-dot" />
+                <span className="cb-dot" />
+                <span className="cb-dot" />
+                <span className="cb-dot" />
               </div>
             )}
           </div>
@@ -101,11 +105,7 @@ export default function Chatbot() {
         </div>
       )}
 
-      <button
-        className="cb-toggle"
-        onClick={() => setOpen(o => !o)}
-        title={t('openButtonTitle')}
-      >
+      <button className="cb-toggle" onClick={() => setOpen(o => !o)} title={t('openButtonTitle')}>
         {open ? <X size={24} /> : <MessageCircle size={24} />}
       </button>
     </div>

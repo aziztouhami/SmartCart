@@ -41,12 +41,11 @@ export default function VerifyEmail() {
           <div className="auth-left__overlay" />
           <div className="auth-left__content">
             <h1 className="auth-left__title">
-              {t('leftPanel.welcomeTo')}<span>SmartCart</span>
+              {t('leftPanel.welcomeTo')}
+              <span>SmartCart</span>
             </h1>
             <div className="auth-left__divider" />
-            <p className="auth-left__subtitle">
-              {t('leftPanel.subtitle')}
-            </p>
+            <p className="auth-left__subtitle">{t('leftPanel.subtitle')}</p>
           </div>
         </div>
 
@@ -65,7 +64,11 @@ export default function VerifyEmail() {
                 <CheckCircle2 size={42} className="verify-status__icon verify-status__icon--ok" />
                 <h2 className="auth-title">{t('verifyEmail.successTitle')}</h2>
                 <p className="verify-status__msg">{message}</p>
-                <Link to="/login" className="btn-submit" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>
+                <Link
+                  to="/login"
+                  className="btn-submit"
+                  style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}
+                >
                   {t('verifyEmail.goToLogin')}
                 </Link>
               </>
@@ -75,7 +78,11 @@ export default function VerifyEmail() {
                 <XCircle size={42} className="verify-status__icon verify-status__icon--err" />
                 <h2 className="auth-title">{t('verifyEmail.errorTitle')}</h2>
                 <p className="verify-status__msg">{message}</p>
-                <Link to="/login" className="btn-submit" style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>
+                <Link
+                  to="/login"
+                  className="btn-submit"
+                  style={{ display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}
+                >
                   {t('verifyEmail.backToLogin')}
                 </Link>
               </>

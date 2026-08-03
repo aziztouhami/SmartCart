@@ -13,9 +13,21 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  transition: color 0.15s, transform 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    transform 0.15s,
+    background 0.15s;
 }
 
-.ui-icon-btn:hover:not(:disabled) { color: #e11d48; transform: scale(1.12); }
-.ui-icon-btn--active { color: #e11d48; background: #fff0f3; }
-.ui-icon-btn:disabled { cursor: default; opacity: 0.7; }
+.ui-icon-btn:hover:not(:disabled) {
+  color: var(--color-error);
+  transform: scale(1.12);
+}
+.ui-icon-btn--active {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+.ui-icon-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}

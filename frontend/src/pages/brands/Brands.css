@@ -44,15 +44,22 @@
 }
 
 @media (max-width: 1280px) {
-  .bd-grid { grid-template-columns: repeat(3, 1fr); }
+  .bd-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .bd-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .bd-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
-  .bd-grid { grid-template-columns: 1fr; }
+  .bd-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Brand card ──────────────────────────────────────────── */
@@ -66,13 +73,16 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
   font-family: var(--font-family);
 }
 
 .bd-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
   border-color: var(--color-primary);
 }
 
@@ -125,7 +135,9 @@
 }
 
 /* ── Skeleton ────────────────────────────────────────────── */
-.bd-card--skeleton { cursor: default; }
+.bd-card--skeleton {
+  cursor: default;
+}
 
 .bd-skeleton {
   background: linear-gradient(90deg, #eef1f5 25%, #e4e8ee 37%, #eef1f5 63%);
@@ -134,13 +146,27 @@
   border-radius: var(--radius-md);
 }
 
-.bd-skeleton--logo  { width: 72px; height: 72px; border-radius: 50%; }
-.bd-skeleton--name  { width: 70%; height: 14px; }
-.bd-skeleton--count { width: 45%; height: 11px; }
+.bd-skeleton--logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+.bd-skeleton--name {
+  width: 70%;
+  height: 14px;
+}
+.bd-skeleton--count {
+  width: 45%;
+  height: 11px;
+}
 
 @keyframes bd-shimmer {
-  0%   { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

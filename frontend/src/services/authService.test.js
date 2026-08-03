@@ -1,8 +1,3 @@
-jest.mock('./api', () => ({
-  __esModule: true,
-  default: { post: jest.fn() },
-}));
-
 import api from './api';
 import {
   login,
@@ -13,6 +8,11 @@ import {
   updateLocalUser,
   isAdmin,
 } from './authService';
+
+jest.mock('./api', () => ({
+  __esModule: true,
+  default: { post: jest.fn() },
+}));
 
 const TOKEN_KEY = process.env.REACT_APP_JWT_STORAGE_KEY;
 const EXPIRATION_KEY = process.env.REACT_APP_JWT_EXPIRATION_KEY;
@@ -94,7 +94,10 @@ describe('authService', () => {
 
   describe('updateLocalUser', () => {
     it('merges updates into the cached user', () => {
-      localStorage.setItem('smartcart_user', JSON.stringify({ id: 1, firstName: 'Ada', phone: null }));
+      localStorage.setItem(
+        'smartcart_user',
+        JSON.stringify({ id: 1, firstName: 'Ada', phone: null }),
+      );
       updateLocalUser({ phone: '20123456' });
       expect(getUser()).toEqual({ id: 1, firstName: 'Ada', phone: '20123456' });
     });
@@ -107,7 +110,10 @@ describe('authService', () => {
 
   describe('isAdmin', () => {
     it('is true when the cached user has ROLE_ADMIN', () => {
-      localStorage.setItem('smartcart_user', JSON.stringify({ roles: ['ROLE_USER', 'ROLE_ADMIN'] }));
+      localStorage.setItem(
+        'smartcart_user',
+        JSON.stringify({ roles: ['ROLE_USER', 'ROLE_ADMIN'] }),
+      );
       expect(isAdmin()).toBe(true);
     });
 

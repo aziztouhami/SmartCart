@@ -17,7 +17,11 @@ describe('Button', () => {
   });
 
   it('applies the requested variant, size, and full-width modifier', () => {
-    render(<Button variant="danger" size="lg" fullWidth>Delete</Button>);
+    render(
+      <Button variant="danger" size="lg" fullWidth>
+        Delete
+      </Button>,
+    );
     expect(screen.getByRole('button')).toHaveClass('ui-btn--danger', 'ui-btn--lg', 'ui-btn--full');
   });
 
@@ -34,7 +38,11 @@ describe('Button', () => {
   it('does not fire onClick when disabled', async () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
-    render(<Button onClick={onClick} disabled>Click me</Button>);
+    render(
+      <Button onClick={onClick} disabled>
+        Click me
+      </Button>,
+    );
 
     await user.click(screen.getByRole('button'));
 

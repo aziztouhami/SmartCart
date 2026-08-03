@@ -9,10 +9,11 @@ import './Promotions.css';
 export default function Promotions() {
   const { t } = useTranslation('promotions');
   const [promotions, setPromotions] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    productApi.promotions(50)
+    productApi
+      .promotions(50)
       .then(res => setPromotions(res.data || []))
       .catch(() => setPromotions([]))
       .finally(() => setLoading(false));
@@ -31,13 +32,17 @@ export default function Promotions() {
               <p className="pr-page-sub">{t('subtitle')}</p>
             </div>
             {!loading && promotions.length > 0 && (
-              <span className="pr-page-count">{t('promotedCount', { count: promotions.length })}</span>
+              <span className="pr-page-count">
+                {t('promotedCount', { count: promotions.length })}
+              </span>
             )}
           </div>
 
           {loading ? (
             <div className="h-grid">
-              {Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)}
+              {Array.from({ length: 10 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           ) : promotions.length === 0 ? (
             <div className="pr-page-empty">
@@ -47,7 +52,9 @@ export default function Promotions() {
             </div>
           ) : (
             <div className="h-grid">
-              {promotions.map(p => <ProductCard key={p.id} product={p} />)}
+              {promotions.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
             </div>
           )}
         </div>

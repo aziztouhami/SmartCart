@@ -1,0 +1,8 @@
+build/
+node_modules/
+coverage/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+public/
+src/i18n/locales/**/*.json

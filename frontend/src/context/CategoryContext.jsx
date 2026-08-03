@@ -16,8 +16,12 @@ export function CategoryProvider({ children }) {
       setCategories(tree);
       setLeafCategories(
         tree.flatMap(parent =>
-          parent.children.map(child => ({ id: child.id, name: child.name, parentName: parent.name }))
-        )
+          parent.children.map(child => ({
+            id: child.id,
+            name: child.name,
+            parentName: parent.name,
+          })),
+        ),
       );
     } catch {
       setCategories([]);
@@ -27,10 +31,14 @@ export function CategoryProvider({ children }) {
     }
   }, []);
 
-  useEffect(() => { loadCategories(); }, [loadCategories]);
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   return (
-    <CategoryContext.Provider value={{ categories, leafCategories, loading, reloadCategories: loadCategories }}>
+    <CategoryContext.Provider
+      value={{ categories, leafCategories, loading, reloadCategories: loadCategories }}
+    >
       {children}
     </CategoryContext.Provider>
   );

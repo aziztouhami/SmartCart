@@ -16,7 +16,9 @@
   line-height: 1;
 }
 
-.ui-price--discounted { color: #dc2626; }
+.ui-price--discounted {
+  color: var(--color-error);
+}
 
 .ui-price-currency {
   font-size: 0.68rem;
@@ -33,9 +35,9 @@
 
 .ui-pct-chip {
   padding: 1px 8px;
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-border);
   border-radius: var(--radius-pill);
   font-size: 0.66rem;
   font-weight: 700;

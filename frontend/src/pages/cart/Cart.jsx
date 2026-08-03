@@ -1,12 +1,15 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShoppingCart, MapPin } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import { useCart } from '../../context/CartContext';
 import { isAuthenticated, getUser, updateLocalUser } from '../../services/authService';
 import { orderApi, addressApi } from '../../services/cartService';
 import { formatPrice as fmt } from '../../utils/format';
+import CartItemRow from './Cart/CartItemRow';
+import CheckoutModal from './Cart/CheckoutModal';
+import OrderConfirmModal from './Cart/OrderConfirmModal';
 import './Cart.css';
 
 const AddressMapModal = lazy(() => import('../profile/AddressMapModal'));
@@ -21,29 +24,32 @@ export default function Cart() {
   const navigate = useNavigate();
   const { items, removeFromCart, updateQty, clearCart, cartTotal } = useCart();
   const cartCount = items.reduce((s, i) => s + i.qty, 0);
-  const loggedIn  = isAuthenticated();
+  const loggedIn = isAuthenticated();
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [addresses,    setAddresses]    = useState([]);
-  const [addrLoading,  setAddrLoading]  = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [addrLoading, setAddrLoading] = useState(false);
   const [selectedAddr, setSelectedAddr] = useState('new');
   const [newAddr, setNewAddr] = useState({ street: '', city: '', postalCode: '', country: '' });
-  const [phone,         setPhone]        = useState(getUser()?.phone ?? '');
-  const [phoneError,    setPhoneError]   = useState('');
-  const [placing,       setPlacing]      = useState(false);
+  const [phone, setPhone] = useState(getUser()?.phone ?? '');
+  const [phoneError, setPhoneError] = useState('');
+  const [placing, setPlacing] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
-  const [orderId,       setOrderId]       = useState(null);
-  const [mapOpen,       setMapOpen]      = useState(false);
-  const [confirmOpen,   setConfirmOpen]  = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
 
   const openCheckout = async () => {
-    if (!loggedIn) { navigate('/login', { state: { from: '/cart' } }); return; }
+    if (!loggedIn) {
+      navigate('/login', { state: { from: '/cart' } });
+      return;
+    }
     setCheckoutOpen(true);
     setCheckoutError('');
     setAddrLoading(true);
     try {
-      const res   = await addressApi.list();
+      const res = await addressApi.list();
       const addrs = res.data || [];
       setAddresses(addrs);
       const def = addrs.find(a => a.isDefault) || addrs[0];
@@ -56,28 +62,28 @@ export default function Cart() {
     }
   };
 
-  const handleMapSave = async (addr) => {
+  const handleMapSave = async addr => {
     setMapOpen(false);
     try {
       const res = await addressApi.create({
-        label:      addr.label || addr.city || t('checkout.myAddress'),
-        street:     addr.street,
-        city:       addr.city,
+        label: addr.label || addr.city || t('checkout.myAddress'),
+        street: addr.street,
+        city: addr.city,
         postalCode: addr.postalCode,
-        country:    addr.country,
-        isDefault:  false,
-        lat:        addr.lat,
-        lng:        addr.lng,
+        country: addr.country,
+        isDefault: false,
+        lat: addr.lat,
+        lng: addr.lng,
       });
       const saved = res.data;
       setAddresses(prev => [...prev, saved]);
       setSelectedAddr(String(saved.id));
     } catch {
       setNewAddr({
-        street:     addr.street,
-        city:       addr.city,
+        street: addr.street,
+        city: addr.city,
         postalCode: addr.postalCode || '',
-        country:    addr.country,
+        country: addr.country,
       });
     }
   };
@@ -148,11 +154,18 @@ export default function Cart() {
           <div className="cp-success-card">
             <div className="cp-success-icon">✓</div>
             <h2>{t('success.title')}</h2>
-            <p>{t('success.orderReceivedPrefix')} <strong>#{orderId}</strong> {t('success.orderReceivedSuffix')}</p>
+            <p>
+              {t('success.orderReceivedPrefix')} <strong>#{orderId}</strong>{' '}
+              {t('success.orderReceivedSuffix')}
+            </p>
             <p className="cp-success-sub">{t('success.notifyNote')}</p>
             <div className="cp-success-actions">
-              <button className="cp-btn-outline" onClick={() => navigate('/')}>{t('success.continueShopping')}</button>
-              <button className="cp-btn-solid" onClick={() => navigate('/orders')}>{t('success.trackOrder')}</button>
+              <button className="cp-btn-outline" onClick={() => navigate('/')}>
+                {t('success.continueShopping')}
+              </button>
+              <button className="cp-btn-solid" onClick={() => navigate('/orders')}>
+                {t('success.trackOrder')}
+              </button>
             </div>
           </div>
         </div>
@@ -166,7 +179,6 @@ export default function Cart() {
 
       <main className="cp-main">
         <div className="cp-container">
-
           {/* Header */}
           <div className="cp-header">
             <div>
@@ -176,71 +188,48 @@ export default function Cart() {
               )}
             </div>
             {items.length > 0 && (
-              <button className="cp-btn-clear" onClick={clearCart}>{t('clearCart')}</button>
+              <button className="cp-btn-clear" onClick={clearCart}>
+                {t('clearCart')}
+              </button>
             )}
           </div>
 
           {/* Empty state */}
           {items.length === 0 && (
             <div className="cp-empty" data-testid="cart-empty">
-              <div className="cp-empty-icon"><ShoppingCart size={32} /></div>
+              <div className="cp-empty-icon">
+                <ShoppingCart size={32} />
+              </div>
               <h2>{t('empty.title')}</h2>
               <p>{t('empty.message')}</p>
-              <button className="cp-btn-solid" data-testid="cart-browse-products" onClick={() => navigate('/')}>{t('empty.browseProducts')}</button>
+              <button
+                className="cp-btn-solid"
+                data-testid="cart-browse-products"
+                onClick={() => navigate('/')}
+              >
+                {t('empty.browseProducts')}
+              </button>
             </div>
           )}
 
           {/* Cart layout */}
           {items.length > 0 && (
             <div className="cp-layout">
-
               {/* Items list */}
               <div className="cp-items">
                 {items.map(item => (
-                  <div key={item.id} className="cp-item">
-                    <div className="cp-item-thumb">
-                      {item.image
-                        ? <img src={item.image} alt={item.name} />
-                        : <span className="cp-item-initial">{item.name?.[0]?.toUpperCase()}</span>
-                      }
-                    </div>
-
-                    <div className="cp-item-info">
-                      <h3 className="cp-item-name">{item.name}</h3>
-                      <p className="cp-item-price">{t('item.pricePerUnit', { price: fmt(item.price) })}</p>
-                      {item.stock != null && item.stock <= 5 && (
-                        <p className="cp-item-warn">{t('item.lowStock', { count: item.stock })}</p>
-                      )}
-                    </div>
-
-                    <div className="cp-qty">
-                      <button
-                        className="cp-qty-btn"
-                        onClick={() => item.qty > 1 ? updateQty(item.id, item.qty - 1) : removeFromCart(item.id)}
-                      >−</button>
-                      <span className="cp-qty-val">{item.qty}</span>
-                      <button
-                        className="cp-qty-btn"
-                        onClick={() => updateQty(item.id, item.qty + 1)}
-                        disabled={item.stock != null && item.qty >= item.stock}
-                      >+</button>
-                    </div>
-
-                    <span className="cp-item-sub">{fmt(item.price * item.qty)} TND</span>
-
-                    <button className="cp-item-del" onClick={() => removeFromCart(item.id)} title={t('item.remove')}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                      </svg>
-                    </button>
-                  </div>
+                  <CartItemRow
+                    key={item.id}
+                    item={item}
+                    updateQty={updateQty}
+                    removeFromCart={removeFromCart}
+                  />
                 ))}
 
                 <div className="cp-back-row">
-                  <button className="cp-btn-back" onClick={() => navigate('/')}>← {t('continueShopping')}</button>
+                  <button className="cp-btn-back" onClick={() => navigate('/')}>
+                    ← {t('continueShopping')}
+                  </button>
                 </div>
               </div>
 
@@ -269,8 +258,10 @@ export default function Cart() {
 
                 {!loggedIn && (
                   <p className="cp-auth-note">
-                    <button className="cp-link" onClick={() => navigate('/login')}>{t('summary.signIn')}</button>
-                    {' '}{t('summary.toPlaceOrder')}
+                    <button className="cp-link" onClick={() => navigate('/login')}>
+                      {t('summary.signIn')}
+                    </button>{' '}
+                    {t('summary.toPlaceOrder')}
                   </p>
                 )}
               </div>
@@ -282,200 +273,43 @@ export default function Cart() {
       {/* ── Address map modal ──────────────────────────── */}
       {mapOpen && (
         <Suspense fallback={null}>
-          <AddressMapModal
-            onSave={handleMapSave}
-            onClose={() => setMapOpen(false)}
-          />
+          <AddressMapModal onSave={handleMapSave} onClose={() => setMapOpen(false)} />
         </Suspense>
       )}
 
       {/* ── Checkout modal ─────────────────────────────── */}
       {checkoutOpen && (
-        <div className="cp-overlay" onClick={() => setCheckoutOpen(false)}>
-          <div className="cp-modal" onClick={e => e.stopPropagation()}>
-
-            <div className="cp-modal-head">
-              <h2>{t('checkout.shippingAddress')}</h2>
-              <button className="cp-modal-x" onClick={() => setCheckoutOpen(false)}>✕</button>
-            </div>
-
-            <div className="cp-modal-body">
-              {addrLoading
-                ? <p className="cp-modal-loading">{t('checkout.loadingAddresses')}</p>
-                : (
-                  <>
-                    {addresses.length > 0 && (
-                      <div className="cp-section">
-                        <p className="cp-section-label">{t('checkout.savedAddresses')}</p>
-                        <div className="cp-addr-list">
-                          {addresses.map(addr => (
-                            <label
-                              key={addr.id}
-                              className={`cp-addr-card ${selectedAddr === String(addr.id) ? 'cp-addr-card--on' : ''}`}
-                            >
-                              <input
-                                type="radio" name="addr" value={String(addr.id)}
-                                checked={selectedAddr === String(addr.id)}
-                                onChange={() => setSelectedAddr(String(addr.id))}
-                              />
-                              <div className="cp-addr-body">
-                                <div className="cp-addr-row">
-                                  <span className="cp-addr-label">{addr.label}</span>
-                                  {addr.isDefault && <span className="cp-addr-default">{t('checkout.default')}</span>}
-                                </div>
-                                <span className="cp-addr-line">{addr.street}</span>
-                                <span className="cp-addr-line">
-                                  {addr.city}{addr.postalCode ? ` ${addr.postalCode}` : ''}, {addr.country}
-                                </span>
-                              </div>
-                            </label>
-                          ))}
-
-                          <label className={`cp-addr-card cp-addr-card--new ${selectedAddr === 'new' ? 'cp-addr-card--on' : ''}`}>
-                            <input
-                              type="radio" name="addr" value="new"
-                              checked={selectedAddr === 'new'}
-                              onChange={() => setSelectedAddr('new')}
-                            />
-                            <div className="cp-addr-body">
-                              <span className="cp-addr-label">+ {t('checkout.enterNewAddress')}</span>
-                            </div>
-                          </label>
-                        </div>
-                      </div>
-                    )}
-
-                    {(selectedAddr === 'new' || addresses.length === 0) && (
-                      <div className="cp-section">
-                        {addresses.length === 0 && (
-                          <p className="cp-section-label">{t('checkout.shippingAddress')}</p>
-                        )}
-                        <button
-                          type="button"
-                          className="cp-btn-map"
-                          onClick={() => setMapOpen(true)}
-                        >
-                          <MapPin size={14} /> {t('checkout.pickOnMap')}
-                        </button>
-                        <div className="cp-field">
-                          <label>{t('checkout.fields.street')} *</label>
-                          <input
-                            type="text" placeholder={t('checkout.fields.streetPlaceholder')}
-                            value={newAddr.street}
-                            onChange={e => setNewAddr(p => ({ ...p, street: e.target.value }))}
-                          />
-                        </div>
-                        <div className="cp-field-row">
-                          <div className="cp-field">
-                            <label>{t('checkout.fields.city')} *</label>
-                            <input
-                              type="text" placeholder={t('checkout.fields.cityPlaceholder')}
-                              value={newAddr.city}
-                              onChange={e => setNewAddr(p => ({ ...p, city: e.target.value }))}
-                            />
-                          </div>
-                          <div className="cp-field">
-                            <label>{t('checkout.fields.postalCode')}</label>
-                            <input
-                              type="text" placeholder={t('checkout.fields.postalCodePlaceholder')}
-                              value={newAddr.postalCode}
-                              onChange={e => setNewAddr(p => ({ ...p, postalCode: e.target.value }))}
-                            />
-                          </div>
-                        </div>
-                        <div className="cp-field">
-                          <label>{t('checkout.fields.country')} *</label>
-                          <input
-                            type="text" placeholder={t('checkout.fields.countryPlaceholder')}
-                            value={newAddr.country}
-                            onChange={e => setNewAddr(p => ({ ...p, country: e.target.value }))}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="cp-section">
-                      <p className="cp-section-label">{t('checkout.contactPhone')} *</p>
-                      <div className="cp-field">
-                        <input
-                          type="tel"
-                          placeholder={t('checkout.fields.phonePlaceholder')}
-                          value={phone}
-                          onChange={e => { setPhone(e.target.value); setPhoneError(''); }}
-                        />
-                        {phoneError && <span className="cp-field-error">{phoneError}</span>}
-                      </div>
-                    </div>
-
-                    {checkoutError && <div className="cp-error">{checkoutError}</div>}
-                  </>
-                )
-              }
-            </div>
-
-            <div className="cp-modal-foot">
-              <button className="cp-btn-outline" onClick={() => setCheckoutOpen(false)}>{t('checkout.cancel')}</button>
-              <button
-                className="cp-btn-solid"
-                onClick={placeOrder}
-                disabled={placing || addrLoading}
-              >
-                {placing ? t('checkout.placingOrder') : t('checkout.placeOrder')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <CheckoutModal
+          addresses={addresses}
+          addrLoading={addrLoading}
+          selectedAddr={selectedAddr}
+          setSelectedAddr={setSelectedAddr}
+          newAddr={newAddr}
+          setNewAddr={setNewAddr}
+          phone={phone}
+          setPhone={setPhone}
+          phoneError={phoneError}
+          setPhoneError={setPhoneError}
+          checkoutError={checkoutError}
+          placing={placing}
+          onClose={() => setCheckoutOpen(false)}
+          onMapOpen={() => setMapOpen(true)}
+          onPlaceOrder={placeOrder}
+        />
       )}
 
       {/* ── Order summary confirmation modal ───────────── */}
       {confirmOpen && (
-        <div className="cp-overlay" onClick={() => !placing && setConfirmOpen(false)}>
-          <div className="cp-modal" onClick={e => e.stopPropagation()}>
-
-            <div className="cp-modal-head">
-              <h2>{t('confirm.title')}</h2>
-              <button className="cp-modal-x" onClick={() => !placing && setConfirmOpen(false)}>✕</button>
-            </div>
-
-            <div className="cp-modal-body">
-              <div className="cp-section">
-                <p className="cp-section-label">{t('confirm.items')}</p>
-                {items.map(item => (
-                  <div key={item.id} className="cp-summary-row">
-                    <span>{item.name} × {item.qty}</span>
-                    <span>{fmt(item.price * item.qty)} TND</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="cp-section">
-                <p className="cp-section-label">{t('confirm.shippingTo')}</p>
-                <p className="cp-addr-line">{summaryAddress().street}</p>
-                <p className="cp-addr-line">
-                  {summaryAddress().city}{summaryAddress().postalCode ? ` ${summaryAddress().postalCode}` : ''}, {summaryAddress().country}
-                </p>
-                <p className="cp-addr-line">{phone.trim()}</p>
-              </div>
-
-              <div className="cp-summary-sep" />
-              <div className="cp-summary-total">
-                <span>{t('summary.total')}</span>
-                <span>{fmt(cartTotal)} TND</span>
-              </div>
-
-              {checkoutError && <div className="cp-error">{checkoutError}</div>}
-            </div>
-
-            <div className="cp-modal-foot">
-              <button className="cp-btn-outline" onClick={() => setConfirmOpen(false)} disabled={placing}>
-                {t('confirm.back')}
-              </button>
-              <button className="cp-btn-solid" onClick={confirmPlaceOrder} disabled={placing}>
-                {placing ? t('checkout.placingOrder') : t('confirm.confirmOrder')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <OrderConfirmModal
+          items={items}
+          cartTotal={cartTotal}
+          address={summaryAddress()}
+          phone={phone}
+          checkoutError={checkoutError}
+          placing={placing}
+          onBack={() => setConfirmOpen(false)}
+          onConfirm={confirmPlaceOrder}
+        />
       )}
     </div>
   );

@@ -8,15 +8,16 @@
     "title": "Produit introuvable",
     "backButton": "← Retour à la boutique"
   },
-  "nav": {
-    "back": "Retour"
-  },
   "breadcrumb": {
     "home": "Accueil"
   },
   "badges": {
     "promotion": "Promotion",
     "new": "Nouveau"
+  },
+  "images": {
+    "previous": "Image précédente",
+    "next": "Image suivante"
   },
   "favorite": {
     "remove": "Retirer des favoris",

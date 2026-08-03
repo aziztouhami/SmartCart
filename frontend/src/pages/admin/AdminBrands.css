@@ -39,9 +39,13 @@
   vertical-align: middle;
 }
 
-.br-row:last-child td { border-bottom: none; }
+.br-row:last-child td {
+  border-bottom: none;
+}
 
-.br-row:hover td { background: #fafcff; }
+.br-row:hover td {
+  background: #fafcff;
+}
 
 /* Brand cell */
 .br-brand-cell {
@@ -65,7 +69,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--color-primary), #7c3aed);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-violet));
   color: white;
   font-weight: 800;
   font-size: 1rem;
@@ -114,7 +118,7 @@
 
 /* Rating */
 .br-rating {
-  color: #d97706;
+  color: var(--color-warning);
   font-weight: 700;
   font-size: 0.875rem;
 }
@@ -124,7 +128,11 @@
 }
 
 /* Alignment */
-.br-center { text-align: center; }
+.br-center {
+  text-align: center;
+}
 
 /* Muted text */
-.br-muted { color: var(--color-text-muted); }
+.br-muted {
+  color: var(--color-text-muted);
+}

@@ -10,7 +10,7 @@
 }
 
 .pr-page-icon {
-  color: #dc2626;
+  color: var(--color-error);
   flex-shrink: 0;
 }
 

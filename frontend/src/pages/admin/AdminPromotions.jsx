@@ -24,14 +24,20 @@ function toLocalInputValue(date) {
 
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('fr-TN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('fr-TN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function StatusBadge({ status }) {
   const map = {
-    active:    { label: 'Active',    cls: 'pr-badge--active' },
+    active: { label: 'Active', cls: 'pr-badge--active' },
     scheduled: { label: 'Scheduled', cls: 'pr-badge--scheduled' },
-    ended:     { label: 'Ended',     cls: 'pr-badge--ended' },
+    ended: { label: 'Ended', cls: 'pr-badge--ended' },
   };
   const { label, cls } = map[status] || map.ended;
   return <span className={`pr-badge ${cls}`}>{label}</span>;
@@ -39,22 +45,22 @@ function StatusBadge({ status }) {
 
 function targetLabel(promo) {
   if (promo.type === 'product') return promo.product?.name ?? '—';
-  if (promo.type === 'brand')   return `${promo.brand?.name ?? '—'} (all products)`;
+  if (promo.type === 'brand') return `${promo.brand?.name ?? '—'} (all products)`;
   return 'All Products (store-wide)';
 }
 
 export default function AdminPromotions() {
   const [promotions, setPromotions] = useState([]);
-  const [products, setProducts]     = useState([]);
-  const [brands, setBrands]         = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [modalOpen, setModalOpen]   = useState(false);
-  const [form, setForm]             = useState(EMPTY_FORM);
-  const [errors, setErrors]         = useState({});
-  const [saving, setSaving]         = useState(false);
-  const [confirmId, setConfirmId]   = useState(null);
-  const [endId, setEndId]           = useState(null);
-  const [toast, setToast]           = useState(null);
+  const [products, setProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
+  const [endId, setEndId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -63,7 +69,8 @@ export default function AdminPromotions() {
 
   const loadPromotions = () => {
     setLoading(true);
-    return adminPromotionApi.list(1, 50)
+    return adminPromotionApi
+      .list(1, 50)
       .then(res => setPromotions(res.data.data || []))
       .catch(() => showToast('Failed to load promotions.', 'error'))
       .finally(() => setLoading(false));
@@ -71,8 +78,13 @@ export default function AdminPromotions() {
 
   useEffect(() => {
     loadPromotions();
-    fetchAllProducts().then(setProducts).catch(() => {});
-    brandApi.list(1, 100).then(res => setBrands(res.data.data || [])).catch(() => {});
+    fetchAllProducts()
+      .then(setProducts)
+      .catch(() => {});
+    brandApi
+      .list(1, 100)
+      .then(res => setBrands(res.data.data || []))
+      .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openAdd = () => {
@@ -101,21 +113,27 @@ export default function AdminPromotions() {
     if (form.type === 'brand' && !form.brandId) e.brandId = 'Select a brand.';
     if (form.discountType === 'percentage') {
       const pct = parseFloat(form.percentage);
-      if (!form.percentage || isNaN(pct) || pct <= 0 || pct >= 100) e.percentage = 'Enter a percentage between 1 and 99.';
+      if (!form.percentage || isNaN(pct) || pct <= 0 || pct >= 100)
+        e.percentage = 'Enter a percentage between 1 and 99.';
     } else {
       const price = parseFloat(form.fixedPrice);
       if (!form.fixedPrice || isNaN(price) || price <= 0) e.fixedPrice = 'Enter a valid price.';
-      if (selectedProduct && price >= selectedProduct.price) e.fixedPrice = 'New price must be lower than the current price.';
+      if (selectedProduct && price >= selectedProduct.price)
+        e.fixedPrice = 'New price must be lower than the current price.';
     }
     if (!form.startDate) e.startDate = 'Start date is required.';
     if (!form.noEndDate && !form.endDate) e.endDate = 'Pick an end date or check "No end date".';
-    if (!form.noEndDate && form.endDate && form.startDate && form.endDate < form.startDate) e.endDate = 'End date must be after the start date.';
+    if (!form.noEndDate && form.endDate && form.startDate && form.endDate < form.startDate)
+      e.endDate = 'End date must be after the start date.';
     return e;
   };
 
   const handleSave = async () => {
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -125,7 +143,10 @@ export default function AdminPromotions() {
         brandId: form.type === 'brand' ? parseInt(form.brandId) : null,
         discountType: form.type === 'product' ? form.discountType : 'percentage',
         percentage: form.discountType === 'percentage' ? parseFloat(form.percentage) : null,
-        fixedPrice: form.type === 'product' && form.discountType === 'fixed' ? parseFloat(form.fixedPrice) : null,
+        fixedPrice:
+          form.type === 'product' && form.discountType === 'fixed'
+            ? parseFloat(form.fixedPrice)
+            : null,
         startDate: new Date(form.startDate).toISOString(),
         endDate: form.noEndDate ? null : new Date(form.endDate).toISOString(),
       };
@@ -140,7 +161,7 @@ export default function AdminPromotions() {
     }
   };
 
-  const handleEnd = async (id) => {
+  const handleEnd = async id => {
     try {
       await adminPromotionApi.end(id);
       showToast('Promotion ended.');
@@ -151,7 +172,7 @@ export default function AdminPromotions() {
     setEndId(null);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     try {
       await adminPromotionApi.remove(id);
       setPromotions(prev => prev.filter(p => p.id !== id));
@@ -171,7 +192,9 @@ export default function AdminPromotions() {
       <div className="adm-page-header">
         <div>
           <h1 className="adm-page-title">Promotions</h1>
-          <p className="adm-page-sub">{promotions.length} total &nbsp;·&nbsp; {activeCount} active</p>
+          <p className="adm-page-sub">
+            {promotions.length} total &nbsp;·&nbsp; {activeCount} active
+          </p>
         </div>
         <button className="adm-btn-primary" onClick={openAdd}>
           <IconPlus /> Add Promotion
@@ -194,38 +217,72 @@ export default function AdminPromotions() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>Loading promotions…</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>Loading promotions…</p>
+                  </div>
+                </td>
+              </tr>
             ) : promotions.length === 0 ? (
-              <tr><td colSpan={8}><div className="adm-empty"><p>No promotions yet. Click "Add Promotion" to create one.</p></div></td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <div className="adm-empty">
+                    <p>No promotions yet. Click "Add Promotion" to create one.</p>
+                  </div>
+                </td>
+              </tr>
             ) : (
               promotions.map((p, i) => (
                 <tr key={p.id}>
                   <td className="adm-td-muted">{i + 1}</td>
-                  <td><span className="ap-product-name">{targetLabel(p)}</span></td>
                   <td>
-                    {p.discountType === 'percentage'
-                      ? <span className="pr-discount">{p.percentage}% off</span>
-                      : <span className="pr-discount">Fixed price</span>}
+                    <span className="ap-product-name">{targetLabel(p)}</span>
+                  </td>
+                  <td>
+                    {p.discountType === 'percentage' ? (
+                      <span className="pr-discount">{p.percentage}% off</span>
+                    ) : (
+                      <span className="pr-discount">Fixed price</span>
+                    )}
                   </td>
                   <td>
                     {p.type === 'product' ? (
                       <span className="pr-prices">
                         <span className="pr-price-old">{formatPrice(p.product.price)}</span>
                         <span className="pr-price-new">
-                          {formatPrice(p.discountType === 'fixed' ? p.fixedPrice : Math.round(p.product.price * (1 - p.percentage / 100) * 100) / 100)}
+                          {formatPrice(
+                            p.discountType === 'fixed'
+                              ? p.fixedPrice
+                              : Math.round(p.product.price * (1 - p.percentage / 100) * 100) / 100,
+                          )}
                         </span>
                       </span>
-                    ) : <span className="adm-muted">varies per product</span>}
+                    ) : (
+                      <span className="adm-muted">varies per product</span>
+                    )}
                   </td>
                   <td className="adm-td-muted">{fmtDate(p.startDate)}</td>
                   <td className="adm-td-muted">{p.endDate ? fmtDate(p.endDate) : 'No end date'}</td>
-                  <td><StatusBadge status={p.status} /></td>
+                  <td>
+                    <StatusBadge status={p.status} />
+                  </td>
                   <td>
                     <div className="adm-actions">
                       {p.status !== 'ended' && (
-                        <button className="adm-btn-icon adm-btn-edit" onClick={() => setEndId(p.id)}>End Now</button>
+                        <button
+                          className="adm-btn-icon adm-btn-edit"
+                          onClick={() => setEndId(p.id)}
+                        >
+                          End Now
+                        </button>
                       )}
-                      <button className="adm-btn-icon adm-btn-delete" onClick={() => setConfirmId(p.id)}>Delete</button>
+                      <button
+                        className="adm-btn-icon adm-btn-delete"
+                        onClick={() => setConfirmId(p.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -241,18 +298,22 @@ export default function AdminPromotions() {
           <div className="adm-modal ap-modal-wide" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Add Promotion</h2>
-              <button className="adm-modal-close" onClick={() => setModalOpen(false)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setModalOpen(false)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <div className="adm-field">
                 <label>Apply Promotion To *</label>
                 <select
                   value={form.type}
-                  onChange={e => setForm(f => ({
-                    ...f,
-                    type: e.target.value,
-                    discountType: e.target.value === 'product' ? f.discountType : 'percentage',
-                  }))}
+                  onChange={e =>
+                    setForm(f => ({
+                      ...f,
+                      type: e.target.value,
+                      discountType: e.target.value === 'product' ? f.discountType : 'percentage',
+                    }))
+                  }
                 >
                   <option value="product">A Single Product</option>
                   <option value="brand">A Brand (all its products)</option>
@@ -263,10 +324,15 @@ export default function AdminPromotions() {
               {form.type === 'product' && (
                 <div className="adm-field">
                   <label>Product *</label>
-                  <select value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}>
+                  <select
+                    value={form.productId}
+                    onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}
+                  >
                     <option value="">— Select a product —</option>
                     {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.name} — {formatPrice(p.price)} TND</option>
+                      <option key={p.id} value={p.id}>
+                        {p.name} — {formatPrice(p.price)} TND
+                      </option>
                     ))}
                   </select>
                   {errors.productId && <span className="ap-err">{errors.productId}</span>}
@@ -276,10 +342,15 @@ export default function AdminPromotions() {
               {form.type === 'brand' && (
                 <div className="adm-field">
                   <label>Brand *</label>
-                  <select value={form.brandId} onChange={e => setForm(f => ({ ...f, brandId: e.target.value }))}>
+                  <select
+                    value={form.brandId}
+                    onChange={e => setForm(f => ({ ...f, brandId: e.target.value }))}
+                  >
                     <option value="">— Select a brand —</option>
                     {brands.map(b => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
                     ))}
                   </select>
                   {errors.brandId && <span className="ap-err">{errors.brandId}</span>}
@@ -297,7 +368,9 @@ export default function AdminPromotions() {
                   {form.type === 'product' && <option value="fixed">Fixed new price</option>}
                 </select>
                 {form.type !== 'product' && (
-                  <span className="adm-field-hint">Brand and store-wide promotions can only use a percentage.</span>
+                  <span className="adm-field-hint">
+                    Brand and store-wide promotions can only use a percentage.
+                  </span>
                 )}
               </div>
 
@@ -306,7 +379,10 @@ export default function AdminPromotions() {
                   <div className="adm-field">
                     <label>Percentage (%) *</label>
                     <input
-                      type="number" min="1" max="99" step="1"
+                      type="number"
+                      min="1"
+                      max="99"
+                      step="1"
                       placeholder="e.g. 20"
                       value={form.percentage}
                       onChange={e => setForm(f => ({ ...f, percentage: e.target.value }))}
@@ -317,7 +393,9 @@ export default function AdminPromotions() {
                   <div className="adm-field">
                     <label>New Price (TND) *</label>
                     <input
-                      type="number" min="0" step="0.01"
+                      type="number"
+                      min="0"
+                      step="0.01"
                       placeholder="0.00"
                       value={form.fixedPrice}
                       onChange={e => setForm(f => ({ ...f, fixedPrice: e.target.value }))}
@@ -368,7 +446,9 @@ export default function AdminPromotions() {
               </div>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button className="adm-btn-cancel" onClick={() => setModalOpen(false)}>
+                Cancel
+              </button>
               <button className="adm-btn-save" onClick={handleSave} disabled={saving}>
                 {saving ? 'Saving…' : 'Create Promotion'}
               </button>
@@ -383,7 +463,9 @@ export default function AdminPromotions() {
           <div className="adm-modal adm-modal--sm" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>End Promotion Now?</h2>
-              <button className="adm-modal-close" onClick={() => setEndId(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setEndId(null)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <p style={{ fontSize: '0.875rem', color: '#475569', margin: 0, lineHeight: 1.6 }}>
@@ -391,8 +473,12 @@ export default function AdminPromotions() {
               </p>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setEndId(null)}>Cancel</button>
-              <button className="adm-btn-save" onClick={() => handleEnd(endId)}>End Now</button>
+              <button className="adm-btn-cancel" onClick={() => setEndId(null)}>
+                Cancel
+              </button>
+              <button className="adm-btn-save" onClick={() => handleEnd(endId)}>
+                End Now
+              </button>
             </div>
           </div>
         </div>
@@ -404,7 +490,9 @@ export default function AdminPromotions() {
           <div className="adm-modal adm-modal--sm" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-head">
               <h2>Delete Promotion?</h2>
-              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>✕</button>
+              <button className="adm-modal-close" onClick={() => setConfirmId(null)}>
+                ✕
+              </button>
             </div>
             <div className="adm-modal-body">
               <p style={{ fontSize: '0.875rem', color: '#475569', margin: 0, lineHeight: 1.6 }}>
@@ -412,8 +500,15 @@ export default function AdminPromotions() {
               </p>
             </div>
             <div className="adm-modal-foot">
-              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>Cancel</button>
-              <button className="adm-btn-save ac-btn-danger" onClick={() => handleDelete(confirmId)}>Delete</button>
+              <button className="adm-btn-cancel" onClick={() => setConfirmId(null)}>
+                Cancel
+              </button>
+              <button
+                className="adm-btn-save ac-btn-danger"
+                onClick={() => handleDelete(confirmId)}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
