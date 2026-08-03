@@ -17,7 +17,10 @@ desktop.ini
 backend/vendor/
 backend/var/
 backend/.env.local
-backend/public/uploads/
+# Uploaded product/brand images are excluded on main (user-generated content,
+# not source code) — this branch (with-product-uploads) deliberately tracks
+# them instead, so the rule is commented out here.
+# backend/public/uploads/
 backend/database/seeders/assets/
 backend/config/jwt/private.pem
 backend/config/jwt/public.pem
